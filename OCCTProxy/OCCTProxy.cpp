@@ -40,6 +40,7 @@
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
 
+#include <Graphic3d_RenderingParams.hxx>
 // list of required OCCT libraries
 
 #pragma comment(lib, "TKernel.lib")
@@ -131,7 +132,36 @@ public:
 		myAISContext()->UpdateCurrentViewer();
 		myView()->Redraw();
 		myView()->MustBeResized();
+		SetDefaultDrawerParams();
 		return true;
+	}
+
+	void SetDefaultDrawerParams() {
+		auto ais = myAISContext();
+		auto drawer = ais->DefaultDrawer();
+		drawer->SetFaceBoundaryDraw(true);
+		drawer->SetColor(Quantity_NOC_BLACK);
+		//drawer->SetLineAspect()
+		/*
+		* raphic3d_RenderingParams& aParams = aView->ChangeRenderingParams();
+// specifies rendering mode
+aParams.Method = Graphic3d_RM_RAYTRACING;
+// maximum ray-tracing depth
+aParams.RaytracingDepth = 3;
+// enable shadows rendering
+aParams.IsShadowEnabled = true;
+// enable specular reflections
+aParams.IsReflectionEnabled = true;
+// enable adaptive anti-aliasing
+aParams.IsAntialiasingEnabled = true;
+// enable light propagation through transparent media
+aParams.IsTransparentShadowEnabled = true;
+// update the view
+aView->Update();
+		*/
+		Graphic3d_RenderingParams& rp = myView()->ChangeRenderingParams();
+		rp.RenderResolutionScale = 2;
+
 	}
 
 	/// <summary>
@@ -812,8 +842,8 @@ public:
 	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
 		return ImportStep(aFilename);
-	}	
-	
+	}
+
 	bool ImportIges(System::String^ str)
 	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
@@ -897,7 +927,7 @@ public:
 		Handle(AIS_Shape) anIS = Handle(AIS_Shape)::DownCast(anIO);
 		return BRepTools::Write(anIS->Shape(), theFileName.ToCString()) != Standard_False;
 	}
-	
+
 	bool ExportStep(System::String^ str)
 	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
@@ -1037,15 +1067,15 @@ public:
 		anAisSphere->SetColor(Quantity_NOC_STEELBLUE);
 		anAisFusedShape->SetColor(Quantity_NOC_ROSYBROWN);
 
-		myAISContext()->Display(anAisBox,true);
-		myAISContext()->Display(anAisSphere,true);
-		myAISContext()->Display(anAisFusedShape,true);
+		myAISContext()->Display(anAisBox, true);
+		myAISContext()->Display(anAisSphere, true);
+		myAISContext()->Display(anAisFusedShape, true);
 	}
 
-	void MakeBox(double x,double y,double z,double w,double h, double l) {
-		
+	void MakeBox(double x, double y, double z, double w, double h, double l) {
+
 		//myAISContext()->SetDisplayMode(prs, AIS_Shaded, false);
-		
+
 		gp_Pnt p1(x, y, z);
 		gp_Pnt p2(w, h, l);
 		BRepPrimAPI_MakeBox box(p1, p2);

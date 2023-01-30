@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CascadeDesktop
@@ -19,6 +13,35 @@ namespace CascadeDesktop
             SizeChanged += Form1_SizeChanged;
             Paint += Form1_Paint;
             panel1.Paint += Panel1_Paint;
+            panel1.MouseWheel += Panel1_MouseWheel;
+            panel1.MouseDown += Panel1_MouseDown;
+            panel1.MouseUp += Panel1_MouseUp;
+        }
+
+        private void Panel1_MouseUp(object sender, MouseEventArgs e)
+        {
+            isDrag = false;
+        }
+
+        Point startDrag;
+        private void Panel1_MouseDown(object sender, MouseEventArgs e)
+        {
+            startDrag = e.Location;
+            proxy.Select();
+            if (e.Button == MouseButtons.Right)
+            {
+                proxy.StartRotation(e.Location.X, e.Location.Y);
+            }
+
+            if (e.Button == MouseButtons.Left)
+            {
+                isDrag = true;
+            }
+        }
+
+        private void Panel1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            proxy.Zoom(0, 0, e.Delta / 8, 0);
         }
 
         private void Panel1_Paint(object sender, PaintEventArgs e)
@@ -48,7 +71,7 @@ namespace CascadeDesktop
             }
             proxy.SetDisplayMode(1);
             proxy.SetMaterial(1);
-            proxy.SetDegenerateModeOff();
+            //proxy.SetDegenerateModeOff();
             proxy.RedrawView();
             proxy.UpdateCurrentViewer();
             proxy.UpdateView();
@@ -102,13 +125,23 @@ namespace CascadeDesktop
 
         private void boxToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            proxy.MakeBox(0, 0, 0, 100, 100, 100);
         }
 
+        bool isDrag = false;
         private void panel1_MouseMove(object sender, MouseEventArgs e)
         {
-            var p = panel1.PointToClient(Cursor.Position);
-            proxy.MoveTo(p.X, p.Y);
+            if (e.Button == MouseButtons.Right)
+            {
+                proxy.Rotation(e.Location.X, e.Location.Y);
+            }
+            if (e.Button == MouseButtons.Left && isDrag)
+            {
+                var delta = new Point(e.Location.X - startDrag.X, startDrag.Y - e.Location.Y);
+                proxy.Pan(delta.X, delta.Y);
+                startDrag = e.Location;
+            }
+            proxy.MoveTo(e.Location.X, e.Location.Y);
 
         }
 
@@ -137,7 +170,7 @@ namespace CascadeDesktop
 
         private void boxToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            proxy.MakeBox(0,0,0,100,100,100);
+            proxy.MakeBox(0, 0, 0, 100, 100, 100);
             proxy.MakeBox(50, 50, 50, 150, 150, 150);
 
         }
@@ -150,7 +183,7 @@ namespace CascadeDesktop
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog();
-            if (sfd.ShowDialog() != DialogResult.OK) 
+            if (sfd.ShowDialog() != DialogResult.OK)
                 return;
 
             proxy.ExportStep(sfd.FileName);
@@ -163,27 +196,29 @@ namespace CascadeDesktop
 
         private void diffToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         private void unionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             proxy.MakeBool();
         }
-    }
 
-    public class AutoDialog
-    {
-        public DialogForm StartDialog()
+        private void wireToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DialogForm d = new DialogForm();
+            proxy.SetSelectionMode((int)TopAbs_ShapeEnum.TopAbs_WIRE);
 
-            return d;
         }
-    }
 
-    public class DialogForm : Form
-    {
+        private void shapeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            proxy.SetSelectionMode((int)TopAbs_ShapeEnum.TopAbs_SHAPE);
 
+        }
+
+        private void panel1_Paint_1(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 }
