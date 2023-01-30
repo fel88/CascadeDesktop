@@ -60,6 +60,9 @@
             this.wireToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.shapeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripDropDownButton6 = new System.Windows.Forms.ToolStripDropDownButton();
+            this.setObjAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setObjBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tableLayoutPanel1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -73,11 +76,11 @@
             this.tableLayoutPanel1.Controls.Add(this.panel1, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.propertyGrid1, 1, 0);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 31);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 27);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1296, 536);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1296, 540);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // panel1
@@ -85,7 +88,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1040, 530);
+            this.panel1.Size = new System.Drawing.Size(1040, 534);
             this.panel1.TabIndex = 0;
             this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint_1);
             this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
@@ -97,7 +100,7 @@
             this.propertyGrid1.HelpVisible = false;
             this.propertyGrid1.Location = new System.Drawing.Point(1049, 3);
             this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(244, 530);
+            this.propertyGrid1.Size = new System.Drawing.Size(244, 534);
             this.propertyGrid1.TabIndex = 1;
             // 
             // toolStrip1
@@ -113,10 +116,11 @@
             this.toolStripDropDownButton3,
             this.toolStripDropDownButton4,
             this.toolStripDropDownButton5,
-            this.toolStripButton5});
+            this.toolStripButton5,
+            this.toolStripDropDownButton6});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1296, 31);
+            this.toolStrip1.Size = new System.Drawing.Size(1296, 27);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -126,7 +130,7 @@
             this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
             this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(71, 28);
+            this.toolStripButton1.Size = new System.Drawing.Size(71, 24);
             this.toolStripButton1.Text = "zoom all";
             this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
             // 
@@ -355,6 +359,30 @@
             this.toolStripButton5.Text = "About";
             this.toolStripButton5.Click += new System.EventHandler(this.toolStripButton5_Click);
             // 
+            // toolStripDropDownButton6
+            // 
+            this.toolStripDropDownButton6.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripDropDownButton6.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.setObjAToolStripMenuItem,
+            this.setObjBToolStripMenuItem});
+            this.toolStripDropDownButton6.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton6.Image")));
+            this.toolStripDropDownButton6.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripDropDownButton6.Name = "toolStripDropDownButton6";
+            this.toolStripDropDownButton6.Size = new System.Drawing.Size(68, 24);
+            this.toolStripDropDownButton6.Text = "set obj";
+            // 
+            // setObjAToolStripMenuItem
+            // 
+            this.setObjAToolStripMenuItem.Name = "setObjAToolStripMenuItem";
+            this.setObjAToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.setObjAToolStripMenuItem.Text = "set objA";
+            // 
+            // setObjBToolStripMenuItem
+            // 
+            this.setObjBToolStripMenuItem.Name = "setObjBToolStripMenuItem";
+            this.setObjBToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.setObjBToolStripMenuItem.Text = "set objB";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -409,6 +437,9 @@
         private System.Windows.Forms.ToolStripMenuItem wireToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem shapeToolStripMenuItem;
         private System.Windows.Forms.ToolStripButton toolStripButton5;
+        private System.Windows.Forms.ToolStripDropDownButton toolStripDropDownButton6;
+        private System.Windows.Forms.ToolStripMenuItem setObjAToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setObjBToolStripMenuItem;
     }
 }
 

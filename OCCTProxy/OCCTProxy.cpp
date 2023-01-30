@@ -36,6 +36,7 @@
 #include <BRepBuilderAPI.hxx>
 #include <BOPAlgo_Builder.hxx>
 #include < BRepAlgoAPI_Fuse.hxx>
+#include < BRepAlgoAPI_Cut.hxx>
 #include <vcclr.h>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
@@ -105,13 +106,34 @@ static TCollection_AsciiString toAsciiString(String^ theString)
 	return TCollection_AsciiString(aWCharPtr);
 }
 
+class OCCImpl {
+public:
+	AIS_InteractiveObject* getObject(const ObjHandle& handle) const {
+		return reinterpret_cast<AIS_InteractiveObject*> (handle.handle);
+	}
+	TopoDS_Shape MakeBoolDiff(ObjHandle h1, ObjHandle h2) {
+		const auto* obj1 = getObject(h1);
+		const auto* obj2 = getObject(h2);
+
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(obj1)->Shape();
+		shape0 = shape0.Located(obj1->LocalTransformation());
+		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
+		shape1 = shape1.Located(obj2->LocalTransformation());
+		const TopoDS_Shape shape = BRepAlgoAPI_Cut(shape0, shape1);
+		return shape;
+	}
+};
+
 /// <summary>
 /// Proxy class encapsulating calls to OCCT C++ classes within 
 /// C++/CLI class visible from .Net (CSharp)
 /// </summary>
 public ref class OCCTProxy
 {
+
+
 public:
+	static OCCImpl* impl = new OCCImpl();
 	// ============================================
 	// Viewer functionality
 	// ============================================
@@ -1081,6 +1103,13 @@ public:
 		myAISContext()->Erase(o, true);
 	}
 
+	void MakeDiff(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
+		ObjHandle h1 = mh1->ToObjHandle();
+		ObjHandle h2 = mh2->ToObjHandle();
+		const auto ret=impl->MakeBoolDiff(h1, h2);
+		myAISContext()->Display(new AIS_Shape(ret), true);
+	}
+
 	void MakeBool() {
 		gp_Ax2 anAxis;
 		anAxis.SetLocation(gp_Pnt(0.0, 100.0, 0.0));
@@ -1205,4 +1234,6 @@ private:
 	NCollection_Haft<Handle(AIS_InteractiveContext)> myAISContext;
 	NCollection_Haft<Handle(OpenGl_GraphicDriver)> myGraphicDriver;
 };
+
+
 

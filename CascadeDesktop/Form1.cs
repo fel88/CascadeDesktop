@@ -172,7 +172,9 @@ namespace CascadeDesktop
         {
             var cs1 = proxy.MakeBox(0, 0, 0, 100, 100, 100);
             var cs2 = proxy.MakeBox(50, 50, 50, 150, 150, 150);
-
+            proxy.MakeDiff(cs1, cs2);
+            proxy.Erase(cs1);
+            proxy.Erase(cs2);
         }
 
         private void leftToolStripMenuItem_Click(object sender, EventArgs e)
@@ -194,9 +196,11 @@ namespace CascadeDesktop
             proxy.AxoView();
         }
 
+        ManagedObjHandle obj1;
+        ManagedObjHandle obj2;
         private void diffToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            proxy.MakeDiff(obj1, obj2);
         }
 
         private void unionToolStripMenuItem_Click(object sender, EventArgs e)
