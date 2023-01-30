@@ -205,7 +205,7 @@ namespace CascadeDesktop
 
         private void unionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.MakeBool();
+            proxy.MakeFuse(obj1, obj2);
         }
 
         private void wireToolStripMenuItem_Click(object sender, EventArgs e)
@@ -244,6 +244,31 @@ namespace CascadeDesktop
         private void setObjBToolStripMenuItem_Click(object sender, EventArgs e)
         {
             obj2 = proxy.GetSelectedObject();
+        }
+
+        private void toolStripButton6_Click(object sender, EventArgs e)
+        {
+            proxy.MoveObject(proxy.GetSelectedObject(), 50, 50, 50, true);
+        }
+
+        private void intersectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            proxy.MakeCommon(obj1, obj2);
+        }
+
+        private void cylinderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            proxy.MakeCylinder(15, 100);
+        }
+
+        private void sphereToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            proxy.MakeSphere(15);
+        }
+
+        private void toolStripButton7_Click(object sender, EventArgs e)
+        {
+            proxy.RotateObject(proxy.GetSelectedObject(), 0, 0, 1, 45 * Math.PI / 180f, true);
         }
     }
 }

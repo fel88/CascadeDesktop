@@ -33,9 +33,12 @@
 //wrapper of pure C++ classes to ref classes
 #include <NCollection_Haft.h>
 #include <BRepPrimAPI_MakeBox.hxx>
+#include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakeSphere.hxx>
 #include <BRepBuilderAPI.hxx>
 #include <BOPAlgo_Builder.hxx>
 #include < BRepAlgoAPI_Fuse.hxx>
+#include < BRepAlgoAPI_Common.hxx>
 #include < BRepAlgoAPI_Cut.hxx>
 #include <vcclr.h>
 #include <BRepBuilderAPI_Transform.hxx>
@@ -121,7 +124,7 @@ public:
 			if (brepowner.IsNull())
 				break;
 
-			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();			
+			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
 			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
 			h.handle = (unsigned __int64)(self.get());
 			break;
@@ -140,6 +143,30 @@ public:
 		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
 		shape1 = shape1.Located(obj2->LocalTransformation());
 		const TopoDS_Shape shape = BRepAlgoAPI_Cut(shape0, shape1);
+		return shape;
+	}
+
+	TopoDS_Shape MakeBoolFuse(ObjHandle h1, ObjHandle h2) {
+		const auto* obj1 = getObject(h1);
+		const auto* obj2 = getObject(h2);
+
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(obj1)->Shape();
+		shape0 = shape0.Located(obj1->LocalTransformation());
+		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
+		shape1 = shape1.Located(obj2->LocalTransformation());
+		const TopoDS_Shape shape = BRepAlgoAPI_Fuse(shape0, shape1);
+		return shape;
+	}
+
+	TopoDS_Shape MakeBoolCommon(ObjHandle h1, ObjHandle h2) {
+		const auto* obj1 = getObject(h1);
+		const auto* obj2 = getObject(h2);
+
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(obj1)->Shape();
+		shape0 = shape0.Located(obj1->LocalTransformation());
+		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
+		shape1 = shape1.Located(obj2->LocalTransformation());
+		const TopoDS_Shape shape = BRepAlgoAPI_Common(shape0, shape1);
 		return shape;
 	}
 };
@@ -198,7 +225,7 @@ public:
 
 	ManagedObjHandle^ GetSelectedObject() {
 		auto ret = impl->getSelectedObject(myAISContext().get());
-		ManagedObjHandle^ hh = gcnew ManagedObjHandle();		
+		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
 		hh->FromObjHandle(ret);
 		return hh;
 	}
@@ -1130,10 +1157,47 @@ public:
 		myAISContext()->Erase(o, true);
 	}
 
+	void MoveObject(ManagedObjHandle^ h, double x, double y, double z, bool rel)
+	{
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		gp_Trsf tr;
+		tr.SetValues(1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z);
+
+		TopLoc_Location p(tr);
+		myAISContext()->SetLocation(o, p);
+	}
+
+	void RotateObject(ManagedObjHandle^ h, double x, double y, double z, double ang, bool rel)
+	{
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		gp_Trsf tr;
+		gp_Ax1 ax(gp_Pnt(0, 0, 0), gp_Dir(x, y, z));
+		tr.SetRotation(ax, ang);		
+
+		TopLoc_Location p(tr);
+		myAISContext()->SetLocation(o, p);
+	}
+
 	void MakeDiff(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
 		const auto ret = impl->MakeBoolDiff(h1, h2);
+		myAISContext()->Display(new AIS_Shape(ret), true);
+	}
+
+	void MakeFuse(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
+		ObjHandle h1 = mh1->ToObjHandle();
+		ObjHandle h2 = mh2->ToObjHandle();
+		const auto ret = impl->MakeBoolFuse(h1, h2);
+		myAISContext()->Display(new AIS_Shape(ret), true);
+	}
+
+	void MakeCommon(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
+		ObjHandle h1 = mh1->ToObjHandle();
+		ObjHandle h2 = mh2->ToObjHandle();
+		const auto ret = impl->MakeBoolCommon(h1, h2);
 		myAISContext()->Display(new AIS_Shape(ret), true);
 	}
 
@@ -1172,6 +1236,36 @@ public:
 		BRepPrimAPI_MakeBox box(p1, p2);
 		box.Build();
 		auto solid = box.Solid();
+		auto shape = new AIS_Shape(solid);
+		myAISContext()->Display(shape, Standard_True);
+		myAISContext()->SetDisplayMode(shape, AIS_Shaded, false);
+		auto hn = GetHandle(*shape);
+		hh->FromObjHandle(hn);
+		return hh;
+	}
+
+	ManagedObjHandle^ MakeCylinder(double r, double h) {
+
+		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
+
+		BRepPrimAPI_MakeCylinder cyl(r, h);
+		cyl.Build();
+		auto solid = cyl.Solid();
+		auto shape = new AIS_Shape(solid);
+		myAISContext()->Display(shape, Standard_True);
+		myAISContext()->SetDisplayMode(shape, AIS_Shaded, false);
+		auto hn = GetHandle(*shape);
+		hh->FromObjHandle(hn);
+		return hh;
+	}
+
+	ManagedObjHandle^ MakeSphere(double r) {
+
+		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
+
+		BRepPrimAPI_MakeSphere s(r);
+		s.Build();
+		auto solid = s.Solid();
 		auto shape = new AIS_Shape(solid);
 		myAISContext()->Display(shape, Standard_True);
 		myAISContext()->SetDisplayMode(shape, AIS_Shaded, false);
