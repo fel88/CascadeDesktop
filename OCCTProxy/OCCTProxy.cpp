@@ -67,7 +67,25 @@
 #pragma comment(lib, "TKMath.lib")
 #pragma comment(lib, "TKBO.lib")
 #pragma comment(lib, "TKShHealing.lib")
+struct ObjHandle {
+public:
+	unsigned __int64 handle;
+};
 
+public ref class ManagedObjHandle {
+
+
+public:
+	UINT64 Handle;
+	void FromObjHandle(ObjHandle h) {
+		Handle = h.handle;
+	}
+	ObjHandle ToObjHandle() {
+		ObjHandle h;
+		h.handle = Handle;
+		return h;
+	}
+};
 
 //! Auxiliary tool for converting C# string into UTF-8 string.
 static TCollection_AsciiString toAsciiString(String^ theString)
@@ -1041,10 +1059,26 @@ public:
 		aWriter.Write(aComp, theFileName.ToCString());
 		return true;
 	}
+	enum class SelectionModeEnum {
+		None = -1,
+		Shape = 0,
+		Vertex = 1,
+		Edge = 2,
+		Wire = 3,
+		Face = 4
+	};
 
-	void SetSelectionMode(int t) {
-		myAISContext()->Activate(t);
-
+	void SetSelectionMode(SelectionModeEnum t) {
+		myAISContext()->Deactivate();
+		if (t != SelectionModeEnum::None) {
+			myAISContext()->Activate((int)t, true);
+		}
+		//currentMode=t;
+	}
+	void Erase(ManagedObjHandle^ h) {
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		myAISContext()->Erase(o, true);
 	}
 
 	void MakeBool() {
@@ -1072,8 +1106,9 @@ public:
 		myAISContext()->Display(anAisFusedShape, true);
 	}
 
-	void MakeBox(double x, double y, double z, double w, double h, double l) {
+	ManagedObjHandle^ MakeBox(double x, double y, double z, double w, double h, double l) {
 
+		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
 		//myAISContext()->SetDisplayMode(prs, AIS_Shaded, false);
 
 		gp_Pnt p1(x, y, z);
@@ -1084,6 +1119,15 @@ public:
 		auto shape = new AIS_Shape(solid);
 		myAISContext()->Display(shape, Standard_True);
 		myAISContext()->SetDisplayMode(shape, AIS_Shaded, false);
+		auto hn = GetHandle(*shape);
+		hh->FromObjHandle(hn);
+		return hh;
+	}
+
+	ObjHandle GetHandle(const AIS_Shape& ais_shape) {
+		ObjHandle h;
+		h.handle = (unsigned __int64)(&ais_shape);
+		return h;
 	}
 
 	/// <summary>
@@ -1161,3 +1205,4 @@ private:
 	NCollection_Haft<Handle(AIS_InteractiveContext)> myAISContext;
 	NCollection_Haft<Handle(OpenGl_GraphicDriver)> myGraphicDriver;
 };
+

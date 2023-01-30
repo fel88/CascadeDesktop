@@ -59,6 +59,7 @@
             this.vertexToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.wireToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.shapeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
             this.tableLayoutPanel1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -72,11 +73,11 @@
             this.tableLayoutPanel1.Controls.Add(this.panel1, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.propertyGrid1, 1, 0);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 27);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 31);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1296, 540);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1296, 536);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // panel1
@@ -84,7 +85,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1040, 534);
+            this.panel1.Size = new System.Drawing.Size(1040, 530);
             this.panel1.TabIndex = 0;
             this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint_1);
             this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
@@ -96,7 +97,7 @@
             this.propertyGrid1.HelpVisible = false;
             this.propertyGrid1.Location = new System.Drawing.Point(1049, 3);
             this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(244, 534);
+            this.propertyGrid1.Size = new System.Drawing.Size(244, 530);
             this.propertyGrid1.TabIndex = 1;
             // 
             // toolStrip1
@@ -111,10 +112,11 @@
             this.toolStripButton4,
             this.toolStripDropDownButton3,
             this.toolStripDropDownButton4,
-            this.toolStripDropDownButton5});
+            this.toolStripDropDownButton5,
+            this.toolStripButton5});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1296, 27);
+            this.toolStrip1.Size = new System.Drawing.Size(1296, 31);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -124,7 +126,7 @@
             this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
             this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(71, 24);
+            this.toolStripButton1.Size = new System.Drawing.Size(71, 28);
             this.toolStripButton1.Text = "zoom all";
             this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
             // 
@@ -229,8 +231,8 @@
             this.toolStripButton4.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton4.Image")));
             this.toolStripButton4.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton4.Name = "toolStripButton4";
-            this.toolStripButton4.Size = new System.Drawing.Size(123, 24);
-            this.toolStripButton4.Text = "toolStripButton4";
+            this.toolStripButton4.Size = new System.Drawing.Size(55, 24);
+            this.toolStripButton4.Text = "delete";
             this.toolStripButton4.Click += new System.EventHandler(this.toolStripButton4_Click);
             // 
             // toolStripDropDownButton3
@@ -326,6 +328,7 @@
             this.vertexToolStripMenuItem.Name = "vertexToolStripMenuItem";
             this.vertexToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.vertexToolStripMenuItem.Text = "vertex";
+            this.vertexToolStripMenuItem.Click += new System.EventHandler(this.vertexToolStripMenuItem_Click);
             // 
             // wireToolStripMenuItem
             // 
@@ -340,6 +343,17 @@
             this.shapeToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.shapeToolStripMenuItem.Text = "shape";
             this.shapeToolStripMenuItem.Click += new System.EventHandler(this.shapeToolStripMenuItem_Click);
+            // 
+            // toolStripButton5
+            // 
+            this.toolStripButton5.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripButton5.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripButton5.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton5.Image")));
+            this.toolStripButton5.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButton5.Name = "toolStripButton5";
+            this.toolStripButton5.Size = new System.Drawing.Size(54, 28);
+            this.toolStripButton5.Text = "About";
+            this.toolStripButton5.Click += new System.EventHandler(this.toolStripButton5_Click);
             // 
             // Form1
             // 
@@ -394,6 +408,7 @@
         private System.Windows.Forms.ToolStripMenuItem vertexToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem wireToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem shapeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripButton toolStripButton5;
     }
 }
 

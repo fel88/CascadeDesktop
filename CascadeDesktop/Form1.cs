@@ -165,13 +165,13 @@ namespace CascadeDesktop
 
         private void faceToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.SetSelectionMode((int)TopAbs_ShapeEnum.TopAbs_FACE);
+            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Face);
         }
 
         private void boxToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            proxy.MakeBox(0, 0, 0, 100, 100, 100);
-            proxy.MakeBox(50, 50, 50, 150, 150, 150);
+            var cs1 = proxy.MakeBox(0, 0, 0, 100, 100, 100);
+            var cs2 = proxy.MakeBox(50, 50, 50, 150, 150, 150);
 
         }
 
@@ -206,19 +206,30 @@ namespace CascadeDesktop
 
         private void wireToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.SetSelectionMode((int)TopAbs_ShapeEnum.TopAbs_WIRE);
+            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Wire);
 
         }
 
         private void shapeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.SetSelectionMode((int)TopAbs_ShapeEnum.TopAbs_SHAPE);
+            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Shape);
 
         }
 
         private void panel1_Paint_1(object sender, PaintEventArgs e)
         {
 
+        }
+
+        private void vertexToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Vertex);
+        }
+
+        private void toolStripButton5_Click(object sender, EventArgs e)
+        {
+            AboutBox1 ab = new AboutBox1();
+            ab.ShowDialog();
         }
     }
 }
