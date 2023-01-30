@@ -94,7 +94,7 @@ namespace CascadeDesktop
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
 
-            if (ofd.FileName.EndsWith(".stp"))
+            if (ofd.FileName.ToLower().EndsWith(".stp") || ofd.FileName.ToLower().EndsWith(".step"))
             {
                 proxy.ImportStep(ofd.FileName);
             }
@@ -147,9 +147,9 @@ namespace CascadeDesktop
 
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
-
-
+            proxy.Erase(proxy.GetSelectedObject());
         }
+
         enum TopAbs_ShapeEnum
         {
             TopAbs_COMPOUND,
@@ -172,9 +172,9 @@ namespace CascadeDesktop
         {
             var cs1 = proxy.MakeBox(0, 0, 0, 100, 100, 100);
             var cs2 = proxy.MakeBox(50, 50, 50, 150, 150, 150);
-            proxy.MakeDiff(cs1, cs2);
+            /*proxy.MakeDiff(cs1, cs2);
             proxy.Erase(cs1);
-            proxy.Erase(cs2);
+            proxy.Erase(cs2);*/
         }
 
         private void leftToolStripMenuItem_Click(object sender, EventArgs e)
@@ -234,6 +234,16 @@ namespace CascadeDesktop
         {
             AboutBox1 ab = new AboutBox1();
             ab.ShowDialog();
+        }
+
+        private void setObjAToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            obj1 = proxy.GetSelectedObject();
+        }
+
+        private void setObjBToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            obj2 = proxy.GetSelectedObject();
         }
     }
 }

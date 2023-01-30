@@ -376,12 +376,14 @@
             this.setObjAToolStripMenuItem.Name = "setObjAToolStripMenuItem";
             this.setObjAToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.setObjAToolStripMenuItem.Text = "set objA";
+            this.setObjAToolStripMenuItem.Click += new System.EventHandler(this.setObjAToolStripMenuItem_Click);
             // 
             // setObjBToolStripMenuItem
             // 
             this.setObjBToolStripMenuItem.Name = "setObjBToolStripMenuItem";
             this.setObjBToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.setObjBToolStripMenuItem.Text = "set objB";
+            this.setObjBToolStripMenuItem.Click += new System.EventHandler(this.setObjBToolStripMenuItem_Click);
             // 
             // Form1
             // 

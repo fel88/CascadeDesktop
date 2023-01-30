@@ -40,6 +40,7 @@
 #include <vcclr.h>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
+#include <StdSelect_BRepOwner.hxx>
 
 #include <Graphic3d_RenderingParams.hxx>
 // list of required OCCT libraries
@@ -108,6 +109,25 @@ static TCollection_AsciiString toAsciiString(String^ theString)
 
 class OCCImpl {
 public:
+
+	ObjHandle getSelectedObject(AIS_InteractiveContext* ctx) {
+		ObjHandle h;
+		for (ctx->InitSelected(); ctx->MoreSelected(); ctx->NextSelected())
+		{
+			Handle(SelectMgr_EntityOwner) owner = ctx->SelectedOwner();
+			Handle(SelectMgr_SelectableObject) so = owner->Selectable();
+			Handle(StdSelect_BRepOwner) brepowner = Handle(StdSelect_BRepOwner)::DownCast(owner);
+
+			if (brepowner.IsNull())
+				break;
+
+			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();			
+			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
+			h.handle = (unsigned __int64)(self.get());
+			break;
+		}
+		return h;
+	}
 	AIS_InteractiveObject* getObject(const ObjHandle& handle) const {
 		return reinterpret_cast<AIS_InteractiveObject*> (handle.handle);
 	}
@@ -174,6 +194,13 @@ public:
 		myView()->MustBeResized();
 		SetDefaultDrawerParams();
 		return true;
+	}
+
+	ManagedObjHandle^ GetSelectedObject() {
+		auto ret = impl->getSelectedObject(myAISContext().get());
+		ManagedObjHandle^ hh = gcnew ManagedObjHandle();		
+		hh->FromObjHandle(ret);
+		return hh;
 	}
 
 	void SetDefaultDrawerParams() {
@@ -1106,7 +1133,7 @@ public:
 	void MakeDiff(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
-		const auto ret=impl->MakeBoolDiff(h1, h2);
+		const auto ret = impl->MakeBoolDiff(h1, h2);
 		myAISContext()->Display(new AIS_Shape(ret), true);
 	}
 
