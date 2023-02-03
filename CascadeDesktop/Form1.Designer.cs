@@ -68,6 +68,9 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripDropDownButton5 = new System.Windows.Forms.ToolStripDropDownButton();
+            this.filletToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.chamferToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tableLayoutPanel1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -116,6 +119,7 @@
             this.toolStripButton2,
             this.toolStripButton3,
             this.toolStripDropDownButton2,
+            this.toolStripDropDownButton5,
             this.toolStripButton4,
             this.toolStripDropDownButton3,
             this.toolStripDropDownButton4,
@@ -439,6 +443,31 @@
             this.toolStripStatusLabel3.Size = new System.Drawing.Size(15, 20);
             this.toolStripStatusLabel3.Text = "..";
             // 
+            // toolStripDropDownButton5
+            // 
+            this.toolStripDropDownButton5.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripDropDownButton5.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.filletToolStripMenuItem,
+            this.chamferToolStripMenuItem});
+            this.toolStripDropDownButton5.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton5.Image")));
+            this.toolStripDropDownButton5.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripDropDownButton5.Name = "toolStripDropDownButton5";
+            this.toolStripDropDownButton5.Size = new System.Drawing.Size(94, 24);
+            this.toolStripDropDownButton5.Text = "operations";
+            // 
+            // filletToolStripMenuItem
+            // 
+            this.filletToolStripMenuItem.Name = "filletToolStripMenuItem";
+            this.filletToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.filletToolStripMenuItem.Text = "fillet";
+            this.filletToolStripMenuItem.Click += new System.EventHandler(this.filletToolStripMenuItem_Click);
+            // 
+            // chamferToolStripMenuItem
+            // 
+            this.chamferToolStripMenuItem.Name = "chamferToolStripMenuItem";
+            this.chamferToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.chamferToolStripMenuItem.Text = "chamfer";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -501,6 +530,9 @@
         private System.Windows.Forms.ToolStripButton toolStripButton8;
         private System.Windows.Forms.ToolStripButton toolStripButton9;
         private System.Windows.Forms.ToolStripMenuItem edgeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripDropDownButton toolStripDropDownButton5;
+        private System.Windows.Forms.ToolStripMenuItem filletToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem chamferToolStripMenuItem;
     }
 }
 

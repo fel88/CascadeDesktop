@@ -334,5 +334,17 @@ namespace CascadeDesktop
         {
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
+
+        private void filletToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("r", "Radius", 15);
+
+            d.ShowDialog();
+
+            var r = d.GetNumericField("r");
+            proxy.MakeFillet(proxy.GetSelectedObject(), r);
+
+        }
     }
 }

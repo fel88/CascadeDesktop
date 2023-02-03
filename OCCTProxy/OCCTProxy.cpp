@@ -12,8 +12,12 @@
 #include <AIS_InteractiveContext.hxx>
 #include <AIS_Shape.hxx>
 //topology
+#include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
+#include <TopoDS_Edge.hxx>
+#include <TopoDS_TEdge.hxx>
 #include <TopoDS_Compound.hxx>
+#include <TopExp_Explorer.hxx>
 //brep tools
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
@@ -46,8 +50,10 @@
 #include <StdSelect_BRepOwner.hxx>
 
 #include <AIS_ViewCube.hxx>
+#include <BRepFilletAPI_MakeFillet.hxx>
 
 #include <Graphic3d_RenderingParams.hxx>
+#include <TopExp_Explorer.hxx>
 // list of required OCCT libraries
 
 #pragma comment(lib, "TKernel.lib")
@@ -74,22 +80,26 @@
 #pragma comment(lib, "TKMath.lib")
 #pragma comment(lib, "TKBO.lib")
 #pragma comment(lib, "TKShHealing.lib")
+#pragma comment(lib, "TKFillet.lib")
 struct ObjHandle {
 public:
 	unsigned __int64 handle;
+	unsigned __int64 handleT;
 };
 
 public ref class ManagedObjHandle {
-
-
 public:
 	UINT64 Handle;
+	UINT64 HandleT;
+
 	void FromObjHandle(ObjHandle h) {
 		Handle = h.handle;
+		HandleT = h.handleT;
 	}
 	ObjHandle ToObjHandle() {
 		ObjHandle h;
 		h.handle = Handle;
+		h.handleT = HandleT;
 		return h;
 	}
 };
@@ -114,7 +124,43 @@ static TCollection_AsciiString toAsciiString(String^ theString)
 
 class OCCImpl {
 public:
+	ObjHandle getSelectedEdge(AIS_InteractiveContext* ctx) {		
+		auto objs = getSelectedObjectsList(ctx);
+		for (auto item : objs) {			
+			TopoDS_TShape* ptshape = (TopoDS_TShape*)item.handleT;
+			TopoDS_TEdge* edge = dynamic_cast<TopoDS_TEdge*>(ptshape);
+			if (edge != nullptr) {
+				return item;
+			}
+		}
+		return ObjHandle();
+	}
 
+	std::vector<ObjHandle> getSelectedObjectsList(AIS_InteractiveContext* ctx) {
+		std::vector<ObjHandle> ret;
+		for (ctx->InitSelected(); ctx->MoreSelected(); ctx->NextSelected())
+		{
+			ObjHandle h;
+			Handle(SelectMgr_EntityOwner) owner = ctx->SelectedOwner();
+			Handle(SelectMgr_SelectableObject) so = owner->Selectable();
+			Handle(StdSelect_BRepOwner) brepowner = Handle(StdSelect_BRepOwner)::DownCast(owner);
+
+			if (brepowner.IsNull())
+				break;
+
+			const TopoDS_Shape& shape = brepowner->Shape();
+
+			TopoDS_TShape* ptshape = shape.TShape().get();
+
+			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
+			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
+			h.handle = (unsigned __int64)(self.get());
+			h.handleT = (unsigned __int64)(ptshape);
+			ret.push_back(h);
+		}
+		return ret;
+	}
+	
 	ObjHandle getSelectedObject(AIS_InteractiveContext* ctx) {
 		ObjHandle h;
 		for (ctx->InitSelected(); ctx->MoreSelected(); ctx->NextSelected())
@@ -126,16 +172,23 @@ public:
 			if (brepowner.IsNull())
 				break;
 
+			const TopoDS_Shape& shape = brepowner->Shape();
+
+			TopoDS_TShape* ptshape = shape.TShape().get();
+
 			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
 			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
 			h.handle = (unsigned __int64)(self.get());
+			h.handleT = (unsigned __int64)(ptshape);
 			break;
 		}
 		return h;
 	}
+
 	AIS_InteractiveObject* getObject(const ObjHandle& handle) const {
 		return reinterpret_cast<AIS_InteractiveObject*> (handle.handle);
 	}
+
 	TopoDS_Shape MakeBoolDiff(ObjHandle h1, ObjHandle h2) {
 		const auto* obj1 = getObject(h1);
 		const auto* obj2 = getObject(h2);
@@ -1258,6 +1311,45 @@ public:
 		myAISContext()->Display(anAisFusedShape, true);
 	}
 
+	void MakeFillet(ManagedObjHandle^ h1, double s)
+	{
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		auto edge = impl->getSelectedEdge(myAISContext().get());
+
+		//const auto* object2 = impl->getObject(edge);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+
+		BRepFilletAPI_MakeFillet filletOp(shape0);
+		double rFillet = s;
+		bool b = false;
+		for (TopExp_Explorer edgeExplorer(shape0, TopAbs_EDGE); edgeExplorer.More(); edgeExplorer.Next()) {
+			const auto ttt = edgeExplorer.Current();
+			const auto& edgee = TopoDS::Edge(ttt);
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+
+			if (edgee.IsNull()) {
+				continue;
+			}
+			if (ttt3 == edge.handleT) {
+				filletOp.Add(edgee);
+				b = true;
+				break;
+			}
+
+		}
+
+		if (!b)
+			return;
+
+		filletOp.Build();
+		auto shape = filletOp.Shape();
+		myAISContext()->Display(new AIS_Shape(shape), true);
+
+	}
 	ManagedObjHandle^ MakeBox(double x, double y, double z, double w, double h, double l) {
 
 		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
@@ -1307,7 +1399,10 @@ public:
 	}
 
 	ObjHandle GetHandle(const AIS_Shape& ais_shape) {
+		const TopoDS_Shape& shape = ais_shape.Shape();
+		TopoDS_TShape* ptshape = shape.TShape().get();
 		ObjHandle h;
+		h.handleT = (unsigned __int64)ptshape;
 		h.handle = (unsigned __int64)(&ais_shape);
 		return h;
 	}
