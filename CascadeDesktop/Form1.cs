@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -65,16 +66,23 @@ namespace CascadeDesktop
         {
             proxy = new OCCTProxy();
             proxy.InitOCCTProxy();
+
+
             if (!proxy.InitViewer(panel1.Handle))
             {
 
             }
+            proxy.ActivateGrid(true);
+            proxy.ShowCube();
             proxy.SetDisplayMode(1);
             proxy.SetMaterial(1);
             //proxy.SetDegenerateModeOff();
             proxy.RedrawView();
+
+
             proxy.UpdateCurrentViewer();
             proxy.UpdateView();
+
         }
 
         OCCTProxy proxy;
@@ -122,10 +130,21 @@ namespace CascadeDesktop
         {
             proxy.FrontView();
         }
-
+        List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
         private void boxToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.MakeBox(0, 0, 0, 100, 100, 100);
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("w", "Width", 50);
+            d.AddNumericField("h", "Height", 50);
+            d.AddNumericField("l", "Length", 50);
+
+            d.ShowDialog();
+
+            var w = d.GetNumericField("w");
+            var h = d.GetNumericField("h");
+            var l = d.GetNumericField("l");
+            var cs = proxy.MakeBox(0, 0, 0, w, h, l);
+            objs.Add(cs);
         }
 
         bool isDrag = false;
@@ -166,15 +185,6 @@ namespace CascadeDesktop
         private void faceToolStripMenuItem_Click(object sender, EventArgs e)
         {
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Face);
-        }
-
-        private void boxToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            var cs1 = proxy.MakeBox(0, 0, 0, 100, 100, 100);
-            var cs2 = proxy.MakeBox(50, 50, 50, 150, 150, 150);
-            /*proxy.MakeDiff(cs1, cs2);
-            proxy.Erase(cs1);
-            proxy.Erase(cs2);*/
         }
 
         private void leftToolStripMenuItem_Click(object sender, EventArgs e)
@@ -220,9 +230,16 @@ namespace CascadeDesktop
 
         }
 
-        private void panel1_Paint_1(object sender, PaintEventArgs e)
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-
+            if (keyData == Keys.Delete)
+            {
+                if (DialogHelpers.ShowQuestion("Are you sure to delete?", "Question"))
+                {
+                    proxy.Erase(proxy.GetSelectedObject());
+                }
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         private void vertexToolStripMenuItem_Click(object sender, EventArgs e)
@@ -248,7 +265,17 @@ namespace CascadeDesktop
 
         private void toolStripButton6_Click(object sender, EventArgs e)
         {
-            proxy.MoveObject(proxy.GetSelectedObject(), 50, 50, 50, true);
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("x", "x", 0);
+            d.AddNumericField("y", "y", 0);
+            d.AddNumericField("z", "z", 0);
+
+            d.ShowDialog();
+
+            var x = d.GetNumericField("x");
+            var y = d.GetNumericField("y");
+            var z = d.GetNumericField("z");
+            proxy.MoveObject(proxy.GetSelectedObject(), x, y, z, true);
         }
 
         private void intersectToolStripMenuItem_Click(object sender, EventArgs e)
@@ -258,17 +285,54 @@ namespace CascadeDesktop
 
         private void cylinderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.MakeCylinder(15, 100);
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("r", "Radius", 15);
+            d.AddNumericField("h", "Height", 150);
+
+            d.ShowDialog();
+
+            var r = d.GetNumericField("r");
+            var h = d.GetNumericField("h");
+
+            var cs = proxy.MakeCylinder(r, h);
+            objs.Add(cs);
         }
 
         private void sphereToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.MakeSphere(15);
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("r", "Radius", 50);
+
+            d.ShowDialog();
+
+            var r = d.GetNumericField("r");
+            var cs = proxy.MakeSphere(r);
+            objs.Add(cs);
         }
 
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
             proxy.RotateObject(proxy.GetSelectedObject(), 0, 0, 1, 45 * Math.PI / 180f, true);
+        }
+
+        bool grid = true;
+        private void toolStripButton8_Click(object sender, EventArgs e)
+        {
+            grid = !grid;
+            proxy.ActivateGrid(grid);
+        }
+
+        private void toolStripButton9_Click(object sender, EventArgs e)
+        {
+            foreach (var item in objs)
+            {
+                proxy.Erase(item);
+            }
+        }
+
+        private void edgeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
     }
 }

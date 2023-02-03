@@ -53,7 +53,7 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
-    <Compile Include="AutoDialog.cs" />
+    <Compile Include="DialogHelpers.cs" />
     <Compile Include="DialogForm.cs">
       <SubType>Form</SubType>
     </Compile>

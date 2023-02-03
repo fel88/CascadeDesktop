@@ -45,6 +45,8 @@
 #include <BRepPrimAPI_MakeSphere.hxx>
 #include <StdSelect_BRepOwner.hxx>
 
+#include <AIS_ViewCube.hxx>
+
 #include <Graphic3d_RenderingParams.hxx>
 // list of required OCCT libraries
 
@@ -623,6 +625,26 @@ aView->Update();
 		}
 	}
 
+	void ShowCube() {
+		auto cube = new AIS_ViewCube();
+		cube->SetDrawAxes(true);
+		cube->SetSize(50);
+		cube->SetBoxFacetExtension(100 * 0.1);
+
+		cube->SetResetCamera(true);
+		cube->SetFitSelected(true);
+
+		//cube->SetViewAnimation(new AIS_AnimationCamera());
+		cube->SetDuration(0.5);
+
+		myAISContext()->Display(cube, false);
+	}
+	void ActivateGrid(bool en) {
+		if (en)
+			myViewer()->ActivateGrid(Aspect_GT_Rectangular, Aspect_GDM_Lines);
+		else
+			myViewer()->DeactivateGrid();
+	}
 	/// <summary>
 	///Set display mode of objects
 	/// </summary>
@@ -1157,12 +1179,22 @@ public:
 		myAISContext()->Erase(o, true);
 	}
 
+	gp_Trsf GetObjectMatrix(ManagedObjHandle^ h) {
+		AIS_InteractiveObject* p = (AIS_InteractiveObject*)(h->Handle);
+		auto trans = p->Transformation();
+		return trans;
+	}
+
 	void MoveObject(ManagedObjHandle^ h, double x, double y, double z, bool rel)
 	{
 		Handle(AIS_InteractiveObject) o;
 		o.reset((AIS_InteractiveObject*)h->Handle);
 		gp_Trsf tr;
 		tr.SetValues(1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z);
+		if (rel) {
+			auto mtr = GetObjectMatrix(h);
+			tr.Multiply(mtr);
+		}
 
 		TopLoc_Location p(tr);
 		myAISContext()->SetLocation(o, p);
@@ -1174,7 +1206,7 @@ public:
 		o.reset((AIS_InteractiveObject*)h->Handle);
 		gp_Trsf tr;
 		gp_Ax1 ax(gp_Pnt(0, 0, 0), gp_Dir(x, y, z));
-		tr.SetRotation(ax, ang);		
+		tr.SetRotation(ax, ang);
 
 		TopLoc_Location p(tr);
 		myAISContext()->SetLocation(o, p);
