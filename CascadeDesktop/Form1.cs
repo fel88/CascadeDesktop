@@ -343,8 +343,14 @@ namespace CascadeDesktop
             d.ShowDialog();
 
             var r = d.GetNumericField("r");
-            proxy.MakeFillet(proxy.GetSelectedObject(), r);
+            var so = proxy.GetSelectedObject();
+            var cs = proxy.MakeFillet(so, r);
+            proxy.Erase(so);
+        }
 
+        private void toolStripButton10_Click(object sender, EventArgs e)
+        {
+            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
     }
 }

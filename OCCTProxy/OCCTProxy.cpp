@@ -124,9 +124,9 @@ static TCollection_AsciiString toAsciiString(String^ theString)
 
 class OCCImpl {
 public:
-	ObjHandle getSelectedEdge(AIS_InteractiveContext* ctx) {		
+	ObjHandle getSelectedEdge(AIS_InteractiveContext* ctx) {
 		auto objs = getSelectedObjectsList(ctx);
-		for (auto item : objs) {			
+		for (auto item : objs) {
 			TopoDS_TShape* ptshape = (TopoDS_TShape*)item.handleT;
 			TopoDS_TEdge* edge = dynamic_cast<TopoDS_TEdge*>(ptshape);
 			if (edge != nullptr) {
@@ -160,7 +160,7 @@ public:
 		}
 		return ret;
 	}
-	
+
 	ObjHandle getSelectedObject(AIS_InteractiveContext* ctx) {
 		ObjHandle h;
 		for (ctx->InitSelected(); ctx->MoreSelected(); ctx->NextSelected())
@@ -1311,7 +1311,7 @@ public:
 		myAISContext()->Display(anAisFusedShape, true);
 	}
 
-	void MakeFillet(ManagedObjHandle^ h1, double s)
+	ManagedObjHandle^ MakeFillet(ManagedObjHandle^ h1, double s)
 	{
 		auto hh = h1->ToObjHandle();
 		const auto* object1 = impl->getObject(hh);
@@ -1322,7 +1322,7 @@ public:
 		shape0 = shape0.Located(object1->LocalTransformation());
 
 		BRepFilletAPI_MakeFillet filletOp(shape0);
-		double rFillet = s;
+
 		bool b = false;
 		for (TopExp_Explorer edgeExplorer(shape0, TopAbs_EDGE); edgeExplorer.More(); edgeExplorer.Next()) {
 			const auto ttt = edgeExplorer.Current();
@@ -1335,7 +1335,7 @@ public:
 				continue;
 			}
 			if (ttt3 == edge.handleT) {
-				filletOp.Add(edgee);
+				filletOp.Add(s, edgee);
 				b = true;
 				break;
 			}
@@ -1343,13 +1343,19 @@ public:
 		}
 
 		if (!b)
-			return;
+			return nullptr;
 
 		filletOp.Build();
 		auto shape = filletOp.Shape();
-		myAISContext()->Display(new AIS_Shape(shape), true);
+		auto ais = new AIS_Shape(shape);
+		myAISContext()->Display(ais, false);
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
 
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
 	}
+
 	ManagedObjHandle^ MakeBox(double x, double y, double z, double w, double h, double l) {
 
 		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
