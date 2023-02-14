@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Text;
 using System.Windows.Forms;
 
 namespace CascadeDesktop
@@ -130,6 +131,12 @@ namespace CascadeDesktop
         {
             proxy.FrontView();
         }
+
+        public void SetStatus(string text)
+        {
+            toolStripStatusLabel1.Text = text;
+        }
+
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
         private void boxToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -215,7 +222,9 @@ namespace CascadeDesktop
 
         private void unionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.MakeFuse(obj1, obj2);
+            proxy.MakeFuse(obj1, obj2, true);
+            proxy.Erase(obj1);
+            proxy.Erase(obj2);
         }
 
         private void wireToolStripMenuItem_Click(object sender, EventArgs e)
@@ -312,7 +321,20 @@ namespace CascadeDesktop
 
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
-            proxy.RotateObject(proxy.GetSelectedObject(), 0, 0, 1, 45 * Math.PI / 180f, true);
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("a", "Angle", 90);
+            d.AddNumericField("x", "x", 0);
+            d.AddNumericField("y", "y", 0);
+            d.AddNumericField("z", "z", 1);
+
+            d.ShowDialog();
+
+            var ang = d.GetNumericField("a");
+            var x = d.GetNumericField("x");
+            var y = d.GetNumericField("y");
+            var z = d.GetNumericField("z");
+
+            proxy.RotateObject(proxy.GetSelectedObject(), x, y, z, ang * Math.PI / 180f, true);
         }
 
         bool grid = true;
@@ -351,6 +373,28 @@ namespace CascadeDesktop
         private void toolStripButton10_Click(object sender, EventArgs e)
         {
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
+        }
+
+        private void exportMeshToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var res = proxy.IteratePoly(proxy.GetSelectedObject());
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("<?xml version=\"1.0\"?>");
+            sb.AppendLine("<root>");
+            sb.AppendLine("<mesh>");
+            for (int i = 0; i < res.Count; i += 3)
+            {
+                sb.AppendLine("<triangle>");
+                for (int j = 0; j < 3; j++)
+                {
+                    sb.AppendLine($"<vertex x=\"{res[i + j].X}\" y=\"{res[i + j].Y}\" z=\"{res[i + j].Z}\"/>");
+                }
+                sb.AppendLine("</triangle>");
+            }
+            sb.AppendLine("</mesh>");
+            sb.AppendLine("</root>");
+            Clipboard.SetText(sb.ToString());
+            SetStatus("exported successfully");
         }
     }
 }

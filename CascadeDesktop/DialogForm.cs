@@ -9,8 +9,9 @@ namespace CascadeDesktop
     {
         public DialogForm()
         {
-            Shown += DialogForm_Shown;
+            Shown += DialogForm_Shown;         
         }
+
         public new bool ShowDialog()
         {
             return base.ShowDialog() == DialogResult.OK;

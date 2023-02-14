@@ -14,7 +14,9 @@ namespace CascadeDesktop
             DialogForm d = new DialogForm()
             {
                 FormBorderStyle = FormBorderStyle.FixedToolWindow,
-                StartPosition = FormStartPosition.CenterParent
+                StartPosition = FormStartPosition.CenterParent,
+                MaximizeBox = false,
+                MinimizeBox = false
             };
             TableLayoutPanel tp = new TableLayoutPanel();
             tp.Dock = DockStyle.Fill;

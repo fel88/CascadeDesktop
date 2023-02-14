@@ -54,7 +54,10 @@
 
 #include <Graphic3d_RenderingParams.hxx>
 #include <TopExp_Explorer.hxx>
+
+#include <ShapeUpgrade_UnifySameDomain.hxx>
 // list of required OCCT libraries
+
 
 #pragma comment(lib, "TKernel.lib")
 #pragma comment(lib, "TKMath.lib")
@@ -87,6 +90,12 @@ public:
 	unsigned __int64 handleT;
 };
 
+public ref struct Vector3 {
+public:
+	double X;
+	double Y;
+	double Z;
+};
 public ref class ManagedObjHandle {
 public:
 	UINT64 Handle;
@@ -134,6 +143,132 @@ public:
 			}
 		}
 		return ObjHandle();
+	}
+
+	std::vector<double> IteratePoly(ObjHandle h) {
+		auto obj = getObject(h);
+		const auto& shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
+		//std::vector<QVector3D> vertices;
+		std::vector<double> ret;
+		//std::vector<QVector3D> normals;
+		//std::vector<QVector2D> uvs2;
+		std::vector<unsigned int> indices;
+		unsigned int idxCounter = 0;
+		//TopoDS_Shape shape = MakeBottle(100, 300, 20);
+		Standard_Real aDeflection = 0.1;
+
+		//BRepMesh_IncrementalMesh(shape, 1);
+
+		Standard_Integer aIndex = 1, nbNodes = 0;
+
+		//TColgp_SequenceOfPnt aPoints, aPoints1;
+
+		for (TopExp_Explorer aExpFace(shape, TopAbs_FACE); aExpFace.More(); aExpFace.Next())
+
+		{
+
+			TopoDS_Face aFace = TopoDS::Face(aExpFace.Current());
+
+			TopAbs_Orientation faceOrientation = aFace.Orientation();
+
+			TopLoc_Location aLocation;
+
+			Handle(Poly_Triangulation) aTr = BRep_Tool::Triangulation(aFace, aLocation);
+
+			if (!aTr.IsNull())
+			{
+				//const TColgp_Array1OfPnt& aNodes = aTr->NbNodes();
+				const Poly_Array1OfTriangle& triangles = aTr->Triangles();
+				//const TColgp_Array1OfPnt2d& uvNodes = aTr->UVNodes();
+
+				TColgp_Array1OfPnt aPoints(1, aTr->NbNodes());
+				for (Standard_Integer i = 1; i < aTr->NbNodes() + 1; i++)
+					aPoints(i) = aTr->Node(i).Transformed(aLocation);
+
+
+				Standard_Integer nnn = aTr->NbTriangles();
+				Standard_Integer nt, n1, n2, n3;
+
+				for (nt = 1; nt < nnn + 1; nt++)
+				{
+
+					triangles(nt).Get(n1, n2, n3);
+					gp_Pnt aPnt1 = aPoints(n1);
+					gp_Pnt aPnt2 = aPoints(n2);
+					gp_Pnt aPnt3 = aPoints(n3);
+
+					/*gp_Pnt2d uv1 = uvNodes(n1);
+					gp_Pnt2d uv2 = uvNodes(n2);
+					gp_Pnt2d uv3 = uvNodes(n3);*/
+
+					//QVector3D p1, p2, p3;
+
+					if (faceOrientation == TopAbs_Orientation::TopAbs_FORWARD)
+					{
+						ret.push_back(aPnt1.X());
+						ret.push_back(aPnt1.Y());
+						ret.push_back(aPnt1.Z());
+
+						ret.push_back(aPnt2.X());
+						ret.push_back(aPnt2.Y());
+						ret.push_back(aPnt2.Z());
+
+						ret.push_back(aPnt3.X());
+						ret.push_back(aPnt3.Y());
+						ret.push_back(aPnt3.Z());
+
+						/*p1 = QVector3D(aPnt1.X(), aPnt1.Y(), aPnt1.Z());
+						p2 = QVector3D(aPnt2.X(), aPnt2.Y(), aPnt2.Z());
+						p3 = QVector3D(aPnt3.X(), aPnt3.Y(), aPnt3.Z());*/
+					}
+					else
+					{
+						/*p1 = QVector3D(aPnt3.X(), aPnt3.Y(), aPnt3.Z());
+						p2 = QVector3D(aPnt2.X(), aPnt2.Y(), aPnt2.Z());
+						p3 = QVector3D(aPnt1.X(), aPnt1.Y(), aPnt1.Z());*/
+						ret.push_back(aPnt3.X());
+						ret.push_back(aPnt3.Y());
+						ret.push_back(aPnt3.Z());
+
+						ret.push_back(aPnt2.X());
+						ret.push_back(aPnt2.Y());
+						ret.push_back(aPnt2.Z());
+
+						ret.push_back(aPnt1.X());
+						ret.push_back(aPnt1.Y());
+						ret.push_back(aPnt1.Z());
+					}
+
+
+					/*
+
+					vertices.push_back(p1);
+					vertices.push_back(p2);
+					vertices.push_back(p3);
+
+					QVector3D dir1 = p2 - p1;
+					QVector3D dir2 = p3 - p1;
+					QVector3D normal = QVector3D::crossProduct(dir1, dir2);
+
+					normals.push_back(normal);
+					normals.push_back(normal);
+					normals.push_back(normal);
+
+					uvs2.push_back(QVector2D(uv1.X(), uv1.Y()));
+					uvs2.push_back(QVector2D(uv2.X(), uv2.Y()));
+					uvs2.push_back(QVector2D(uv3.X(), uv3.Y()));
+
+
+					indices.push_back(idxCounter++);
+					indices.push_back(idxCounter++);
+					indices.push_back(idxCounter++);*/
+
+				}
+
+			}
+
+		}
+		return ret;
 	}
 
 	std::vector<ObjHandle> getSelectedObjectsList(AIS_InteractiveContext* ctx) {
@@ -201,7 +336,7 @@ public:
 		return shape;
 	}
 
-	TopoDS_Shape MakeBoolFuse(ObjHandle h1, ObjHandle h2) {
+	TopoDS_Shape MakeBoolFuse(ObjHandle h1, ObjHandle h2, bool fixShape) {
 		const auto* obj1 = getObject(h1);
 		const auto* obj2 = getObject(h2);
 
@@ -210,6 +345,12 @@ public:
 		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
 		shape1 = shape1.Located(obj2->LocalTransformation());
 		const TopoDS_Shape shape = BRepAlgoAPI_Fuse(shape0, shape1);
+		if (fixShape) {
+			ShapeUpgrade_UnifySameDomain unif(shape, true, true, false);
+			unif.Build();
+			auto shape2 = unif.Shape();
+			return shape2;
+		}
 		return shape;
 	}
 
@@ -264,6 +405,14 @@ public:
 			Quantity_Color(0.3, 0.3, 0.3, Quantity_TOC_RGB),
 			Aspect_GFM_VER,
 			Standard_True);
+
+		//add8e6
+		//f0f8ff
+		myView()->SetBgGradientColors(
+			Quantity_Color(0xAD / (float)0xFF - 0.2f, 0xD8 / (float)0xFF - 0.2f, 0xE6 / (float)0xFF, Quantity_TOC_RGB),
+			Quantity_Color(0xF0 / (float)0xFF - 0.2f, 0xF8 / (float)0xFF - 0.2f, 0xFF / (float)0xFF - 0.2f, Quantity_TOC_RGB),
+			Aspect_GFM_VER);
+
 		Handle(WNT_Window) aWNTWindow = new WNT_Window(reinterpret_cast<HWND> (theWnd.ToPointer()));
 		myView()->SetWindow(aWNTWindow);
 		if (!aWNTWindow->IsMapped())
@@ -1265,6 +1414,26 @@ public:
 		myAISContext()->SetLocation(o, p);
 	}
 
+	System::Collections::Generic::List<Vector3^>^
+		IteratePoly(ManagedObjHandle^ h) {
+
+
+		System::Collections::Generic::List<Vector3^>^ ret = gcnew System::Collections::Generic::List<Vector3^>();
+		ObjHandle hc = h->ToObjHandle();
+
+		auto pp = impl->IteratePoly(hc);
+		for (size_t i = 0; i < pp.size(); i += 3)
+		{
+			Vector3^ v = gcnew Vector3();
+			v->X = pp[i];
+			v->Y = pp[i + 1];
+			v->Z = pp[i + 2];
+			ret->Add(v);
+		}
+
+		return ret;
+	}
+
 	void MakeDiff(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
@@ -1272,10 +1441,10 @@ public:
 		myAISContext()->Display(new AIS_Shape(ret), true);
 	}
 
-	void MakeFuse(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
+	void MakeFuse(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2, bool fixShape) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
-		const auto ret = impl->MakeBoolFuse(h1, h2);
+		const auto ret = impl->MakeBoolFuse(h1, h2, fixShape);
 		myAISContext()->Display(new AIS_Shape(ret), true);
 	}
 
@@ -1310,6 +1479,8 @@ public:
 		myAISContext()->Display(anAisSphere, true);
 		myAISContext()->Display(anAisFusedShape, true);
 	}
+
+
 
 	ManagedObjHandle^ MakeFillet(ManagedObjHandle^ h1, double s)
 	{

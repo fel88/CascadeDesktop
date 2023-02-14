@@ -73,6 +73,9 @@
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripDropDownButton7 = new System.Windows.Forms.ToolStripDropDownButton();
+            this.exportMeshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tableLayoutPanel1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -86,11 +89,11 @@
             this.tableLayoutPanel1.Controls.Add(this.panel1, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.propertyGrid1, 1, 0);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 31);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 27);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(1296, 639);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1296, 643);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // panel1
@@ -98,7 +101,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1040, 633);
+            this.panel1.Size = new System.Drawing.Size(1040, 637);
             this.panel1.TabIndex = 0;
             this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
             this.panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseMove);
@@ -109,7 +112,7 @@
             this.propertyGrid1.HelpVisible = false;
             this.propertyGrid1.Location = new System.Drawing.Point(1049, 3);
             this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(244, 633);
+            this.propertyGrid1.Size = new System.Drawing.Size(244, 637);
             this.propertyGrid1.TabIndex = 1;
             // 
             // toolStrip1
@@ -132,10 +135,12 @@
             this.toolStripButton8,
             this.toolStripButton9,
             this.toolStripSeparator1,
-            this.toolStripButton10});
+            this.toolStripButton10,
+            this.toolStripSeparator2,
+            this.toolStripDropDownButton7});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1296, 31);
+            this.toolStrip1.Size = new System.Drawing.Size(1296, 27);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -145,7 +150,7 @@
             this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
             this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(71, 28);
+            this.toolStripButton1.Size = new System.Drawing.Size(71, 24);
             this.toolStripButton1.Text = "zoom all";
             this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
             // 
@@ -487,6 +492,29 @@
             this.toolStripStatusLabel3.Size = new System.Drawing.Size(15, 20);
             this.toolStripStatusLabel3.Text = "..";
             // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 31);
+            // 
+            // toolStripDropDownButton7
+            // 
+            this.toolStripDropDownButton7.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.toolStripDropDownButton7.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exportMeshToolStripMenuItem});
+            this.toolStripDropDownButton7.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton7.Image")));
+            this.toolStripDropDownButton7.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripDropDownButton7.Name = "toolStripDropDownButton7";
+            this.toolStripDropDownButton7.Size = new System.Drawing.Size(46, 28);
+            this.toolStripDropDownButton7.Text = "aux";
+            // 
+            // exportMeshToolStripMenuItem
+            // 
+            this.exportMeshToolStripMenuItem.Name = "exportMeshToolStripMenuItem";
+            this.exportMeshToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.exportMeshToolStripMenuItem.Text = "export mesh";
+            this.exportMeshToolStripMenuItem.Click += new System.EventHandler(this.exportMeshToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -554,6 +582,9 @@
         private System.Windows.Forms.ToolStripMenuItem chamferToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton toolStripButton10;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripDropDownButton toolStripDropDownButton7;
+        private System.Windows.Forms.ToolStripMenuItem exportMeshToolStripMenuItem;
     }
 }
 
