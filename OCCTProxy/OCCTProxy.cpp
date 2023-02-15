@@ -45,6 +45,7 @@
 #include <GC_MakeCircle.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepMesh_IncrementalMesh.hxx>
 #include <BRepBuilderAPI.hxx>
 #include <BOPAlgo_Builder.hxx>
 #include < BRepAlgoAPI_Fuse.hxx>
@@ -95,6 +96,7 @@ struct ObjHandle {
 public:
 	unsigned __int64 handle;
 	unsigned __int64 handleT;
+	unsigned __int64 handleF;
 };
 
 public ref struct Vector3 {
@@ -107,15 +109,18 @@ public ref class ManagedObjHandle {
 public:
 	UINT64 Handle;
 	UINT64 HandleT;
+	UINT64 HandleF;
 
 	void FromObjHandle(ObjHandle h) {
 		Handle = h.handle;
 		HandleT = h.handleT;
+		HandleF = h.handleF;
 	}
 	ObjHandle ToObjHandle() {
 		ObjHandle h;
 		h.handle = Handle;
 		h.handleT = HandleT;
+		h.handleF = HandleF;
 		return h;
 	}
 };
@@ -153,8 +158,9 @@ public:
 	}
 
 	std::vector<double> IteratePoly(ObjHandle h) {
-		auto obj = getObject(h);
+		auto obj = getObject(h);						
 		const auto& shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
+		
 		//std::vector<QVector3D> vertices;
 		std::vector<double> ret;
 		//std::vector<QVector3D> normals;
@@ -164,9 +170,11 @@ public:
 		//TopoDS_Shape shape = MakeBottle(100, 300, 20);
 		Standard_Real aDeflection = 0.1;
 
-		//BRepMesh_IncrementalMesh(shape, 1);
+		//BRepMesh_IncrementalMesh(*shape, 1);
+		//bm.Perform();
+		//auto shape2 = bm.Shape();
 
-		Standard_Integer aIndex = 1, nbNodes = 0;
+			Standard_Integer aIndex = 1, nbNodes = 0;
 
 		//TColgp_SequenceOfPnt aPoints, aPoints1;
 
@@ -331,6 +339,10 @@ public:
 		return reinterpret_cast<AIS_InteractiveObject*> (handle.handle);
 	}
 
+	TopoDS_Shape* getShapeFromObject(const ObjHandle& handle) const {
+		return reinterpret_cast<TopoDS_Shape*> (handle.handleF);
+	}
+	
 	TopoDS_Shape MakeBoolDiff(ObjHandle h1, ObjHandle h2) {
 		const auto* obj1 = getObject(h1);
 		const auto* obj2 = getObject(h2);
@@ -1431,7 +1443,7 @@ public:
 
 
 		System::Collections::Generic::List<Vector3^>^ ret = gcnew System::Collections::Generic::List<Vector3^>();
-		ObjHandle hc = h->ToObjHandle();
+		ObjHandle hc = h->ToObjHandle();		
 
 		auto pp = impl->IteratePoly(hc);
 		for (size_t i = 0; i < pp.size(); i += 3)
@@ -1492,7 +1504,7 @@ public:
 		myAISContext()->Display(anAisFusedShape, true);
 	}
 
-	void AddWireDraft(double height) {
+	ManagedObjHandle^ AddWireDraft(double height) {
 		BRepBuilderAPI_MakeFace bface;
 
 		BRepBuilderAPI_MakeWire wire;
@@ -1512,8 +1524,8 @@ public:
 		auto edge1 = BRepBuilderAPI_MakeEdge(seg2);
 		auto wb = BRepBuilderAPI_MakeWire(edge1).Wire();
 		wb.Reverse();
-		
-		
+
+
 
 		//myAISContext()->Display(new AIS_Shape(wire.Wire()), true);
 		//return;
@@ -1522,10 +1534,19 @@ public:
 		bface.Add(wb);
 		auto profile = bface.Face();
 		//myAISContext()->Display(new AIS_Shape(profile), true);
-		
+
 		gp_Vec vec(0, 0, height);
 		auto body = BRepPrimAPI_MakePrism(profile, vec);
-		myAISContext()->Display(new AIS_Shape(body), true);
+		
+		auto shape = body.Shape();		
+		auto ais = new AIS_Shape(shape);
+		myAISContext()->Display(ais, true);
+
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
 	}
 
 
@@ -1626,6 +1647,7 @@ public:
 		const TopoDS_Shape& shape = ais_shape.Shape();
 		TopoDS_TShape* ptshape = shape.TShape().get();
 		ObjHandle h;
+		h.handleF = (unsigned __int64)(&shape);
 		h.handleT = (unsigned __int64)ptshape;
 		h.handle = (unsigned __int64)(&ais_shape);
 		return h;

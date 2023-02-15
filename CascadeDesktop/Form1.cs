@@ -71,7 +71,7 @@ namespace CascadeDesktop
             proxy = new OCCTProxy();
             proxy.InitOCCTProxy();
 
-
+            
             if (!proxy.InitViewer(panel1.Handle))
             {
 
@@ -380,7 +380,7 @@ namespace CascadeDesktop
 
         private void exportMeshToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var res = proxy.IteratePoly(proxy.GetSelectedObject());
+            var res = proxy.IteratePoly(proxy.GetSelectedObject());            
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("<?xml version=\"1.0\"?>");
             sb.AppendLine("<root>");
@@ -397,7 +397,7 @@ namespace CascadeDesktop
             sb.AppendLine("</mesh>");
             sb.AppendLine("</root>");
             Clipboard.SetText(sb.ToString());
-            SetStatus("exported successfully");
+            SetStatus("exported to clipboard successfully");
         }
 
         private void extrudeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -407,7 +407,8 @@ namespace CascadeDesktop
 
         private void draftToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.AddWireDraft(40);
+            obj1 = proxy.AddWireDraft(40);
+
         }
     }
 }
