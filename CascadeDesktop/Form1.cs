@@ -399,5 +399,15 @@ namespace CascadeDesktop
             Clipboard.SetText(sb.ToString());
             SetStatus("exported successfully");
         }
+
+        private void extrudeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void draftToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            proxy.AddWireDraft(40);
+        }
     }
 }

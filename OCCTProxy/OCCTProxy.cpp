@@ -37,8 +37,14 @@
 //wrapper of pure C++ classes to ref classes
 #include <NCollection_Haft.h>
 #include <BRepPrimAPI_MakeBox.hxx>
+#include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
+#include <GC_MakeSegment.hxx>
+#include <GC_MakeCircle.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI.hxx>
 #include <BOPAlgo_Builder.hxx>
 #include < BRepAlgoAPI_Fuse.hxx>
@@ -77,6 +83,7 @@
 #pragma comment(lib, "TKDraw.lib")
 #pragma comment(lib, "TKGeomAlgo.lib")
 #pragma comment(lib, "TKGeomBase.lib")
+#pragma comment(lib, "TKG3d.lib")
 #pragma comment(lib, "TKMesh.lib")
 #pragma comment(lib, "TKService.lib")
 #pragma comment(lib, "TKTopAlgo.lib")
@@ -612,10 +619,10 @@ aView->Update();
 		if (myAISContext().IsNull())
 			return;
 
-		if (!xorSelect)
-			myAISContext()->Select(false);
+		if (xorSelect)
+			myAISContext()->SelectDetected(AIS_SelectionScheme_XOR);
 		else
-			myAISContext()->ShiftSelect(false);
+			myAISContext()->SelectDetected(AIS_SelectionScheme_Replace);
 
 		myAISContext()->UpdateCurrentViewer();
 
@@ -1485,6 +1492,41 @@ public:
 		myAISContext()->Display(anAisFusedShape, true);
 	}
 
+	void AddWireDraft(double height) {
+		BRepBuilderAPI_MakeFace bface;
+
+		BRepBuilderAPI_MakeWire wire;
+		std::vector<gp_Pnt> pnts;
+		pnts.push_back(gp_Pnt(0, 0, 0));
+		pnts.push_back(gp_Pnt(100, 0, 0));
+		pnts.push_back(gp_Pnt(100, 100, 0));
+		pnts.push_back(gp_Pnt(0, 100, 0));
+		for (size_t i = 1; i <= pnts.size(); i++)
+		{
+			Handle(Geom_TrimmedCurve) seg1 = GC_MakeSegment(pnts[i - 1], pnts[i % pnts.size()]);
+			auto edge = BRepBuilderAPI_MakeEdge(seg1);
+			wire.Add(edge);
+		}
+
+		auto seg2 = GC_MakeCircle(gp_Ax1(gp_Pnt(50, 50, 0), gp_Dir(0, 0, 1)), 10).Value();
+		auto edge1 = BRepBuilderAPI_MakeEdge(seg2);
+		auto wb = BRepBuilderAPI_MakeWire(edge1).Wire();
+		wb.Reverse();
+		
+		
+
+		//myAISContext()->Display(new AIS_Shape(wire.Wire()), true);
+		//return;
+		BRepBuilderAPI_MakeFace face1(wire.Wire());
+		bface.Init(face1);
+		bface.Add(wb);
+		auto profile = bface.Face();
+		//myAISContext()->Display(new AIS_Shape(profile), true);
+		
+		gp_Vec vec(0, 0, height);
+		auto body = BRepPrimAPI_MakePrism(profile, vec);
+		myAISContext()->Display(new AIS_Shape(body), true);
+	}
 
 
 	ManagedObjHandle^ MakeFillet(ManagedObjHandle^ h1, double s)
