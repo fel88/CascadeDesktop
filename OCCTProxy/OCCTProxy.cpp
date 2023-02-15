@@ -411,7 +411,7 @@ public:
 		myView()->SetBgGradientColors(
 			Quantity_Color(0xAD / (float)0xFF - 0.2f, 0xD8 / (float)0xFF - 0.2f, 0xE6 / (float)0xFF, Quantity_TOC_RGB),
 			Quantity_Color(0xF0 / (float)0xFF - 0.2f, 0xF8 / (float)0xFF - 0.2f, 0xFF / (float)0xFF - 0.2f, Quantity_TOC_RGB),
-			Aspect_GFM_VER);
+			Aspect_GFM_DIAG2);
 
 		Handle(WNT_Window) aWNTWindow = new WNT_Window(reinterpret_cast<HWND> (theWnd.ToPointer()));
 		myView()->SetWindow(aWNTWindow);
@@ -607,13 +607,18 @@ aView->Update();
 	/// <summary>
 	///Select by click
 	/// </summary>
-	void Select(void)
+	void Select(bool xorSelect)
 	{
-		if (!myAISContext().IsNull())
-		{
-			myAISContext()->SelectDetected();
-			myAISContext()->UpdateCurrentViewer();
-		}
+		if (myAISContext().IsNull())
+			return;
+
+		if (!xorSelect)
+			myAISContext()->Select(false);
+		else
+			myAISContext()->ShiftSelect(false);
+
+		myAISContext()->UpdateCurrentViewer();
+
 	}
 
 	/// <summary>

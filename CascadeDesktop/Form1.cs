@@ -23,13 +23,16 @@ namespace CascadeDesktop
         private void Panel1_MouseUp(object sender, MouseEventArgs e)
         {
             isDrag = false;
+            if (e.Button == MouseButtons.Left)
+            {
+                proxy.Select(ModifierKeys.HasFlag(Keys.Control));
+            }
         }
 
         Point startDrag;
         private void Panel1_MouseDown(object sender, MouseEventArgs e)
         {
             startDrag = e.Location;
-            proxy.Select();
             if (e.Button == MouseButtons.Right)
             {
                 proxy.StartRotation(e.Location.X, e.Location.Y);
@@ -119,7 +122,7 @@ namespace CascadeDesktop
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
-            proxy.Select(0, 0, 500, 500);
+            //proxy.Select(0, 0, 500, 500);
         }
 
         private void topToolStripMenuItem_Click(object sender, EventArgs e)
