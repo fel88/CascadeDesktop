@@ -156,11 +156,21 @@ public:
 		}
 		return ObjHandle();
 	}
+	void  GetSelectedEdges(AIS_InteractiveContext* ctx, std::vector<ObjHandle>& list) {
+		auto objs = getSelectedObjectsList(ctx);
+		for (auto item : objs) {
+			TopoDS_TShape* ptshape = (TopoDS_TShape*)item.handleT;
+			TopoDS_TEdge* edge = dynamic_cast<TopoDS_TEdge*>(ptshape);
+			if (edge != nullptr) {
+				list.push_back(item);
+			}
+		}
+	}
 
 	std::vector<double> IteratePoly(ObjHandle h) {
-		auto obj = getObject(h);						
+		auto obj = getObject(h);
 		const auto& shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
-		
+
 		//std::vector<QVector3D> vertices;
 		std::vector<double> ret;
 		//std::vector<QVector3D> normals;
@@ -174,7 +184,7 @@ public:
 		//bm.Perform();
 		//auto shape2 = bm.Shape();
 
-			Standard_Integer aIndex = 1, nbNodes = 0;
+		Standard_Integer aIndex = 1, nbNodes = 0;
 
 		//TColgp_SequenceOfPnt aPoints, aPoints1;
 
@@ -342,7 +352,7 @@ public:
 	TopoDS_Shape* getShapeFromObject(const ObjHandle& handle) const {
 		return reinterpret_cast<TopoDS_Shape*> (handle.handleF);
 	}
-	
+
 	TopoDS_Shape MakeBoolDiff(ObjHandle h1, ObjHandle h2) {
 		const auto* obj1 = getObject(h1);
 		const auto* obj2 = getObject(h2);
@@ -1276,6 +1286,39 @@ public:
 		return ExportStep(aFilename);
 	}
 
+	bool ExportStep(ManagedObjHandle^ h, System::String^ str)
+	{	
+		const TCollection_AsciiString aFilename = toAsciiString(str);
+		return ExportStep(h, aFilename);
+	}
+
+	bool ExportStep(ManagedObjHandle^ h, const TCollection_AsciiString& theFileName)
+	{
+		STEPControl_StepModelType aType = STEPControl_AsIs;
+		IFSelect_ReturnStatus aStatus;
+		STEPControl_Writer aWriter;
+
+		//auto anIO = impl->getObject(h);
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto anIO = o;
+		Handle(AIS_Shape) anIS = Handle(AIS_Shape)::DownCast(anIO);
+		TopoDS_Shape aShape = anIS->Shape();
+		aStatus = aWriter.Transfer(aShape, aType);
+		if (aStatus != IFSelect_RetDone)
+		{
+			return false;
+		}
+
+		aStatus = aWriter.Write(theFileName.ToCString());
+		if (aStatus != IFSelect_RetDone)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
 	/// <summary>
 	///Export Step file
 	/// </summary>
@@ -1434,6 +1477,11 @@ public:
 		gp_Ax1 ax(gp_Pnt(0, 0, 0), gp_Dir(x, y, z));
 		tr.SetRotation(ax, ang);
 
+		if (rel) {
+			auto mtr = GetObjectMatrix(h);
+			tr.Multiply(mtr);
+		}
+
 		TopLoc_Location p(tr);
 		myAISContext()->SetLocation(o, p);
 	}
@@ -1443,7 +1491,7 @@ public:
 
 
 		System::Collections::Generic::List<Vector3^>^ ret = gcnew System::Collections::Generic::List<Vector3^>();
-		ObjHandle hc = h->ToObjHandle();		
+		ObjHandle hc = h->ToObjHandle();
 
 		auto pp = impl->IteratePoly(hc);
 		for (size_t i = 0; i < pp.size(); i += 3)
@@ -1537,8 +1585,8 @@ public:
 
 		gp_Vec vec(0, 0, height);
 		auto body = BRepPrimAPI_MakePrism(profile, vec);
-		
-		auto shape = body.Shape();		
+
+		auto shape = body.Shape();
 		auto ais = new AIS_Shape(shape);
 		myAISContext()->Display(ais, true);
 
@@ -1554,7 +1602,9 @@ public:
 	{
 		auto hh = h1->ToObjHandle();
 		const auto* object1 = impl->getObject(hh);
-		auto edge = impl->getSelectedEdge(myAISContext().get());
+		std::vector<ObjHandle> edges;
+		impl->GetSelectedEdges(myAISContext().get(), edges);
+		//auto edge = impl->getSelectedEdge(myAISContext().get());
 
 		//const auto* object2 = impl->getObject(edge);
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
@@ -1573,11 +1623,14 @@ public:
 			if (edgee.IsNull()) {
 				continue;
 			}
-			if (ttt3 == edge.handleT) {
-				filletOp.Add(s, edgee);
-				b = true;
-				break;
+			for (auto edge : edges) {
+				if (ttt3 == edge.handleT) {
+					filletOp.Add(s, edgee);
+					b = true;
+					break;
+				}
 			}
+
 
 		}
 

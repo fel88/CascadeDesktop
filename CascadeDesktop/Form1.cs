@@ -205,10 +205,11 @@ namespace CascadeDesktop
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Filter = "Step models (*.stp)|*.stp";
             if (sfd.ShowDialog() != DialogResult.OK)
                 return;
 
-            proxy.ExportStep(sfd.FileName);
+            proxy.ExportStep(proxy.GetSelectedObject(), sfd.FileName);
         }
 
         private void axoToolStripMenuItem_Click(object sender, EventArgs e)
@@ -221,6 +222,8 @@ namespace CascadeDesktop
         private void diffToolStripMenuItem_Click(object sender, EventArgs e)
         {
             proxy.MakeDiff(obj1, obj2);
+            proxy.Erase(obj1);
+            proxy.Erase(obj2);
         }
 
         private void unionToolStripMenuItem_Click(object sender, EventArgs e)
