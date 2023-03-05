@@ -65,6 +65,7 @@
 #include <ShapeUpgrade_UnifySameDomain.hxx>
 // list of required OCCT libraries
 
+using namespace Cascade::Common;
 
 #pragma comment(lib, "TKernel.lib")
 #pragma comment(lib, "TKMath.lib")
@@ -92,6 +93,7 @@
 #pragma comment(lib, "TKBO.lib")
 #pragma comment(lib, "TKShHealing.lib")
 #pragma comment(lib, "TKFillet.lib")
+
 struct ObjHandle {
 public:
 	unsigned __int64 handle;
@@ -437,10 +439,7 @@ public:
 
 		//add8e6
 		//f0f8ff
-		myView()->SetBgGradientColors(
-			Quantity_Color(0xAD / (float)0xFF - 0.2f, 0xD8 / (float)0xFF - 0.2f, 0xE6 / (float)0xFF, Quantity_TOC_RGB),
-			Quantity_Color(0xF0 / (float)0xFF - 0.2f, 0xF8 / (float)0xFF - 0.2f, 0xFF / (float)0xFF - 0.2f, Quantity_TOC_RGB),
-			Aspect_GFM_DIAG2);
+		SetDefaultGradient();
 
 		Handle(WNT_Window) aWNTWindow = new WNT_Window(reinterpret_cast<HWND> (theWnd.ToPointer()));
 		myView()->SetWindow(aWNTWindow);
@@ -454,6 +453,13 @@ public:
 		myView()->MustBeResized();
 		SetDefaultDrawerParams();
 		return true;
+	}
+
+	void SetDefaultGradient() {
+		myView()->SetBgGradientColors(
+			Quantity_Color(0xAD / (float)0xFF - 0.2f, 0xD8 / (float)0xFF - 0.2f, 0xE6 / (float)0xFF, Quantity_TOC_RGB),
+			Quantity_Color(0xF0 / (float)0xFF - 0.3f, 0xF8 / (float)0xFF - 0.3f, 0xFF / (float)0xFF - 0.3f, Quantity_TOC_RGB),
+			Aspect_GFM_DIAG2);
 	}
 
 	ManagedObjHandle^ GetSelectedObject() {
@@ -1005,6 +1011,13 @@ aView->Update();
 		}
 	}
 
+	void SetBackgroundColor(int red1, int green1, int blue1, int red2, int green2, int blue2) {
+		myView()->SetBgGradientColors(
+			Quantity_Color(red1 / 255., green1 / 255., blue1 / 255., Quantity_TOC_RGB),
+			Quantity_Color(red2 / 255., green2 / 255., blue2 / 255., Quantity_TOC_RGB),
+			Aspect_GFM_DIAG2);
+	}
+
 	/// <summary>
 	///Erase objects
 	/// </summary>
@@ -1287,7 +1300,7 @@ public:
 	}
 
 	bool ExportStep(ManagedObjHandle^ h, System::String^ str)
-	{	
+	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
 		return ExportStep(h, aFilename);
 	}
@@ -1520,6 +1533,45 @@ public:
 		myAISContext()->Display(new AIS_Shape(ret), true);
 	}
 
+	ManagedObjHandle^ MakePrism(ManagedObjHandle^ m, double height) {
+		ObjHandle h = m->ToObjHandle();
+		BRepBuilderAPI_MakeFace bface;
+		const auto* object1 = impl->getObject(h);
+
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		auto compound = TopoDS::Compound(shape0);
+
+		for (TopExp_Explorer aExpFace(shape0, TopAbs_WIRE); aExpFace.More(); aExpFace.Next())
+		{
+
+			TopoDS_Wire wire = TopoDS::Wire(aExpFace.Current());
+			
+			BRepBuilderAPI_MakeFace face1(wire);
+			bface.Init(face1);
+			//bface.Add(wb);
+			auto profile = bface.Face();
+			//myAISContext()->Display(new AIS_Shape(profile), true);
+
+			gp_Vec vec(0, 0, height);
+			auto body = BRepPrimAPI_MakePrism(profile, vec);
+
+			auto shape = body.Shape();
+			auto ais = new AIS_Shape(shape);
+			myAISContext()->Display(ais, true);
+
+			ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+			auto hn = GetHandle(*ais);
+			hhh->FromObjHandle(hn);
+			return hhh;
+		}
+
+		return nullptr;
+
+		//const auto ret = impl->MakeBoolFuse(h1, h2, fixShape);
+		//myAISContext()->Display(new AIS_Shape(ret), true);
+	}
+
 	void MakeCommon(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
@@ -1695,6 +1747,68 @@ public:
 		hh->FromObjHandle(hn);
 		return hh;
 	}
+
+
+	static void ImportElement(BRep_Builder& builder, TopoDS_Compound& compound, BlueprintItem^ item) {
+		Line3D^ line = dynamic_cast<Line3D^>	(item);
+
+		if (line != nullptr) {
+			AttachLineToCompound(builder, compound, line->Start->X, line->Start->Y, line->Start->Z, line->End->X, line->End->Y, line->End->Z);
+		}
+	}
+
+	ManagedObjHandle^ ImportBlueprint(Blueprint^ blueprint) {
+		TopoDS_Compound compound;
+		BRep_Builder builder;
+
+		builder.MakeCompound(compound);
+
+		for (size_t i = 0; i < blueprint->Contours->Count; i++)
+		{
+			std::vector<gp_Pnt> pnts;
+			for (size_t j = 0; j < blueprint->Contours[i]->Points->Count; j++)
+			{
+				auto p = blueprint->Contours[i]->Points[j];
+				pnts.push_back(gp_Pnt(p->X, p->Y, p->Z));
+			}
+			BRepBuilderAPI_MakeWire wire;
+
+			for (size_t i = 1; i <= pnts.size(); i++)
+			{
+				Handle(Geom_TrimmedCurve) seg1 = GC_MakeSegment(pnts[i - 1], pnts[i % pnts.size()]);
+				auto edge = BRepBuilderAPI_MakeEdge(seg1);
+				wire.Add(edge);
+			}
+			//BRepBuilderAPI_MakeWire bwire;
+		//	bwire.Add(wire);
+			//auto result = bwire.Wire();
+			builder.Add(compound, wire.Wire());
+
+			//ImportElement(builder, compound, blueprint->Items[i]);
+		}
+
+		auto shape = new AIS_Shape(compound);
+		auto h = GetHandle(*shape);
+		myAISContext()->Display(shape, true);
+
+		ManagedObjHandle^ ret = gcnew ManagedObjHandle();
+		ret->FromObjHandle(h);
+		return ret;
+	}
+
+	static void AttachLineToCompound(BRep_Builder& builder, TopoDS_Compound& compound, double x1, double y1, double z1, double x2, double y2, double z2)
+	{
+		Handle(Geom_TrimmedCurve) segment = GC_MakeSegment(gp_Pnt(x1, y1, z1), gp_Pnt(x2, y2, z2));
+		TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(segment);
+
+		TopoDS_Wire wire = BRepBuilderAPI_MakeWire(edge);
+
+		BRepBuilderAPI_MakeWire topWire;
+		topWire.Add(wire);
+		auto result = topWire.Wire();
+		builder.Add(compound, topWire);
+	}
+
 
 	ObjHandle GetHandle(const AIS_Shape& ais_shape) {
 		const TopoDS_Shape& shape = ais_shape.Shape();

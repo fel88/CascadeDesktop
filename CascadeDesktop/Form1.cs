@@ -1,6 +1,11 @@
-﻿using System;
+﻿using Cascade.Common;
+using OpenTK;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Windows.Forms;
 
@@ -71,7 +76,7 @@ namespace CascadeDesktop
             proxy = new OCCTProxy();
             proxy.InitOCCTProxy();
 
-            
+
             if (!proxy.InitViewer(panel1.Handle))
             {
 
@@ -83,10 +88,19 @@ namespace CascadeDesktop
             //proxy.SetDegenerateModeOff();
             proxy.RedrawView();
 
+            Color clr1 = Color.DarkBlue;
+            Color clr2 = Color.Olive;
+            //proxy.SetBackgroundColor(clr1.R, clr1.G, clr1.B, clr2.R, clr2.G, clr2.B);
+
 
             proxy.UpdateCurrentViewer();
             proxy.UpdateView();
 
+        }
+
+        void SetBgGradient(Color clr1, Color clr2)
+        {
+            proxy.SetBackgroundColor(clr1.R, clr1.G, clr1.B, clr2.R, clr2.G, clr2.B);
         }
 
         OCCTProxy proxy;
@@ -383,35 +397,146 @@ namespace CascadeDesktop
 
         private void exportMeshToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var res = proxy.IteratePoly(proxy.GetSelectedObject());            
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Filter = "Obj mesh|*.obj";
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
+
+            var res = proxy.IteratePoly(proxy.GetSelectedObject()).Select(z => new Vector3d(z.X, z.Y, z.Z)).ToArray();
+
+            const float tolerance = 1e-8f;
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("<?xml version=\"1.0\"?>");
-            sb.AppendLine("<root>");
-            sb.AppendLine("<mesh>");
-            for (int i = 0; i < res.Count; i += 3)
+            List<Vector3d> vvv = new List<Vector3d>();
+
+
+            for (int i = 0; i < res.Length; i += 3)
             {
-                sb.AppendLine("<triangle>");
-                for (int j = 0; j < 3; j++)
+                var verts = new[] { res[i], res[i + 1], res[i + 2] };
+                foreach (var v in verts)
                 {
-                    sb.AppendLine($"<vertex x=\"{res[i + j].X}\" y=\"{res[i + j].Y}\" z=\"{res[i + j].Z}\"/>");
+                    if (vvv.Any(z => (z - v).Length < tolerance))
+                        continue;
+
+                    vvv.Add(v);
+                    sb.AppendLine($"v {v.X} {v.Y} {v.Z}".Replace(",", "."));
                 }
-                sb.AppendLine("</triangle>");
             }
-            sb.AppendLine("</mesh>");
-            sb.AppendLine("</root>");
-            Clipboard.SetText(sb.ToString());
-            SetStatus("exported to clipboard successfully");
+            int counter = 1;
+            for (int i = 0; i < res.Length; i += 3)
+            {
+                var verts = new[] { res[i], res[i + 1], res[i + 2] };
+                List<int> indc = new List<int>();
+
+                foreach (var vitem in verts)
+                {
+                    for (int k = 0; k < vvv.Count; k++)
+                    {
+                        if ((vvv[k] - vitem).Length < tolerance)
+                        {
+                            indc.Add(k + 1);
+                        }
+                        else
+                            continue;
+                    }
+                }
+                if (indc.GroupBy(z => z).Any(z => z.Count() > 1))
+                {
+                    continue;
+                    //throw duplicate face vertex
+                }
+                sb.AppendLine($"f {indc[0]} {indc[1]} {indc[2]}");
+            }
+
+            File.WriteAllText(sfd.FileName, sb.ToString());
+            SetStatus($"saved to {sfd.FileName} successfully");
         }
 
         private void extrudeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            proxy.MakePrism(proxy.GetSelectedObject(), 50);
         }
 
         private void draftToolStripMenuItem_Click(object sender, EventArgs e)
         {
             obj1 = proxy.AddWireDraft(40);
 
+        }
+
+        private void draftToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+
+        }
+        void ImportDxf(string file)
+        {
+            var r = DxfParser.LoadDxf(file);
+
+            List<NFP> nfps = new List<NFP>();
+            foreach (var rr in r)
+            {
+                nfps.Add(new NFP() { Points = rr.Points.Select(z => new SvgPoint(z.X, z.Y)).ToArray() });
+            }
+
+            for (int i = 0; i < nfps.Count; i++)
+            {
+                for (int j = 0; j < nfps.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        var d2 = nfps[i];
+                        var d3 = nfps[j];
+                        var f0 = d3.Points[0];
+                        if (StaticHelpers.pnpoly(d2.Points.ToArray(), f0.X, f0.Y))
+                        {
+                            d3.Parent = d2;
+                            if (!d2.Childrens.Contains(d3))
+                            {
+                                d2.Childrens.Add(d3);
+                            }
+                        }
+                    }
+                }
+            }
+
+            //List<HelperItem> ret = new List<HelperItem>();
+            foreach (var item in nfps)
+            {
+                if (item.Parent != null)
+                    continue;
+
+                Blueprint blueprint = new Blueprint();
+                BlueprintContour cntr = new BlueprintContour();
+                foreach (var pp in item.Points)
+                {
+                    cntr.Points.Add(new Vertex(pp.X, pp.Y, 0));
+                }
+                /*cntr.Points.Add(new Vertex(0, 0, 0));
+                cntr.Points.Add(new Vertex(100, 0, 0));
+                cntr.Points.Add(new Vertex(100, 100, 0));
+                cntr.Points.Add(new Vertex(0, 100, 0));*/
+
+                blueprint.Contours.Add(cntr);
+                var handler = proxy.ImportBlueprint(blueprint);
+            }
+        }
+
+        private void importDraftFromDxfToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            if (ofd.ShowDialog() != DialogResult.OK)
+                return;
+
+            ImportDxf(ofd.FileName);
+        }
+
+        private void darkToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetBgGradient(Color.Black, Color.Black);
+        }
+
+        private void lightToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //SetBgGradient(Color.LightBlue, Color.Gray);
+            proxy.SetDefaultGradient();
         }
     }
 }
