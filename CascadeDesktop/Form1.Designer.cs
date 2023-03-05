@@ -46,7 +46,6 @@
             this.cylinderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sphereToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-            this.draftToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.draftToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.importDraftFromDxfToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripDropDownButton2 = new System.Windows.Forms.ToolStripDropDownButton();
@@ -237,13 +236,12 @@
             this.cylinderToolStripMenuItem,
             this.sphereToolStripMenuItem,
             this.toolStripSeparator4,
-            this.draftToolStripMenuItem,
-            this.draftToolStripMenuItem1,
-            this.importDraftFromDxfToolStripMenuItem});
+            this.importDraftFromDxfToolStripMenuItem,
+            this.draftToolStripMenuItem1});
             this.toolStripDropDownButton3.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton3.Image")));
             this.toolStripDropDownButton3.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripDropDownButton3.Name = "toolStripDropDownButton3";
-            this.toolStripDropDownButton3.Size = new System.Drawing.Size(61, 41);
+            this.toolStripDropDownButton3.Size = new System.Drawing.Size(61, 29);
             this.toolStripDropDownButton3.Text = "add";
             // 
             // boxToolStripMenuItem
@@ -272,18 +270,11 @@
             this.toolStripSeparator4.Name = "toolStripSeparator4";
             this.toolStripSeparator4.Size = new System.Drawing.Size(282, 6);
             // 
-            // draftToolStripMenuItem
-            // 
-            this.draftToolStripMenuItem.Name = "draftToolStripMenuItem";
-            this.draftToolStripMenuItem.Size = new System.Drawing.Size(285, 34);
-            this.draftToolStripMenuItem.Text = "wire draft";
-            this.draftToolStripMenuItem.Click += new System.EventHandler(this.draftToolStripMenuItem_Click);
-            // 
             // draftToolStripMenuItem1
             // 
             this.draftToolStripMenuItem1.Name = "draftToolStripMenuItem1";
             this.draftToolStripMenuItem1.Size = new System.Drawing.Size(285, 34);
-            this.draftToolStripMenuItem1.Text = "draft";
+            this.draftToolStripMenuItem1.Text = "draw draft";
             this.draftToolStripMenuItem1.Click += new System.EventHandler(this.draftToolStripMenuItem1_Click);
             // 
             // importDraftFromDxfToolStripMenuItem
@@ -670,7 +661,6 @@
         private System.Windows.Forms.ToolStripMenuItem extrudeToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
-        private System.Windows.Forms.ToolStripMenuItem draftToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem draftToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem importDraftFromDxfToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem backgroundToolStripMenuItem;

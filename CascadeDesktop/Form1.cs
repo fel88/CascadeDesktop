@@ -453,7 +453,11 @@ namespace CascadeDesktop
 
         private void extrudeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.MakePrism(proxy.GetSelectedObject(), 50);
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("h", "Height", 50);
+            d.ShowDialog();
+            var h = d.GetNumericField("h");
+            proxy.MakePrism(proxy.GetSelectedObject(), h);
         }
 
         private void draftToolStripMenuItem_Click(object sender, EventArgs e)
@@ -496,27 +500,44 @@ namespace CascadeDesktop
                     }
                 }
             }
+            Blueprint blueprint = new Blueprint();
 
             //List<HelperItem> ret = new List<HelperItem>();
+            int sign = 0;
             foreach (var item in nfps)
             {
                 if (item.Parent != null)
                     continue;
 
-                Blueprint blueprint = new Blueprint();
                 BlueprintContour cntr = new BlueprintContour();
                 foreach (var pp in item.Points)
                 {
                     cntr.Points.Add(new Vertex(pp.X, pp.Y, 0));
                 }
-                /*cntr.Points.Add(new Vertex(0, 0, 0));
-                cntr.Points.Add(new Vertex(100, 0, 0));
-                cntr.Points.Add(new Vertex(100, 100, 0));
-                cntr.Points.Add(new Vertex(0, 100, 0));*/
+                sign = Math.Sign(StaticHelpers.signed_area(item.Points)) ;
+                
+                blueprint.Contours.Add(cntr);
+            }
+            //holes
+            foreach (var item in nfps)
+            {
+                if (item.Parent == null)
+                    continue;
+
+                BlueprintContour cntr = new BlueprintContour();
+                foreach (var pp in item.Points)
+                {
+                    cntr.Points.Add(new Vertex(pp.X, pp.Y, 0));
+                }
+                if(Math.Sign(StaticHelpers.signed_area(item.Points)) == sign)
+                {
+                    cntr.Points.Reverse();
+                }
 
                 blueprint.Contours.Add(cntr);
-                var handler = proxy.ImportBlueprint(blueprint);
             }
+            var handler = proxy.ImportBlueprint(blueprint);
+
         }
 
         private void importDraftFromDxfToolStripMenuItem_Click(object sender, EventArgs e)

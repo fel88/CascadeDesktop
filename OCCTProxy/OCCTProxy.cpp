@@ -1541,32 +1541,38 @@ public:
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
 		auto compound = TopoDS::Compound(shape0);
 
+		int counter = 0;
 		for (TopExp_Explorer aExpFace(shape0, TopAbs_WIRE); aExpFace.More(); aExpFace.Next())
 		{
-
 			TopoDS_Wire wire = TopoDS::Wire(aExpFace.Current());
-			
 			BRepBuilderAPI_MakeFace face1(wire);
-			bface.Init(face1);
-			//bface.Add(wb);
-			auto profile = bface.Face();
-			//myAISContext()->Display(new AIS_Shape(profile), true);
+			if (counter > 0) {
+				
+				//wire.Reverse();
+				bface.Add(wire);
+			}
+			else
+				bface.Init(face1);
 
-			gp_Vec vec(0, 0, height);
-			auto body = BRepPrimAPI_MakePrism(profile, vec);
-
-			auto shape = body.Shape();
-			auto ais = new AIS_Shape(shape);
-			myAISContext()->Display(ais, true);
-
-			ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
-
-			auto hn = GetHandle(*ais);
-			hhh->FromObjHandle(hn);
-			return hhh;
+			counter++;
 		}
 
-		return nullptr;
+		auto profile = bface.Face();
+		//myAISContext()->Display(new AIS_Shape(profile), true);
+
+		gp_Vec vec(0, 0, height);
+		auto body = BRepPrimAPI_MakePrism(profile, vec);
+
+		auto shape = body.Shape();
+		auto ais = new AIS_Shape(shape);
+		myAISContext()->Display(ais, true);
+
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
+
 
 		//const auto ret = impl->MakeBoolFuse(h1, h2, fixShape);
 		//myAISContext()->Display(new AIS_Shape(ret), true);
@@ -1624,8 +1630,6 @@ public:
 		auto edge1 = BRepBuilderAPI_MakeEdge(seg2);
 		auto wb = BRepBuilderAPI_MakeWire(edge1).Wire();
 		wb.Reverse();
-
-
 
 		//myAISContext()->Display(new AIS_Shape(wire.Wire()), true);
 		//return;
@@ -1773,7 +1777,7 @@ public:
 			}
 			BRepBuilderAPI_MakeWire wire;
 
-			for (size_t i = 1; i <= pnts.size(); i++)
+			for (size_t i = 1; i < pnts.size(); i++)
 			{
 				Handle(Geom_TrimmedCurve) seg1 = GC_MakeSegment(pnts[i - 1], pnts[i % pnts.size()]);
 				auto edge = BRepBuilderAPI_MakeEdge(seg1);

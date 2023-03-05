@@ -32,6 +32,7 @@ namespace CascadeDesktop
 
             return area / 2.0;
         }
+        
         public static double signed_area(Vector2d[] polygon)
         {
             double area = 0.0;
