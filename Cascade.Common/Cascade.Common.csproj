@@ -41,12 +41,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Arc.cs" />
+    <Compile Include="Arc2D.cs" />
     <Compile Include="Blueprint.cs" />
     <Compile Include="BlueprintContour.cs" />
     <Compile Include="BlueprintItem.cs" />
+    <Compile Include="Line2D.cs" />
     <Compile Include="Line3D.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Vertex.cs" />
+    <Compile Include="Vertex2D.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

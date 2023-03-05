@@ -69,13 +69,22 @@
     <Compile Include="DialogForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="DraftEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DraftEditor.Designer.cs">
+      <DependentUpon>DraftEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DrawingContext.cs" />
     <Compile Include="DxfParser.cs" />
+    <Compile Include="EventWrapperPictureBox.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="IDrawingContext.cs" />
     <Compile Include="LineElement.cs" />
     <Compile Include="LocalContour.cs" />
     <Compile Include="NFP.cs" />
@@ -85,6 +94,9 @@
     <Compile Include="SvgPoint.cs" />
     <EmbeddedResource Include="AboutBox1.resx">
       <DependentUpon>AboutBox1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DraftEditor.resx">
+      <DependentUpon>DraftEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

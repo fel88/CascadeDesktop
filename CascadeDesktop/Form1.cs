@@ -468,8 +468,15 @@ namespace CascadeDesktop
 
         private void draftToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-
+            DraftEditor dd = new DraftEditor();
+            dd.StartPosition = FormStartPosition.CenterScreen;
+            dd.ShowDialog();
+            if (dd.Blueprint != null && dd.Blueprint.Contours.Any())
+            {
+                var handler = proxy.ImportBlueprint(dd.Blueprint);
+            }
         }
+
         void ImportDxf(string file)
         {
             var r = DxfParser.LoadDxf(file);
