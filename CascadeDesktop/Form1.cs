@@ -256,17 +256,17 @@ namespace CascadeDesktop
         private void shapeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Shape);
-
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             if (keyData == Keys.Delete)
             {
-                if (DialogHelpers.ShowQuestion("Are you sure to delete?", "Question"))
-                {
-                    proxy.Erase(proxy.GetSelectedObject());
-                }
+                if (proxy.IsObjectSelected())
+                    if (DialogHelpers.ShowQuestion("Are you sure to delete?", "Question"))
+                    {
+                        proxy.Erase(proxy.GetSelectedObject());
+                    }
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
@@ -516,13 +516,16 @@ namespace CascadeDesktop
                 if (item.Parent != null)
                     continue;
 
+                BlueprintPolyline poly = new BlueprintPolyline();
                 BlueprintContour cntr = new BlueprintContour();
+                cntr.Items.Add(poly);
+                
                 foreach (var pp in item.Points)
                 {
-                    cntr.Points.Add(new Vertex(pp.X, pp.Y, 0));
+                    poly.Points.Add(new Vertex2D(pp.X, pp.Y));
                 }
-                sign = Math.Sign(StaticHelpers.signed_area(item.Points)) ;
-                
+                sign = Math.Sign(StaticHelpers.signed_area(item.Points));
+
                 blueprint.Contours.Add(cntr);
             }
             //holes
@@ -531,14 +534,16 @@ namespace CascadeDesktop
                 if (item.Parent == null)
                     continue;
 
+                BlueprintPolyline poly = new BlueprintPolyline();
                 BlueprintContour cntr = new BlueprintContour();
+                cntr.Items.Add(poly);
                 foreach (var pp in item.Points)
                 {
-                    cntr.Points.Add(new Vertex(pp.X, pp.Y, 0));
+                    poly.Points.Add(new Vertex2D(pp.X, pp.Y));
                 }
-                if(Math.Sign(StaticHelpers.signed_area(item.Points)) == sign)
+                if (Math.Sign(StaticHelpers.signed_area(item.Points)) == sign)
                 {
-                    cntr.Points.Reverse();
+                    poly.Points.Reverse();
                 }
 
                 blueprint.Contours.Add(cntr);

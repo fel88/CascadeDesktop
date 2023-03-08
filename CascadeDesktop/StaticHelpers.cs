@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using Cascade.Common;
+using OpenTK;
 using System;
 using System.Drawing;
 using System.Globalization;
@@ -8,6 +9,7 @@ namespace CascadeDesktop
 {
     public static class StaticHelpers
     {
+
         public static double ParseDouble(this string z)
         {
             return double.Parse(z.Replace(",", "."), CultureInfo.InvariantCulture);
@@ -97,6 +99,10 @@ namespace CascadeDesktop
         public static OpenTK.Vector3 ToVector3(this Vector3d v)
         {
             return new OpenTK.Vector3((float)v.X, (float)v.Y, (float)v.Z);
+        }
+        public static OpenTK.Vector2d ToVector2d(this Vertex2D v)
+        {
+            return new OpenTK.Vector2d((float)v.X, (float)v.Y);
         }
         public static double DistTo(this SvgPoint p, SvgPoint p2)
         {

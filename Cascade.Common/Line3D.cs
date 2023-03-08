@@ -1,8 +1,7 @@
 ﻿namespace Cascade.Common
 {
-    public class Line3D : BlueprintItem
+    public class Line3D : BlueprintItem3d
     {
-        public Vertex Start;
-        public Vertex End;
+        
     }
 }

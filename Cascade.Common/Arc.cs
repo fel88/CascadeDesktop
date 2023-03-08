@@ -1,6 +1,6 @@
 ﻿namespace Cascade.Common
 {
-    public class Arc : BlueprintItem
+    public class Arc3d : BlueprintItem3d
     {
         public Vertex Center;
         public Vertex Axis;
@@ -8,5 +8,6 @@
         public double AngleSweep;
         public double AngleStart;
         public bool CCW;
+        public double Radius;
     }
 }

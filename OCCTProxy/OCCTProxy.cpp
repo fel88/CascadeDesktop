@@ -43,6 +43,7 @@
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <GC_MakeSegment.hxx>
 #include <GC_MakeCircle.hxx>
+#include <GC_MakeArcOfCircle.hxx>
 #include <BRepBuilderAPI_MakeWire.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
@@ -1547,7 +1548,7 @@ public:
 			TopoDS_Wire wire = TopoDS::Wire(aExpFace.Current());
 			BRepBuilderAPI_MakeFace face1(wire);
 			if (counter > 0) {
-				
+
 				//wire.Reverse();
 				bface.Add(wire);
 			}
@@ -1760,7 +1761,6 @@ public:
 			AttachLineToCompound(builder, compound, line->Start->X, line->Start->Y, line->Start->Z, line->End->X, line->End->Y, line->End->Z);
 		}
 	}
-
 	ManagedObjHandle^ ImportBlueprint(Blueprint^ blueprint) {
 		TopoDS_Compound compound;
 		BRep_Builder builder;
@@ -1769,23 +1769,92 @@ public:
 
 		for (size_t i = 0; i < blueprint->Contours->Count; i++)
 		{
-			std::vector<gp_Pnt> pnts;
-			for (size_t j = 0; j < blueprint->Contours[i]->Points->Count; j++)
-			{
-				auto p = blueprint->Contours[i]->Points[j];
-				pnts.push_back(gp_Pnt(p->X, p->Y, p->Z));
-			}
 			BRepBuilderAPI_MakeWire wire;
-
-			for (size_t i = 1; i < pnts.size(); i++)
+			for (size_t j = 0; j < blueprint->Contours[i]->Items->Count; j++)
 			{
-				Handle(Geom_TrimmedCurve) seg1 = GC_MakeSegment(pnts[i - 1], pnts[i % pnts.size()]);
-				auto edge = BRepBuilderAPI_MakeEdge(seg1);
-				wire.Add(edge);
+				auto p = blueprint->Contours[i]->Items[j];
+				Line2D^ line = dynamic_cast<Line2D^>	(p);
+				Arc2d^ arc = dynamic_cast<Arc2d^>	(p);
+
+				if (line != nullptr) {
+					gp_Pnt pnt1(line->Start->X, line->Start->Y, 0);
+					gp_Pnt pnt2(line->End->X, line->End->Y, 0);
+					Handle(Geom_TrimmedCurve) seg1 = GC_MakeSegment(pnt1, pnt2);
+					auto edge = BRepBuilderAPI_MakeEdge(seg1);
+					wire.Add(edge);
+				}
+				else
+					if (arc != nullptr && arc->AngleSweep == 360) {
+						gp_Pnt cen(arc->Center->X, arc->Center->Y, 0);
+
+						auto seg1 = GC_MakeCircle(gp_Ax1(cen, gp_Dir(0, 0, 1)), arc->Radius).Value();						
+						auto edge = BRepBuilderAPI_MakeEdge(seg1);						
+						wire.Add(edge);
+						/*auto wb = BRepBuilderAPI_MakeWire(edge).Wire();
+						wb.Reverse();
+						
+						wire.Add(wb);*/
+						
+					}
+					else
+						if (arc != nullptr) {
+							
+							gp_Pnt pnt1(arc->Start->X, arc->Start->Y, 0);
+							gp_Pnt pnt2(arc->End->X, arc->End->Y, 0);
+							gp_Pnt pnt3(arc->Middle->X, arc->Middle->Y, 0);
+							
+							auto seg1 = GC_MakeArcOfCircle(pnt1,pnt3,pnt2).Value();
+							auto edge = BRepBuilderAPI_MakeEdge(seg1);
+
+							wire.Add(edge);
+						}
 			}
-			//BRepBuilderAPI_MakeWire bwire;
-		//	bwire.Add(wire);
-			//auto result = bwire.Wire();
+
+			builder.Add(compound, wire.Wire());
+
+			//ImportElement(builder, compound, blueprint->Items[i]);
+		}
+
+		auto shape = new AIS_Shape(compound);
+		auto h = GetHandle(*shape);
+		myAISContext()->Display(shape, true);
+
+		ManagedObjHandle^ ret = gcnew ManagedObjHandle();
+		ret->FromObjHandle(h);
+		return ret;
+	}
+	ManagedObjHandle^ ImportBlueprint(Blueprint3d^ blueprint) {
+		TopoDS_Compound compound;
+		BRep_Builder builder;
+
+		builder.MakeCompound(compound);
+
+		for (size_t i = 0; i < blueprint->Contours->Count; i++)
+		{
+			BRepBuilderAPI_MakeWire wire;
+			for (size_t j = 0; j < blueprint->Contours[i]->Items->Count; j++)
+			{
+				auto p = blueprint->Contours[i]->Items[j];
+				Line3D^ line = dynamic_cast<Line3D^>	(p);
+				Arc3d^ arc = dynamic_cast<Arc3d^>	(p);
+
+				if (line != nullptr) {
+					gp_Pnt pnt1(line->Start->X, line->Start->Y, line->Start->Z);
+					gp_Pnt pnt2(line->Start->X, line->Start->Y, line->Start->Z);
+					Handle(Geom_TrimmedCurve) seg1 = GC_MakeSegment(pnt1, pnt2);
+					auto edge = BRepBuilderAPI_MakeEdge(seg1);
+					wire.Add(edge);
+				}
+				else
+					if (arc != nullptr && arc->AngleSweep == 360) {
+						gp_Pnt cen(arc->Center->X, arc->Center->Y, arc->Center->Z);
+
+						auto seg1 = GC_MakeCircle(gp_Ax1(cen, gp_Dir(0, 0, 1)), arc->Radius).Value();
+						auto edge = BRepBuilderAPI_MakeEdge(seg1);
+						wire.Add(edge);
+					}
+			}
+
 			builder.Add(compound, wire.Wire());
 
 			//ImportElement(builder, compound, blueprint->Items[i]);

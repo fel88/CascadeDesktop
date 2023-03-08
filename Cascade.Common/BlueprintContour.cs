@@ -4,6 +4,6 @@ namespace Cascade.Common
 {
     public class BlueprintContour
     {
-        public List<Vertex> Points = new List<Vertex>();
+        public List<BlueprintItem> Items = new List<BlueprintItem>();
     }
 }
