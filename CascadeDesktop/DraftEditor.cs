@@ -38,6 +38,15 @@ namespace CascadeDesktop
             propertyGrid1.SelectedObjectsChanged += PropertyGrid1_SelectedObjectsChanged;
         }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Delete)
+            {
+                DeleteItem();
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         private void PropertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
             if (selectedItem is Arc2d arc)
@@ -57,6 +66,7 @@ namespace CascadeDesktop
         }
 
         BlueprintItem selectedItem = null;
+        PointF? lastClickPosition = null;
         private void PictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
             var pos = pictureBox1.PointToClient(Cursor.Position);
@@ -64,8 +74,13 @@ namespace CascadeDesktop
             if (e.Button == MouseButtons.Left)
             {
                 propertyGrid1.SelectedObject = null;
+                BlueprintItem prevSelected = selectedItem;
+
                 foreach (var item in blueprint.Items)
                 {
+                    if (item == prevSelected && lastClickPosition != null && (lastClickPosition.Value.ToVector2d() - bpos.ToVector2d()).Length < 1)
+                        continue;
+
                     if (item is Line2D l)
                     {
                         var dist = (new Vector2d(l.Start.X, l.Start.Y) - new Vector2d(bpos.X, bpos.Y)).Length;
@@ -113,6 +128,7 @@ namespace CascadeDesktop
 
                 propertyGrid1.Visible = propertyGrid1.SelectedObject != null;
             }
+            lastClickPosition = bpos;
         }
 
         Blueprint blueprint = new Blueprint();
@@ -421,14 +437,45 @@ namespace CascadeDesktop
             //}
         }
 
+        public void DeleteItem()
+        {
+            if (selectedItem == null)
+                return;
+
+            blueprint.Items.Remove(selectedItem);
+            selectedItem = null;
+            propertyGrid1.SelectedObject = null;
+        }
+
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
-            if (selectedItem != null)
+            DeleteItem();
+        }
+
+        private void toolStripButton5_Click(object sender, EventArgs e)
+        {
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("x", "X", 0);
+            d.AddNumericField("y", "Y", 0);
+
+            d.ShowDialog();
+
+            var x = d.GetNumericField("x");
+            var y = d.GetNumericField("y");
+
+            foreach (var b in blueprint.Items)
             {
-                blueprint.Items.Remove(selectedItem);
-                selectedItem = null;
-                propertyGrid1.SelectedObject = null;
+                b.Start.X += x;
+                b.End.X += x;
+
+                b.Start.Y += y;
+                b.End.Y += y;
             }
+        }
+
+        private void toolStripButton6_Click(object sender, EventArgs e)
+        {
+            blueprint.Items.Clear();
         }
     }
 }
