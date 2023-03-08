@@ -1,6 +1,8 @@
 # CascadeDesktop
 OpenCASCADE GUI Viewer/Editor
 
+Simple debug tool based on OpenCASCADE for debugging purposes
+
 <img src="imgs/1.jpg"/>
 
 # How to use:
