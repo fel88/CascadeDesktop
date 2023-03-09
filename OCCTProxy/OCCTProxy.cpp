@@ -1654,6 +1654,35 @@ public:
 		return hhh;
 	}
 
+	Vector3^ GetVertexPoition(ManagedObjHandle^ h1)
+	{
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+
+		for (TopExp_Explorer exp(shape0, TopAbs_VERTEX); exp.More(); exp.Next()) {
+			const auto ttt = exp.Current();
+			const auto& edgee = TopoDS::Vertex(ttt);
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+
+			if (edgee.IsNull()) {
+				continue;
+			}
+			if (ttt3 == hh.handleT) {
+				Vector3^ ret = gcnew Vector3();
+
+				gp_Pnt p = BRep_Tool::Pnt(edgee);
+				ret->X = p.X();
+				ret->Y = p.Y();
+				ret->Z = p.Z();
+				return ret;
+			}
+		}
+		return nullptr;
+	}
 
 	ManagedObjHandle^ MakeFillet(ManagedObjHandle^ h1, double s)
 	{
@@ -1787,23 +1816,23 @@ public:
 					if (arc != nullptr && arc->AngleSweep == 360) {
 						gp_Pnt cen(arc->Center->X, arc->Center->Y, 0);
 
-						auto seg1 = GC_MakeCircle(gp_Ax1(cen, gp_Dir(0, 0, 1)), arc->Radius).Value();						
-						auto edge = BRepBuilderAPI_MakeEdge(seg1);						
+						auto seg1 = GC_MakeCircle(gp_Ax1(cen, gp_Dir(0, 0, 1)), arc->Radius).Value();
+						auto edge = BRepBuilderAPI_MakeEdge(seg1);
 						wire.Add(edge);
 						/*auto wb = BRepBuilderAPI_MakeWire(edge).Wire();
 						wb.Reverse();
-						
+
 						wire.Add(wb);*/
-						
+
 					}
 					else
 						if (arc != nullptr) {
-							
+
 							gp_Pnt pnt1(arc->Start->X, arc->Start->Y, 0);
 							gp_Pnt pnt2(arc->End->X, arc->End->Y, 0);
 							gp_Pnt pnt3(arc->Middle->X, arc->Middle->Y, 0);
-							
-							auto seg1 = GC_MakeArcOfCircle(pnt1,pnt3,pnt2).Value();
+
+							auto seg1 = GC_MakeArcOfCircle(pnt1, pnt3, pnt2).Value();
 							auto edge = BRepBuilderAPI_MakeEdge(seg1);
 
 							wire.Add(edge);
