@@ -10,6 +10,8 @@ Simple debug tool based on OpenCASCADE for debugging purposes
 ## Basic operations (extrude, bool (fuse, subtract), fillet )
 ![image](https://user-images.githubusercontent.com/15663687/223804454-f6aaa2be-a2b7-4121-a727-db93230d6424.png)
 
+https://www.youtube.com/watch?v=CJIdNRbEsHQ
+
 ### Part 1
 
 https://user-images.githubusercontent.com/15663687/223806419-98b7344c-f03d-45d8-85ca-0f639654e019.mp4
