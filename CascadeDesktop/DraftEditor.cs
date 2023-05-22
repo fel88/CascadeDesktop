@@ -1,4 +1,5 @@
-﻿using Cascade.Common;
+﻿using AutoDialog;
+using Cascade.Common;
 using OpenTK;
 using System;
 using System.Collections.Generic;
