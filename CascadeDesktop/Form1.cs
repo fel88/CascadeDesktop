@@ -520,7 +520,7 @@ namespace CascadeDesktop
                 BlueprintPolyline poly = new BlueprintPolyline();
                 BlueprintContour cntr = new BlueprintContour();
                 cntr.Items.Add(poly);
-                
+
                 foreach (var pp in item.Points)
                 {
                     poly.Points.Add(new Vertex2D(pp.X, pp.Y));
@@ -571,6 +571,61 @@ namespace CascadeDesktop
         {
             //SetBgGradient(Color.LightBlue, Color.Gray);
             proxy.SetDefaultGradient();
+        }
+
+        private void chamferToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("r", "Radius", 15);
+
+            d.ShowDialog();
+
+            var r = d.GetNumericField("r");
+            var so = proxy.GetSelectedObject();
+            var cs = proxy.MakeChamfer(so, r);
+            proxy.Erase(so);
+        }
+
+        private void revolutionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var d = DialogHelpers.StartDialog();
+            d.ShowDialog();
+            //proxy.MakeRevolution();
+        }
+
+        private void coneToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var d = DialogHelpers.StartDialog();
+            d.AddNumericField("r1", "Radius 1", 50);
+            d.AddNumericField("r2", "Radius 2", 25);
+            d.AddNumericField("h", "Height", 25);
+
+            d.ShowDialog();
+
+            var r1 = d.GetNumericField("r1");
+            var r2 = d.GetNumericField("r2");
+            var h = d.GetNumericField("h");
+
+            var cs = proxy.MakeCone(r1, r2, h);
+            objs.Add(cs);
+        }
+
+        private void facesInfoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var infos = proxy.GetFacesInfo(proxy.GetSelectedObject());
+            Form ff = new Form();
+            RichTextBox r = new RichTextBox();
+            r.Dock = DockStyle.Fill;
+            ff.Controls.Add(r);
+            foreach (var info in infos)
+            {
+                if(info is PlaneSurfInfo p)                
+                    r.AppendText($"PLANE {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
+                //if (info is CylinderSurfInfo p)
+                    //r.AppendText($"CYLINDER {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
+
+            }
+            ff.Show();
         }
     }
 }

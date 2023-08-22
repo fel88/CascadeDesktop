@@ -11,6 +11,9 @@
 #include <V3d_View.hxx>
 #include <AIS_InteractiveContext.hxx>
 #include <AIS_Shape.hxx>
+// gprops
+#include <GProp_GProps.hxx>
+#include <BRepGProp.hxx>
 //topology
 #include <TopoDS.hxx>
 #include <TopoDS_Shape.hxx>
@@ -40,6 +43,7 @@
 #include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
+#include <BRepPrimAPI_MakeCone.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <GC_MakeSegment.hxx>
 #include <GC_MakeCircle.hxx>
@@ -59,6 +63,7 @@
 
 #include <AIS_ViewCube.hxx>
 #include <BRepFilletAPI_MakeFillet.hxx>
+#include <BRepFilletAPI_MakeChamfer.hxx>
 
 #include <Graphic3d_RenderingParams.hxx>
 #include <TopExp_Explorer.hxx>
@@ -108,6 +113,43 @@ public:
 	double Y;
 	double Z;
 };
+
+public ref class SurfInfo {
+public:
+	Vector3^ Position;
+	Vector3^ COM;//center of mass
+	unsigned __int64 Handle;
+	unsigned __int64 THandle;
+};
+
+public ref class PlaneSurfInfo :SurfInfo {
+public:
+	Vector3^ Normal;
+};
+
+public ref class SurfOfRevolutionInfo : SurfInfo {
+public:
+};
+
+public ref class TorusSurfInfo :SurfInfo {
+public:
+	double MajorRadius;
+	double MinorRadius;
+};
+
+public ref class ConeSurfInfo :SurfInfo {
+public:
+	double Radius1;
+	double Radius2;
+	double SemiAngle;
+};
+
+public ref class CylinderSurfInfo :SurfInfo {
+public:
+	double Radius;
+};
+
+
 public ref class ManagedObjHandle {
 public:
 	UINT64 Handle;
@@ -1684,6 +1726,129 @@ public:
 		return nullptr;
 	}
 
+	System::Collections::Generic::List<SurfInfo^>^ GetFacesInfo(ManagedObjHandle^ h1) {
+		System::Collections::Generic::List<SurfInfo^>^ rett = gcnew System::Collections::Generic::List<SurfInfo^>();
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+
+		for (TopExp_Explorer exp(shape0, TopAbs_FACE); exp.More(); exp.Next())
+		{
+			const auto ttt = exp.Current();
+			auto loc = ttt.Location();
+
+			const auto& aFace = TopoDS::Face(ttt);
+			auto orient = aFace.Orientation();
+
+			TopLoc_Location aLocation;
+			Handle(Geom_Surface) aSurf = BRep_Tool::Surface(aFace, aLocation);
+
+			GeomAdaptor_Surface theGASurface(aSurf);
+
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+
+			if (aFace.IsNull()) {
+				continue;
+			}
+
+			auto tp = theGASurface.GetType();
+			switch (theGASurface.GetType()) {
+			case GeomAbs_Plane:
+				auto plane = Handle(Geom_Plane)::DownCast(aSurf);
+
+				auto pln = (*plane).Pln();
+
+				float aU = 0;
+				float aV = 0;
+				gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
+				Vector3^ pos = gcnew Vector3();
+				Vector3^ nrm = gcnew Vector3();
+
+				PlaneSurfInfo^ ret = gcnew PlaneSurfInfo();
+				GProp_GProps massProps;
+				BRepGProp::SurfaceProperties(ttt, massProps);
+				gp_Pnt gPt = massProps.CentreOfMass();
+
+				pos->X = aPnt.X();
+				pos->Y = aPnt.Y();
+				pos->Z = aPnt.Z();
+
+				auto dir = pln.Axis().Direction();
+				if (orient == TopAbs_REVERSED) {
+					dir.Reverse();
+				}
+
+				nrm->X = dir.X();
+				nrm->Y = dir.Y();
+				nrm->Z = dir.Z();
+
+				ret->COM = gcnew Vector3();
+				ret->COM->X = gPt.X();
+				ret->COM->Y = gPt.Y();
+				ret->COM->Z = gPt.Z();
+				ret->Position = pos;
+				ret->Normal = nrm;
+				rett->Add(ret);
+
+				break;
+			}
+
+
+		}
+		return rett;
+	}
+
+	ManagedObjHandle^ MakeChamfer(ManagedObjHandle^ h1, double s)
+	{
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		std::vector<ObjHandle> edges;
+		impl->GetSelectedEdges(myAISContext().get(), edges);
+		//auto edge = impl->getSelectedEdge(myAISContext().get());
+
+		//const auto* object2 = impl->getObject(edge);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+
+		BRepFilletAPI_MakeChamfer chamferOp(shape0);
+
+		bool b = false;
+		for (TopExp_Explorer edgeExplorer(shape0, TopAbs_EDGE); edgeExplorer.More(); edgeExplorer.Next()) {
+			const auto ttt = edgeExplorer.Current();
+			const auto& edgee = TopoDS::Edge(ttt);
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+
+			if (edgee.IsNull()) {
+				continue;
+			}
+			for (auto edge : edges) {
+				if (ttt3 == edge.handleT) {
+					chamferOp.Add(s, edgee);
+					b = true;
+					break;
+				}
+			}
+		}
+
+		if (!b)
+			return nullptr;
+
+		chamferOp.Build();
+		auto shape = chamferOp.Shape();
+		auto ais = new AIS_Shape(shape);
+		myAISContext()->Display(ais, false);
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
+	}
+
 	ManagedObjHandle^ MakeFillet(ManagedObjHandle^ h1, double s)
 	{
 		auto hh = h1->ToObjHandle();
@@ -1783,6 +1948,21 @@ public:
 	}
 
 
+	ManagedObjHandle^ MakeCone(double r1, double r2, double h) {
+
+		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
+
+		BRepPrimAPI_MakeCone s(r1, r2, h);
+		s.Build();
+		auto solid = s.Solid();
+		auto shape = new AIS_Shape(solid);
+		myAISContext()->Display(shape, Standard_True);
+		myAISContext()->SetDisplayMode(shape, AIS_Shaded, false);
+		auto hn = GetHandle(*shape);
+		hh->FromObjHandle(hn);
+		return hh;
+	}
+
 	static void ImportElement(BRep_Builder& builder, TopoDS_Compound& compound, BlueprintItem^ item) {
 		Line3D^ line = dynamic_cast<Line3D^>	(item);
 
@@ -1803,9 +1983,20 @@ public:
 			{
 				auto p = blueprint->Contours[i]->Items[j];
 				Line2D^ line = dynamic_cast<Line2D^>	(p);
+				BlueprintPolyline^ polyline = dynamic_cast<BlueprintPolyline^>	(p);
 				Arc2d^ arc = dynamic_cast<Arc2d^>	(p);
 
-				if (line != nullptr) {
+				if (polyline != nullptr) {
+					for (size_t p = 1; p < polyline->Points->Count; p++)
+					{
+						gp_Pnt pnt1(polyline->Points[p - 1]->X, polyline->Points[p - 1]->Y, 0);
+						gp_Pnt pnt2(polyline->Points[p]->X, polyline->Points[p]->Y, 0);
+						Handle(Geom_TrimmedCurve) seg1 = GC_MakeSegment(pnt1, pnt2);
+						auto edge = BRepBuilderAPI_MakeEdge(seg1);
+						wire.Add(edge);
+					}
+				}
+				else				if (line != nullptr) {
 					gp_Pnt pnt1(line->Start->X, line->Start->Y, 0);
 					gp_Pnt pnt2(line->End->X, line->End->Y, 0);
 					Handle(Geom_TrimmedCurve) seg1 = GC_MakeSegment(pnt1, pnt2);

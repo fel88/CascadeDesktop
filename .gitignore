@@ -4,3 +4,4 @@ packages/
 bin/
 obj/
 win64/
+*.htm
