@@ -1726,6 +1726,78 @@ public:
 		return nullptr;
 	}
 
+	SurfInfo^ GetFaceInfo(ManagedObjHandle^ h1) {
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+
+		for (TopExp_Explorer exp(shape0,TopAbs_FACE) ;exp.More();exp.Next())
+		{
+			const auto ttt = exp.Current();
+			auto loc = ttt.Location();
+
+			const auto& aFace = TopoDS::Face(ttt);
+			auto orient = aFace.Orientation();
+
+			TopLoc_Location aLocation;
+			Handle(Geom_Surface) aSurf = BRep_Tool::Surface(aFace, aLocation);
+
+			GeomAdaptor_Surface theGASurface(aSurf);
+
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+
+			if (aFace.IsNull()) {
+				continue;
+			}
+			if (ttt3 == hh.handleT) {
+				if (theGASurface.GetType() == GeomAbs_Plane) {
+					auto plane = Handle(Geom_Plane)::DownCast(aSurf);
+
+					auto pln = (*plane).Pln();
+
+					float aU = 0;
+					float aV = 0;
+					gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
+					Vector3^ pos = gcnew Vector3();
+					Vector3^ nrm = gcnew Vector3();
+
+					PlaneSurfInfo^ ret = gcnew PlaneSurfInfo();
+					GProp_GProps massProps;
+					BRepGProp::SurfaceProperties(ttt, massProps);
+					gp_Pnt gPt = massProps.CentreOfMass();
+
+					pos->X = aPnt.X();
+					pos->Y = aPnt.Y();
+					pos->Z = aPnt.Z();
+
+					auto dir = pln.Axis().Direction();
+					if (orient == TopAbs_REVERSED) {
+						dir.Reverse();
+					}
+
+					nrm->X = dir.X();
+					nrm->Y = dir.Y();
+					nrm->Z = dir.Z();
+
+					ret->COM = gcnew Vector3();
+					ret->COM->X = gPt.X();
+					ret->COM->Y = gPt.Y();
+					ret->COM->Z = gPt.Z();
+					ret->Position = pos;
+					ret->Normal = nrm;					
+					
+					return ret;
+				}
+			}
+
+		}
+
+		return nullptr;
+	}
+
 	System::Collections::Generic::List<SurfInfo^>^ GetFacesInfo(ManagedObjHandle^ h1) {
 		System::Collections::Generic::List<SurfInfo^>^ rett = gcnew System::Collections::Generic::List<SurfInfo^>();
 		auto hh = h1->ToObjHandle();

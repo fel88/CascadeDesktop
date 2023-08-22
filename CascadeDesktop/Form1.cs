@@ -24,6 +24,8 @@ namespace CascadeDesktop
             panel1.MouseWheel += Panel1_MouseWheel;
             panel1.MouseDown += Panel1_MouseDown;
             panel1.MouseUp += Panel1_MouseUp;
+
+            toolStripStatusLabel3.Alignment = ToolStripItemAlignment.Right;
         }
 
         private void Panel1_MouseUp(object sender, MouseEventArgs e)
@@ -32,6 +34,7 @@ namespace CascadeDesktop
             if (e.Button == MouseButtons.Left)
             {
                 proxy.Select(ModifierKeys.HasFlag(Keys.Control));
+                SelectionChanged();
             }
         }
 
@@ -47,6 +50,37 @@ namespace CascadeDesktop
             if (e.Button == MouseButtons.Left)
             {
                 isDrag = true;
+            }
+        }
+
+        public void SelectionChanged()
+        {
+            if (!proxy.IsObjectSelected())
+                return;
+            var v = proxy.GetVertexPoition(proxy.GetSelectedObject());
+            var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
+
+            if (v != null)
+            {
+                var vect = v.ToVector3d();
+                SetStatus3($"vertex: {vect.X} {vect.Y} {vect.Z}");
+            }
+            else if (face != null)
+            {
+                var vect = face.Position.ToVector3d();
+                if (face is PlaneSurfInfo p)
+                {
+                    var nrm = p.Normal.ToVector3d();
+                    SetStatus3($"plane: {vect.X} {vect.Y} {vect.Z}  normal: {nrm.X} {nrm.Y} {nrm.Z}");
+                }
+                else
+                {
+                    SetStatus3($"{face.GetType().Name}: {vect.X} {vect.Y} {vect.Z} ");
+                }
+            }
+            else
+            {
+                SetStatus3(string.Empty);
             }
         }
 
@@ -153,6 +187,11 @@ namespace CascadeDesktop
         public void SetStatus(string text)
         {
             toolStripStatusLabel1.Text = text;
+        }
+
+        public void SetStatus3(string text)
+        {
+            toolStripStatusLabel3.Text = text;
         }
 
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
@@ -619,10 +658,10 @@ namespace CascadeDesktop
             ff.Controls.Add(r);
             foreach (var info in infos)
             {
-                if(info is PlaneSurfInfo p)                
+                if (info is PlaneSurfInfo p)
                     r.AppendText($"PLANE {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
                 //if (info is CylinderSurfInfo p)
-                    //r.AppendText($"CYLINDER {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
+                //r.AppendText($"CYLINDER {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
 
             }
             ff.Show();
