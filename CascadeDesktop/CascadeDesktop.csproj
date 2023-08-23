@@ -78,6 +78,8 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
+    <Compile Include="ArcElement.cs" />
+    <Compile Include="Contour.cs" />
     <Compile Include="DraftEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -94,9 +96,12 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="IDrawingContext.cs" />
+    <Compile Include="IElement.cs" />
+    <Compile Include="InfoType.cs" />
     <Compile Include="LineElement.cs" />
     <Compile Include="LocalContour.cs" />
     <Compile Include="NFP.cs" />
+    <Compile Include="PolylineElement.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StaticHelpers.cs" />

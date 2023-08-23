@@ -56,7 +56,11 @@ namespace CascadeDesktop
         public void SelectionChanged()
         {
             if (!proxy.IsObjectSelected())
+            {
+                SetStatus3(string.Empty);
                 return;
+            }
+
             var v = proxy.GetVertexPoition(proxy.GetSelectedObject());
             var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
 
@@ -73,10 +77,10 @@ namespace CascadeDesktop
                     var nrm = p.Normal.ToVector3d();
                     SetStatus3($"plane: {vect.X} {vect.Y} {vect.Z}  normal: {nrm.X} {nrm.Y} {nrm.Z}");
                 }
+                else if (face is CylinderSurfInfo c)
+                    SetStatus3($"cylinder: {vect.X} {vect.Y} {vect.Z}  radius: {c.Radius}");
                 else
-                {
                     SetStatus3($"{face.GetType().Name}: {vect.X} {vect.Y} {vect.Z} ");
-                }
             }
             else
             {
@@ -184,9 +188,22 @@ namespace CascadeDesktop
             proxy.FrontView();
         }
 
-        public void SetStatus(string text)
+        public void SetStatus(string text, InfoType type = InfoType.Info)
         {
             toolStripStatusLabel1.Text = text;
+            toolStripStatusLabel1.ForeColor = Color.Black;
+            toolStripStatusLabel1.BackColor = SystemColors.Control;
+            switch (type)
+            {
+                case InfoType.Warning:
+                    toolStripStatusLabel1.ForeColor = Color.Black;
+                    toolStripStatusLabel1.BackColor = Color.Yellow;
+                    break;
+                case InfoType.Error:
+                    toolStripStatusLabel1.ForeColor = Color.White;
+                    toolStripStatusLabel1.BackColor = Color.Red;
+                    break;
+            }
         }
 
         public void SetStatus3(string text)
@@ -334,12 +351,19 @@ namespace CascadeDesktop
 
         private void toolStripButton6_Click(object sender, EventArgs e)
         {
+            if (!proxy.IsObjectSelected())
+            {
+                SetStatus("Object not selected", InfoType.Warning);
+                return;
+            }
+
             var d = DialogHelpers.StartDialog();
             d.AddNumericField("x", "x", 0);
             d.AddNumericField("y", "y", 0);
             d.AddNumericField("z", "z", 0);
 
-            d.ShowDialog();
+            if (!d.ShowDialog())
+                return;
 
             var x = d.GetNumericField("x");
             var y = d.GetNumericField("y");
@@ -381,13 +405,19 @@ namespace CascadeDesktop
 
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
+            if (!proxy.IsObjectSelected())
+            {
+                SetStatus("Object not selected", InfoType.Warning);
+                return;
+            }
             var d = DialogHelpers.StartDialog();
             d.AddNumericField("a", "Angle", 90);
             d.AddNumericField("x", "x", 0);
             d.AddNumericField("y", "y", 0);
             d.AddNumericField("z", "z", 1);
 
-            d.ShowDialog();
+            if (!d.ShowDialog())
+                return;
 
             var ang = d.GetNumericField("a");
             var x = d.GetNumericField("x");
@@ -519,32 +549,34 @@ namespace CascadeDesktop
 
         void ImportDxf(string file)
         {
-            var r = DxfParser.LoadDxf(file);
+            var elems = DxfParser.LoadDxf(file);
 
-            List<NFP> nfps = new List<NFP>();
-            foreach (var rr in r)
-            {
-                nfps.Add(new NFP() { Points = rr.Points.Select(z => new SvgPoint(z.X, z.Y)).ToArray() });
-            }
+            var elems2 = elems.Where(z => z.Length > DxfParser.RemoveThreshold).ToList();
+            //convert to blueprintItems first, then order
+            var nfps = DxfParser.ElementsToContours(elems2.ToArray());
+            //var nfps2 = DxfParser.ConnectElements(elems2.ToArray());
+            //  if (nfps.Any(z => z.Points.Count < 3))
+            //  throw new Exception("few points");
 
-            for (int i = 0; i < nfps.Count; i++)
+            for (int i = 0; i < nfps.Length; i++)
             {
-                for (int j = 0; j < nfps.Count; j++)
+                for (int j = 0; j < nfps.Length; j++)
                 {
-                    if (i != j)
+                    if (i == j)
+                        continue;
+
+                    var d2 = nfps[i];
+                    var d3 = nfps[j];
+                    var f0 = d3.GetPoints()[0];
+                    if (StaticHelpers.pnpoly(d2.GetPoints().ToArray(), f0.X, f0.Y))
                     {
-                        var d2 = nfps[i];
-                        var d3 = nfps[j];
-                        var f0 = d3.Points[0];
-                        if (StaticHelpers.pnpoly(d2.Points.ToArray(), f0.X, f0.Y))
+                        d3.Parent = d2;
+                        if (!d2.Childrens.Contains(d3))
                         {
-                            d3.Parent = d2;
-                            if (!d2.Childrens.Contains(d3))
-                            {
-                                d2.Childrens.Add(d3);
-                            }
+                            d2.Childrens.Add(d3);
                         }
                     }
+
                 }
             }
             Blueprint blueprint = new Blueprint();
@@ -556,17 +588,8 @@ namespace CascadeDesktop
                 if (item.Parent != null)
                     continue;
 
-                BlueprintPolyline poly = new BlueprintPolyline();
-                BlueprintContour cntr = new BlueprintContour();
-                cntr.Items.Add(poly);
-
-                foreach (var pp in item.Points)
-                {
-                    poly.Points.Add(new Vertex2D(pp.X, pp.Y));
-                }
-                sign = Math.Sign(StaticHelpers.signed_area(item.Points));
-
-                blueprint.Contours.Add(cntr);
+                sign = Math.Sign(StaticHelpers.signed_area(item.GetPoints().ToArray()));
+                blueprint.Contours.Add(item.ToBlueprintContour());
             }
             //holes
             foreach (var item in nfps)
@@ -574,19 +597,25 @@ namespace CascadeDesktop
                 if (item.Parent == null)
                     continue;
 
-                BlueprintPolyline poly = new BlueprintPolyline();
+                if (Math.Sign(StaticHelpers.signed_area(item.GetPoints().ToArray())) == sign)
+                {
+                    item.Reverse();
+                }
+                blueprint.Contours.Add(item.ToBlueprintContour());
+
+                /*BlueprintPolyline poly = new BlueprintPolyline();
                 BlueprintContour cntr = new BlueprintContour();
                 cntr.Items.Add(poly);
                 foreach (var pp in item.Points)
                 {
                     poly.Points.Add(new Vertex2D(pp.X, pp.Y));
                 }
-                if (Math.Sign(StaticHelpers.signed_area(item.Points)) == sign)
+                if (Math.Sign(StaticHelpers.signed_area(item.Points.ToArray())) == sign)
                 {
                     poly.Points.Reverse();
                 }
 
-                blueprint.Contours.Add(cntr);
+                blueprint.Contours.Add(cntr);*/
             }
             var handler = proxy.ImportBlueprint(blueprint);
 
@@ -634,12 +663,19 @@ namespace CascadeDesktop
 
         private void coneToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (!proxy.IsObjectSelected())
+            {
+                SetStatus("Object not selected", InfoType.Warning);
+                return;
+            }
+
             var d = DialogHelpers.StartDialog();
             d.AddNumericField("r1", "Radius 1", 50);
             d.AddNumericField("r2", "Radius 2", 25);
             d.AddNumericField("h", "Height", 25);
 
-            d.ShowDialog();
+            if (!d.ShowDialog())
+                return;
 
             var r1 = d.GetNumericField("r1");
             var r2 = d.GetNumericField("r2");
@@ -660,9 +696,10 @@ namespace CascadeDesktop
             {
                 if (info is PlaneSurfInfo p)
                     r.AppendText($"PLANE {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
-                //if (info is CylinderSurfInfo p)
-                //r.AppendText($"CYLINDER {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
-
+                else if (info is CylinderSurfInfo c)
+                    r.AppendText($"CYLINDER {c.Position.X} {c.Position.Y} {c.Position.Z}   radius: {c.Radius} {Environment.NewLine}");
+                else
+                    r.AppendText($"{info.GetType().Name}{info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
             }
             ff.Show();
         }

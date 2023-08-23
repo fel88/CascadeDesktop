@@ -1,4 +1,5 @@
 ﻿using Cascade.Common;
+using IxMilia.Dxf;
 using OpenTK;
 using System;
 using System.Drawing;
@@ -34,7 +35,7 @@ namespace CascadeDesktop
 
             return area / 2.0;
         }
-        
+
         public static double signed_area(Vector2d[] polygon)
         {
             double area = 0.0;
@@ -88,6 +89,19 @@ namespace CascadeDesktop
             }
             return c;
         }
+        public static bool pnpoly(Vector2d[] verts, double testx, double testy)
+        {
+            int nvert = verts.Length;
+            int i, j;
+            bool c = false;
+            for (i = 0, j = nvert - 1; i < nvert; j = i++)
+            {
+                if (((verts[i].Y > testy) != (verts[j].Y > testy)) &&
+                    (testx < (verts[j].X - verts[i].X) * (testy - verts[i].Y) / (verts[j].Y - verts[i].Y) + verts[i].X))
+                    c = !c;
+            }
+            return c;
+        }
         public static Vector3d ToVector3d(this Vector3 v)
         {
             return new Vector3d(v.X, v.Y, v.Z);
@@ -96,10 +110,17 @@ namespace CascadeDesktop
         {
             return new Vector2d(v.X, v.Y);
         }
+
         public static OpenTK.Vector3 ToVector3(this Vector3d v)
         {
             return new OpenTK.Vector3((float)v.X, (float)v.Y, (float)v.Z);
         }
+
+        public static OpenTK.Vector2d ToVector2d(this DxfPoint v)
+        {
+            return new OpenTK.Vector2d(v.X, v.Y);
+        }
+
         public static OpenTK.Vector2d ToVector2d(this Vertex2D v)
         {
             return new OpenTK.Vector2d((float)v.X, (float)v.Y);

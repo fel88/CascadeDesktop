@@ -68,6 +68,14 @@
 #include <Graphic3d_RenderingParams.hxx>
 #include <TopExp_Explorer.hxx>
 
+
+#include <Geom_CylindricalSurface.hxx>
+#include <Geom_SurfaceOfRevolution.hxx>
+#include <Geom_ConicalSurface.hxx>
+#include <Geom_ToroidalSurface.hxx>
+#include <Geom_Line.hxx>
+
+
 #include <ShapeUpgrade_UnifySameDomain.hxx>
 // list of required OCCT libraries
 
@@ -385,6 +393,7 @@ public:
 			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
 			h.handle = (unsigned __int64)(self.get());
 			h.handleT = (unsigned __int64)(ptshape);
+			h.handleF = (unsigned __int64)(&shape);
 			break;
 		}
 		return h;
@@ -1607,6 +1616,14 @@ public:
 		auto body = BRepPrimAPI_MakePrism(profile, vec);
 
 		auto shape = body.Shape();
+		//BRepMesh_IncrementalMesh mesh(shape,0.00001);
+		/*bool fixShape = true;
+		if (fixShape) {
+			ShapeUpgrade_UnifySameDomain unif(shape, true, true, false);
+			unif.Build();
+			auto shape2 = unif.Shape();
+			shape = shape2;
+		}*/
 		auto ais = new AIS_Shape(shape);
 		myAISContext()->Display(ais, true);
 
@@ -1709,6 +1726,7 @@ public:
 			auto tt = ttt.TShape();
 			TopoDS_TShape* ptshape = tt.get();
 			auto ttt3 = (unsigned __int64)(ptshape);
+			auto ttt4 = (unsigned __int64)(&ttt);
 
 			if (edgee.IsNull()) {
 				continue;
@@ -1726,13 +1744,96 @@ public:
 		return nullptr;
 	}
 
+	CylinderSurfInfo^ ExtractCylinderSurface(TopoDS_Shape ttt) {
+		auto loc = ttt.Location();
+
+		const auto& aFace = TopoDS::Face(ttt);
+		auto orient = aFace.Orientation();
+
+		TopLoc_Location aLocation;
+		Handle(Geom_Surface) aSurf = BRep_Tool::Surface(aFace, aLocation);
+		auto cyl = Handle(Geom_CylindricalSurface)::DownCast(aSurf);
+		auto rad = (*cyl).Radius();
+		float aU = 0;
+		float aV = 0;
+
+		gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
+		Vector3^ pos = gcnew Vector3();
+		Vector3^ nrm = gcnew Vector3();
+
+		CylinderSurfInfo^ ret = gcnew CylinderSurfInfo();
+
+		GProp_GProps massProps;
+		BRepGProp::SurfaceProperties(ttt, massProps);
+		gp_Pnt gPt = massProps.CentreOfMass();
+
+		pos->X = aPnt.X();
+		pos->Y = aPnt.Y();
+		pos->Z = aPnt.Z();
+
+		ret->COM = gcnew Vector3();
+		ret->COM->X = gPt.X();
+		ret->COM->Y = gPt.Y();
+		ret->COM->Z = gPt.Z();
+		ret->Position = pos;
+		ret->Radius = rad;
+		return ret;
+	}
+
+	PlaneSurfInfo^ ExtractPlaneSurface(TopoDS_Shape ttt) {
+		auto loc = ttt.Location();
+
+		const auto& aFace = TopoDS::Face(ttt);
+		auto orient = aFace.Orientation();
+
+		TopLoc_Location aLocation;
+		Handle(Geom_Surface) aSurf = BRep_Tool::Surface(aFace, aLocation);
+
+		auto plane = Handle(Geom_Plane)::DownCast(aSurf);
+
+		auto pln = (*plane).Pln();
+
+		float aU = 0;
+		float aV = 0;
+		gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
+		Vector3^ pos = gcnew Vector3();
+		Vector3^ nrm = gcnew Vector3();
+
+		PlaneSurfInfo^ ret = gcnew PlaneSurfInfo();
+		GProp_GProps massProps;
+		BRepGProp::SurfaceProperties(ttt, massProps);
+		gp_Pnt gPt = massProps.CentreOfMass();
+
+		pos->X = aPnt.X();
+		pos->Y = aPnt.Y();
+		pos->Z = aPnt.Z();
+
+		auto dir = pln.Axis().Direction();
+		if (orient == TopAbs_REVERSED) {
+			dir.Reverse();
+		}
+
+		nrm->X = dir.X();
+		nrm->Y = dir.Y();
+		nrm->Z = dir.Z();
+
+		ret->COM = gcnew Vector3();
+		ret->COM->X = gPt.X();
+		ret->COM->Y = gPt.Y();
+		ret->COM->Z = gPt.Z();
+		ret->Position = pos;
+		ret->Normal = nrm;
+
+		return ret;
+	}
+
 	SurfInfo^ GetFaceInfo(ManagedObjHandle^ h1) {
 		auto hh = h1->ToObjHandle();
 		const auto* object1 = impl->getObject(hh);
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
 		shape0 = shape0.Located(object1->LocalTransformation());
 
-		for (TopExp_Explorer exp(shape0,TopAbs_FACE) ;exp.More();exp.Next())
+		for (TopExp_Explorer exp(shape0, TopAbs_FACE); exp.More(); exp.Next())
 		{
 			const auto ttt = exp.Current();
 			auto loc = ttt.Location();
@@ -1753,48 +1854,19 @@ public:
 				continue;
 			}
 			if (ttt3 == hh.handleT) {
-				if (theGASurface.GetType() == GeomAbs_Plane) {
-					auto plane = Handle(Geom_Plane)::DownCast(aSurf);
-
-					auto pln = (*plane).Pln();
-
-					float aU = 0;
-					float aV = 0;
-					gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
-					Vector3^ pos = gcnew Vector3();
-					Vector3^ nrm = gcnew Vector3();
-
-					PlaneSurfInfo^ ret = gcnew PlaneSurfInfo();
-					GProp_GProps massProps;
-					BRepGProp::SurfaceProperties(ttt, massProps);
-					gp_Pnt gPt = massProps.CentreOfMass();
-
-					pos->X = aPnt.X();
-					pos->Y = aPnt.Y();
-					pos->Z = aPnt.Z();
-
-					auto dir = pln.Axis().Direction();
-					if (orient == TopAbs_REVERSED) {
-						dir.Reverse();
-					}
-
-					nrm->X = dir.X();
-					nrm->Y = dir.Y();
-					nrm->Z = dir.Z();
-
-					ret->COM = gcnew Vector3();
-					ret->COM->X = gPt.X();
-					ret->COM->Y = gPt.Y();
-					ret->COM->Z = gPt.Z();
-					ret->Position = pos;
-					ret->Normal = nrm;					
-					
-					return ret;
+				switch (theGASurface.GetType())
+				{
+				case GeomAbs_Plane:
+				{
+					return ExtractPlaneSurface(ttt);
+				}
+				case GeomAbs_Cylinder:
+				{
+					return ExtractCylinderSurface(ttt);
+				}
 				}
 			}
-
 		}
-
 		return nullptr;
 	}
 
@@ -1829,46 +1901,16 @@ public:
 			auto tp = theGASurface.GetType();
 			switch (theGASurface.GetType()) {
 			case GeomAbs_Plane:
-				auto plane = Handle(Geom_Plane)::DownCast(aSurf);
-
-				auto pln = (*plane).Pln();
-
-				float aU = 0;
-				float aV = 0;
-				gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
-				Vector3^ pos = gcnew Vector3();
-				Vector3^ nrm = gcnew Vector3();
-
-				PlaneSurfInfo^ ret = gcnew PlaneSurfInfo();
-				GProp_GProps massProps;
-				BRepGProp::SurfaceProperties(ttt, massProps);
-				gp_Pnt gPt = massProps.CentreOfMass();
-
-				pos->X = aPnt.X();
-				pos->Y = aPnt.Y();
-				pos->Z = aPnt.Z();
-
-				auto dir = pln.Axis().Direction();
-				if (orient == TopAbs_REVERSED) {
-					dir.Reverse();
-				}
-
-				nrm->X = dir.X();
-				nrm->Y = dir.Y();
-				nrm->Z = dir.Z();
-
-				ret->COM = gcnew Vector3();
-				ret->COM->X = gPt.X();
-				ret->COM->Y = gPt.Y();
-				ret->COM->Z = gPt.Z();
-				ret->Position = pos;
-				ret->Normal = nrm;
-				rett->Add(ret);
-
-				break;
+			{
+				rett->Add(ExtractPlaneSurface(ttt));
 			}
-
-
+			break;
+			case GeomAbs_Cylinder:
+			{
+				rett->Add(ExtractCylinderSurface(ttt));
+			}
+			break;
+			}
 		}
 		return rett;
 	}
@@ -2076,12 +2118,16 @@ public:
 					wire.Add(edge);
 				}
 				else
-					if (arc != nullptr && arc->AngleSweep == 360) {
+					if (arc != nullptr && arc->IsCircle) {
 						gp_Pnt cen(arc->Center->X, arc->Center->Y, 0);
 
 						auto seg1 = GC_MakeCircle(gp_Ax1(cen, gp_Dir(0, 0, 1)), arc->Radius).Value();
 						auto edge = BRepBuilderAPI_MakeEdge(seg1);
-						wire.Add(edge);
+						TopoDS_Edge e = TopoDS::Edge(edge);
+						if (arc->CCW)
+							e.Reverse();
+
+						wire.Add(e);
 						/*auto wb = BRepBuilderAPI_MakeWire(edge).Wire();
 						wb.Reverse();
 

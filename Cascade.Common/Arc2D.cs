@@ -10,6 +10,7 @@ namespace Cascade.Common
         public double AngleSweep { get; set; }
         public double Radius { get; set; }
         public double AngleStart { get; set; }
+        public bool IsCircle { get; set; }
         
         public bool CCW { get; set; }
             
