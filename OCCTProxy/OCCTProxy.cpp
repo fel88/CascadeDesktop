@@ -393,6 +393,7 @@ public:
 			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
 			h.handle = (unsigned __int64)(self.get());
 			h.handleT = (unsigned __int64)(ptshape);
+			h.handleF = (unsigned __int64)(&shape);
 			break;
 		}
 		return h;
@@ -1615,6 +1616,14 @@ public:
 		auto body = BRepPrimAPI_MakePrism(profile, vec);
 
 		auto shape = body.Shape();
+		//BRepMesh_IncrementalMesh mesh(shape,0.00001);
+		/*bool fixShape = true;
+		if (fixShape) {
+			ShapeUpgrade_UnifySameDomain unif(shape, true, true, false);
+			unif.Build();
+			auto shape2 = unif.Shape();
+			shape = shape2;
+		}*/
 		auto ais = new AIS_Shape(shape);
 		myAISContext()->Display(ais, true);
 
@@ -1717,6 +1726,7 @@ public:
 			auto tt = ttt.TShape();
 			TopoDS_TShape* ptshape = tt.get();
 			auto ttt3 = (unsigned __int64)(ptshape);
+			auto ttt4 = (unsigned __int64)(&ttt);
 
 			if (edgee.IsNull()) {
 				continue;
@@ -2108,12 +2118,16 @@ public:
 					wire.Add(edge);
 				}
 				else
-					if (arc != nullptr && arc->AngleSweep == 360) {
+					if (arc != nullptr && arc->IsCircle) {
 						gp_Pnt cen(arc->Center->X, arc->Center->Y, 0);
 
 						auto seg1 = GC_MakeCircle(gp_Ax1(cen, gp_Dir(0, 0, 1)), arc->Radius).Value();
 						auto edge = BRepBuilderAPI_MakeEdge(seg1);
-						wire.Add(edge);
+						TopoDS_Edge e = TopoDS::Edge(edge);
+						if (arc->CCW)
+							e.Reverse();
+
+						wire.Add(e);
 						/*auto wb = BRepBuilderAPI_MakeWire(edge).Wire();
 						wb.Reverse();
 

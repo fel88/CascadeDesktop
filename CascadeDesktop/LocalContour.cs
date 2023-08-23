@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -23,7 +24,7 @@ namespace CascadeDesktop
                 return len;
             }
         }
-        public List<PointF> Points = new List<PointF>();
+        public List<Vector2d> Points = new List<Vector2d>();
         public bool Enable = true;
     }
 }

@@ -549,33 +549,34 @@ namespace CascadeDesktop
 
         void ImportDxf(string file)
         {
-            var r = DxfParser.LoadDxf(file);
+            var elems = DxfParser.LoadDxf(file);
 
-            /*List<NFP> nfps = new List<NFP>();
-            foreach (var rr in r)
-            {
-                nfps.Add(new NFP() { Points = rr.Points.Select(z => new SvgPoint(z.X, z.Y)).ToArray() });
-            }*/
-            var nfps = r.ToArray();
+            var elems2 = elems.Where(z => z.Length > DxfParser.RemoveThreshold).ToList();
+            //convert to blueprintItems first, then order
+            var nfps = DxfParser.ElementsToContours(elems2.ToArray());
+            //var nfps2 = DxfParser.ConnectElements(elems2.ToArray());
+            //  if (nfps.Any(z => z.Points.Count < 3))
+            //  throw new Exception("few points");
 
             for (int i = 0; i < nfps.Length; i++)
             {
                 for (int j = 0; j < nfps.Length; j++)
                 {
-                    if (i != j)
+                    if (i == j)
+                        continue;
+
+                    var d2 = nfps[i];
+                    var d3 = nfps[j];
+                    var f0 = d3.GetPoints()[0];
+                    if (StaticHelpers.pnpoly(d2.GetPoints().ToArray(), f0.X, f0.Y))
                     {
-                        var d2 = nfps[i];
-                        var d3 = nfps[j];
-                        var f0 = d3.Points[0];
-                        if (StaticHelpers.pnpoly(d2.Points.ToArray(), f0.X, f0.Y))
+                        d3.Parent = d2;
+                        if (!d2.Childrens.Contains(d3))
                         {
-                            d3.Parent = d2;
-                            if (!d2.Childrens.Contains(d3))
-                            {
-                                d2.Childrens.Add(d3);
-                            }
+                            d2.Childrens.Add(d3);
                         }
                     }
+
                 }
             }
             Blueprint blueprint = new Blueprint();
@@ -587,17 +588,8 @@ namespace CascadeDesktop
                 if (item.Parent != null)
                     continue;
 
-                BlueprintPolyline poly = new BlueprintPolyline();
-                BlueprintContour cntr = new BlueprintContour();
-                cntr.Items.Add(poly);
-
-                foreach (var pp in item.Points)
-                {
-                    poly.Points.Add(new Vertex2D(pp.X, pp.Y));
-                }
-                sign = Math.Sign(StaticHelpers.signed_area(item.Points.ToArray()));
-
-                blueprint.Contours.Add(cntr);
+                sign = Math.Sign(StaticHelpers.signed_area(item.GetPoints().ToArray()));
+                blueprint.Contours.Add(item.ToBlueprintContour());
             }
             //holes
             foreach (var item in nfps)
@@ -605,7 +597,13 @@ namespace CascadeDesktop
                 if (item.Parent == null)
                     continue;
 
-                BlueprintPolyline poly = new BlueprintPolyline();
+                if (Math.Sign(StaticHelpers.signed_area(item.GetPoints().ToArray())) == sign)
+                {
+                    item.Reverse();
+                }
+                blueprint.Contours.Add(item.ToBlueprintContour());
+
+                /*BlueprintPolyline poly = new BlueprintPolyline();
                 BlueprintContour cntr = new BlueprintContour();
                 cntr.Items.Add(poly);
                 foreach (var pp in item.Points)
@@ -617,7 +615,7 @@ namespace CascadeDesktop
                     poly.Points.Reverse();
                 }
 
-                blueprint.Contours.Add(cntr);
+                blueprint.Contours.Add(cntr);*/
             }
             var handler = proxy.ImportBlueprint(blueprint);
 
@@ -665,12 +663,19 @@ namespace CascadeDesktop
 
         private void coneToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (!proxy.IsObjectSelected())
+            {
+                SetStatus("Object not selected", InfoType.Warning);
+                return;
+            }
+
             var d = DialogHelpers.StartDialog();
             d.AddNumericField("r1", "Radius 1", 50);
             d.AddNumericField("r2", "Radius 2", 25);
             d.AddNumericField("h", "Height", 25);
 
-            d.ShowDialog();
+            if (!d.ShowDialog())
+                return;
 
             var r1 = d.GetNumericField("r1");
             var r2 = d.GetNumericField("r2");

@@ -2,10 +2,10 @@
 
 namespace Cascade.Common
 {
-    public class BlueprintItem
+    public abstract class BlueprintItem
     {
-        public Vertex2D Start { get; set; }
-        public Vertex2D End { get; set; }
+        public virtual Vertex2D Start { get; set; }
+        public virtual Vertex2D End { get; set; }
 
         public virtual void Reverse()
         {
