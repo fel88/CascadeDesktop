@@ -6,6 +6,9 @@ namespace CascadeDesktop
 {
     public class LocalContour
     {
+        public LocalContour Parent;
+        public List<LocalContour> Childrens = new List<LocalContour>();
+
         public float Len
         {
             get

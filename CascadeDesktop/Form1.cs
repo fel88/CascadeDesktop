@@ -56,7 +56,11 @@ namespace CascadeDesktop
         public void SelectionChanged()
         {
             if (!proxy.IsObjectSelected())
+            {
+                SetStatus3(string.Empty);
                 return;
+            }
+
             var v = proxy.GetVertexPoition(proxy.GetSelectedObject());
             var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
 
@@ -73,10 +77,10 @@ namespace CascadeDesktop
                     var nrm = p.Normal.ToVector3d();
                     SetStatus3($"plane: {vect.X} {vect.Y} {vect.Z}  normal: {nrm.X} {nrm.Y} {nrm.Z}");
                 }
+                else if (face is CylinderSurfInfo c)
+                    SetStatus3($"cylinder: {vect.X} {vect.Y} {vect.Z}  radius: {c.Radius}");
                 else
-                {
                     SetStatus3($"{face.GetType().Name}: {vect.X} {vect.Y} {vect.Z} ");
-                }
             }
             else
             {
@@ -184,9 +188,22 @@ namespace CascadeDesktop
             proxy.FrontView();
         }
 
-        public void SetStatus(string text)
+        public void SetStatus(string text, InfoType type = InfoType.Info)
         {
             toolStripStatusLabel1.Text = text;
+            toolStripStatusLabel1.ForeColor = Color.Black;
+            toolStripStatusLabel1.BackColor = SystemColors.Control;
+            switch (type)
+            {
+                case InfoType.Warning:
+                    toolStripStatusLabel1.ForeColor = Color.Black;
+                    toolStripStatusLabel1.BackColor = Color.Yellow;
+                    break;
+                case InfoType.Error:
+                    toolStripStatusLabel1.ForeColor = Color.White;
+                    toolStripStatusLabel1.BackColor = Color.Red;
+                    break;
+            }
         }
 
         public void SetStatus3(string text)
@@ -334,12 +351,19 @@ namespace CascadeDesktop
 
         private void toolStripButton6_Click(object sender, EventArgs e)
         {
+            if (!proxy.IsObjectSelected())
+            {
+                SetStatus("Object not selected", InfoType.Warning);
+                return;
+            }
+
             var d = DialogHelpers.StartDialog();
             d.AddNumericField("x", "x", 0);
             d.AddNumericField("y", "y", 0);
             d.AddNumericField("z", "z", 0);
 
-            d.ShowDialog();
+            if (!d.ShowDialog())
+                return;
 
             var x = d.GetNumericField("x");
             var y = d.GetNumericField("y");
@@ -381,13 +405,19 @@ namespace CascadeDesktop
 
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
+            if (!proxy.IsObjectSelected())
+            {
+                SetStatus("Object not selected", InfoType.Warning);
+                return;
+            }
             var d = DialogHelpers.StartDialog();
             d.AddNumericField("a", "Angle", 90);
             d.AddNumericField("x", "x", 0);
             d.AddNumericField("y", "y", 0);
             d.AddNumericField("z", "z", 1);
 
-            d.ShowDialog();
+            if (!d.ShowDialog())
+                return;
 
             var ang = d.GetNumericField("a");
             var x = d.GetNumericField("x");
@@ -521,15 +551,16 @@ namespace CascadeDesktop
         {
             var r = DxfParser.LoadDxf(file);
 
-            List<NFP> nfps = new List<NFP>();
+            /*List<NFP> nfps = new List<NFP>();
             foreach (var rr in r)
             {
                 nfps.Add(new NFP() { Points = rr.Points.Select(z => new SvgPoint(z.X, z.Y)).ToArray() });
-            }
+            }*/
+            var nfps = r.ToArray();
 
-            for (int i = 0; i < nfps.Count; i++)
+            for (int i = 0; i < nfps.Length; i++)
             {
-                for (int j = 0; j < nfps.Count; j++)
+                for (int j = 0; j < nfps.Length; j++)
                 {
                     if (i != j)
                     {
@@ -564,7 +595,7 @@ namespace CascadeDesktop
                 {
                     poly.Points.Add(new Vertex2D(pp.X, pp.Y));
                 }
-                sign = Math.Sign(StaticHelpers.signed_area(item.Points));
+                sign = Math.Sign(StaticHelpers.signed_area(item.Points.ToArray()));
 
                 blueprint.Contours.Add(cntr);
             }
@@ -581,7 +612,7 @@ namespace CascadeDesktop
                 {
                     poly.Points.Add(new Vertex2D(pp.X, pp.Y));
                 }
-                if (Math.Sign(StaticHelpers.signed_area(item.Points)) == sign)
+                if (Math.Sign(StaticHelpers.signed_area(item.Points.ToArray())) == sign)
                 {
                     poly.Points.Reverse();
                 }
@@ -660,9 +691,10 @@ namespace CascadeDesktop
             {
                 if (info is PlaneSurfInfo p)
                     r.AppendText($"PLANE {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
-                //if (info is CylinderSurfInfo p)
-                //r.AppendText($"CYLINDER {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
-
+                else if (info is CylinderSurfInfo c)
+                    r.AppendText($"CYLINDER {c.Position.X} {c.Position.Y} {c.Position.Z}   radius: {c.Radius} {Environment.NewLine}");
+                else
+                    r.AppendText($"{info.GetType().Name}{info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
             }
             ff.Show();
         }

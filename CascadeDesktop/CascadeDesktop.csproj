@@ -94,6 +94,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="IDrawingContext.cs" />
+    <Compile Include="InfoType.cs" />
     <Compile Include="LineElement.cs" />
     <Compile Include="LocalContour.cs" />
     <Compile Include="NFP.cs" />
