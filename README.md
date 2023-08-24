@@ -3,7 +3,7 @@ OpenCASCADE GUI Viewer/Editor
 
 Simple debug tool based on OpenCASCADE for debugging purposes
 
-<img src="imgs/1.jpg"/>
+![изображение](https://github.com/gandalf-007/CascadeDesktop/assets/110347699/4141948e-9adc-48fe-bffc-17e4a9c46796)
 
 # How to use:
 
@@ -25,3 +25,5 @@ https://user-images.githubusercontent.com/15663687/223809990-b63d45bb-d33a-4a0f-
 ## Making profile pipe with fillet:
 https://user-images.githubusercontent.com/15663687/220192496-6f2c0dce-35b9-4d2d-969c-4d66d6ed5dbb.mp4
 
+
+<sub>Some icons by [Yusuke Kamiyamane](http://p.yusukekamiyamane.com/). Licensed under a [Creative Commons Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/)</sub>

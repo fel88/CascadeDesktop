@@ -9,14 +9,17 @@ using System.Net.Mail;
 using System.Text;
 using System.Windows.Forms;
 using AutoDialog;
+using CascadeDesktop.Tools;
 
 namespace CascadeDesktop
 {
-    public partial class Form1 : Form
+    public partial class Form1 : Form, IEditor
     {
         public Form1()
         {
             InitializeComponent();
+            Form = this;
+            Load += Form1_Load;
             Shown += Form1_Shown;
             SizeChanged += Form1_SizeChanged;
             Paint += Form1_Paint;
@@ -26,7 +29,26 @@ namespace CascadeDesktop
             panel1.MouseUp += Panel1_MouseUp;
 
             toolStripStatusLabel3.Alignment = ToolStripItemAlignment.Right;
+
+            _currentTool = new SelectionTool(this);
         }
+        RibbonMenu menu;
+        public static Form1 Form;
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            menu = new RibbonMenu();
+            Controls.Add(menu);
+            menu.AutoSize = true;
+            menu.Dock = DockStyle.Top;
+
+            mf = new MessageFilter();
+            Application.AddMessageFilter(mf);
+
+            toolStrip1.Visible = false;
+
+        }
+        MessageFilter mf = null;
 
         private void Panel1_MouseUp(object sender, MouseEventArgs e)
         {
@@ -35,6 +57,7 @@ namespace CascadeDesktop
             {
                 proxy.Select(ModifierKeys.HasFlag(Keys.Control));
                 SelectionChanged();
+                _currentTool.MouseUp(e);
             }
         }
 
@@ -93,6 +116,12 @@ namespace CascadeDesktop
             proxy.Zoom(0, 0, e.Delta / 8, 0);
         }
 
+        public void ResetTool()
+        {
+            //uncheckedAllToolButtons();
+            SetTool(new SelectionTool(this));
+            //toolStripButton9.Checked = true;
+        }
         private void Panel1_Paint(object sender, PaintEventArgs e)
         {
             proxy.RedrawView();
@@ -142,16 +171,22 @@ namespace CascadeDesktop
             proxy.SetBackgroundColor(clr1.R, clr1.G, clr1.B, clr2.R, clr2.G, clr2.B);
         }
 
+        public OCCTProxy Proxy => proxy;
         OCCTProxy proxy;
 
-        private void toolStripButton1_Click(object sender, EventArgs e)
+        public void ZoomAll()
         {
             proxy.ZoomAllView();
             proxy.UpdateView();
             proxy.UpdateCurrentViewer();
         }
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+            ZoomAll();
+        }
 
-        private void toolStripButton2_Click(object sender, EventArgs e)
+
+        public void ImportModel()
         {
             //curForm.ImportModel(ModelFormat.STEP);
             // return;
@@ -171,6 +206,10 @@ namespace CascadeDesktop
             proxy.RedrawView();
             proxy.UpdateView();
             proxy.UpdateCurrentViewer();
+        }
+        private void toolStripButton2_Click(object sender, EventArgs e)
+        {
+            ImportModel();
         }
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
@@ -214,6 +253,10 @@ namespace CascadeDesktop
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
         private void boxToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            AddBox();
+        }
+        public void AddBox()
+        {
             var d = DialogHelpers.StartDialog();
             d.AddNumericField("w", "Width", 50);
             d.AddNumericField("h", "Height", 50);
@@ -244,10 +287,13 @@ namespace CascadeDesktop
             proxy.MoveTo(e.Location.X, e.Location.Y);
 
         }
-
-        private void toolStripButton4_Click(object sender, EventArgs e)
+        public void Delete()
         {
             proxy.Erase(proxy.GetSelectedObject());
+        }
+        private void toolStripButton4_Click(object sender, EventArgs e)
+        {
+            Delete();
         }
 
         enum TopAbs_ShapeEnum
@@ -265,7 +311,13 @@ namespace CascadeDesktop
 
         private void faceToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            FaceSelectionMode();
+        }
+
+        public void FaceSelectionMode()
+        {
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Face);
+
         }
 
         private void leftToolStripMenuItem_Click(object sender, EventArgs e)
@@ -273,7 +325,8 @@ namespace CascadeDesktop
             proxy.LeftView();
         }
 
-        private void toolStripButton3_Click(object sender, EventArgs e)
+
+        public void ExportSelectedToStep()
         {
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.Filter = "Step models (*.stp)|*.stp";
@@ -281,6 +334,10 @@ namespace CascadeDesktop
                 return;
 
             proxy.ExportStep(proxy.GetSelectedObject(), sfd.FileName);
+        }
+        private void toolStripButton3_Click(object sender, EventArgs e)
+        {
+            ExportSelectedToStep();
         }
 
         private void axoToolStripMenuItem_Click(object sender, EventArgs e)
@@ -297,11 +354,17 @@ namespace CascadeDesktop
             proxy.Erase(obj2);
         }
 
-        private void unionToolStripMenuItem_Click(object sender, EventArgs e)
+        public void Fuse()
         {
+            //todo: refactor to separate tool
             proxy.MakeFuse(obj1, obj2, true);
             proxy.Erase(obj1);
             proxy.Erase(obj2);
+        }
+
+        private void unionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Fuse();
         }
 
         private void wireToolStripMenuItem_Click(object sender, EventArgs e)
@@ -330,7 +393,7 @@ namespace CascadeDesktop
 
         private void vertexToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Vertex);
+            VertexSelectionMode();
         }
 
         private void toolStripButton5_Click(object sender, EventArgs e)
@@ -350,6 +413,11 @@ namespace CascadeDesktop
         }
 
         private void toolStripButton6_Click(object sender, EventArgs e)
+        {
+            MoveSelected();
+        }
+
+        public void MoveSelected()
         {
             if (!proxy.IsObjectSelected())
             {
@@ -430,6 +498,11 @@ namespace CascadeDesktop
         bool grid = true;
         private void toolStripButton8_Click(object sender, EventArgs e)
         {
+            GridSwitch();
+        }
+
+        public void GridSwitch()
+        {
             grid = !grid;
             proxy.ActivateGrid(grid);
         }
@@ -443,6 +516,11 @@ namespace CascadeDesktop
         }
 
         private void edgeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            EdgeSelectionMode();
+        }
+
+        public void EdgeSelectionMode()
         {
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
@@ -465,7 +543,8 @@ namespace CascadeDesktop
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
 
-        private void exportMeshToolStripMenuItem_Click(object sender, EventArgs e)
+
+        public void ExportSelectedToObj()
         {
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.Filter = "Obj mesh|*.obj";
@@ -520,6 +599,10 @@ namespace CascadeDesktop
             File.WriteAllText(sfd.FileName, sb.ToString());
             SetStatus($"saved to {sfd.FileName} successfully");
         }
+        private void exportMeshToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ExportSelectedToObj();
+        }
 
         private void extrudeToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -536,7 +619,7 @@ namespace CascadeDesktop
 
         }
 
-        private void draftToolStripMenuItem1_Click(object sender, EventArgs e)
+        public void DrawDraft()
         {
             DraftEditor dd = new DraftEditor();
             dd.StartPosition = FormStartPosition.CenterScreen;
@@ -545,6 +628,10 @@ namespace CascadeDesktop
             {
                 var handler = proxy.ImportBlueprint(dd.Blueprint);
             }
+        }
+        private void draftToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            DrawDraft();
         }
 
         void ImportDxf(string file)
@@ -621,13 +708,19 @@ namespace CascadeDesktop
 
         }
 
-        private void importDraftFromDxfToolStripMenuItem_Click(object sender, EventArgs e)
+        public void ImportDraft()
         {
             OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Dxf files (*.dxf)|*.dxf";
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
 
             ImportDxf(ofd.FileName);
+        }
+
+        private void importDraftFromDxfToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ImportDraft();
         }
 
         private void darkToolStripMenuItem_Click(object sender, EventArgs e)
@@ -702,6 +795,34 @@ namespace CascadeDesktop
                     r.AppendText($"{info.GetType().Name}{info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
             }
             ff.Show();
+        }
+
+        ITool _currentTool;
+
+        public event Action<ITool> ToolChanged;
+
+        public void SetTool(ITool tool)
+        {
+            _currentTool.Deselect();
+            _currentTool = tool;
+            _currentTool.Select();
+            ToolChanged?.Invoke(_currentTool);
+        }
+        private void adjointToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AdjoinTool();
+        }
+
+        public void AdjoinTool()
+        {
+            SetTool(new AdjoinTool(this));
+
+        }
+
+        internal void VertexSelectionMode()
+        {
+            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Vertex);
+
         }
     }
 }
