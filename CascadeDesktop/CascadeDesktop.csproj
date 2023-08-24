@@ -95,7 +95,7 @@
     <Compile Include="RibbonMenuWPF.xaml.cs">
       <DependentUpon>RibbonMenuWPF.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\AdjointTool.cs" />
+    <Compile Include="Tools\AdjoinTool.cs" />
     <Compile Include="ArcElement.cs" />
     <Compile Include="Contour.cs" />
     <Compile Include="DraftEditor.cs">

@@ -30,7 +30,7 @@
                 <!-- Home  group-->
                 <RibbonGroup x:Name="General" Header="General">
                     <RibbonToggleButton  Label="Selection"  KeyTip="X" SmallImageSource="Icons/cursor.ico"/>
-                    <RibbonButton  Label="Fit all"  KeyTip="F" SmallImageSource="Icons/magnifier.ico"/>
+                    <RibbonButton Click="fitAll_Click"  Label="Fit all"  KeyTip="F" SmallImageSource="Icons/magnifier.ico"/>
                     <RibbonButton  Label="Undo"  SmallImageSource="Icons/arrow-curve-180-left.ico" />
 
 
@@ -46,20 +46,62 @@
                     <RibbonButton  Label="New" KeyTip="C" SmallImageSource="Icons/blue-document.png"   />
                     <RibbonButton  Label="Open" KeyTip="C" SmallImageSource="Icons/folder-horizontal-open.png"  />
                     <RibbonButton  Label="Save as" KeyTip="X"   SmallImageSource="Icons/disk.ico" />
-                    <RibbonMenuButton Label="Export as"  SmallImageSource="Icons/blue-document-export.png" KeyTip="V">
-                        <RibbonMenuItem  Header="Step" KeyTip="T"/>
-                    </RibbonMenuButton>
+                   
                     <!--<RibbonButton  Label="Format Painter" KeyTip="FP" />-->
+                </RibbonGroup>
+                <RibbonGroup x:Name="model" Header="Model">
+                    <RibbonButton x:Name="import" Click="Import_Click"  Label="Import"  KeyTip="X"  />
+                    <RibbonMenuButton Label="Export as"  SmallImageSource="Icons/blue-document-export.png" KeyTip="V">
+                        <RibbonMenuItem  Header="Step" Click="StepExport_Click" KeyTip="T"/>
+                        <RibbonMenuItem  Header="Mesh" Click="ObjExport_Click" KeyTip="T"/>
+                    </RibbonMenuButton>
+                    <RibbonButton x:Name="delete" Click="Delete_Click"  Label="Delete"  KeyTip="X"  />
+
+                </RibbonGroup>
+                <RibbonGroup x:Name="add" Header="Add">
+                    <RibbonButton x:Name="box" Click="Box_Click"  Label="Box"  KeyTip="X"  />
+                    <RibbonButton x:Name="sphere"   Label="Sphere"  KeyTip="X"  />
+                    <RibbonButton x:Name="cylinder"   Label="Cylinder"  KeyTip="X"  />
+                    <RibbonButton x:Name="cone"   Label="Cone"   KeyTip="X"  />
+
+
+                </RibbonGroup>
+                <RibbonGroup x:Name="draft" Header="Draft">
+                    <RibbonButton x:Name="importDraft" Click="ImportDraft_Click"   Label="Import"   KeyTip="X"  />
+                    <RibbonButton x:Name="drawDraft" Click="DrawDraft_Click"  Label="Draw"   KeyTip="X"  />
+
+                </RibbonGroup>
+                <RibbonGroup x:Name="transformations" Header="Transformations">
+                    <RibbonButton x:Name="move" Click="Move_Click"  Label="Move"   KeyTip="X"  />
+                    <RibbonButton x:Name="rotate" Click="Rotate_Click"  Label="Rotate"   KeyTip="X"  />
+
                 </RibbonGroup>
                 <!-- Employee And Payroll group-->
 
 
                 <RibbonGroup x:Name="operators" Header="Operators ">
                     <RibbonButton  Label="Extrude" KeyTip="X"   SmallImageSource="Icons/fill-090.png"/>
-                    <RibbonToggleButton x:Name="adjointButton"  Label="Adjoint" KeyTip="X" SmallImageSource="Icons/magnet.ico" />
+                    <RibbonToggleButton x:Name="adjoinButton" Click="Adjoin_Click" Label="Adjoin" KeyTip="X" SmallImageSource="Icons/magnet.ico" />
                     <RibbonButton  Label="Merge" KeyTip="M"   SmallImageSource="Icons/plug-connect.png"/>
+                    <RibbonButton  Label="Revolution" KeyTip="M"   />
+                    <RibbonButton  Label="Fillet" KeyTip="M"   />
+                    <RibbonButton  Label="Chamfer" KeyTip="M"   />
                 </RibbonGroup>
-                <RibbonGroup x:Name="camera" Header="Camera ">
+                <RibbonGroup x:Name="bool" Header="Bool">
+                    <RibbonButton  Label="Fuse" Click="Fuse_Click" KeyTip="M"   />
+                    <RibbonButton  Label="Diff" KeyTip="M"   />
+                    <RibbonButton  Label="Intersect" KeyTip="M"   />
+                </RibbonGroup>
+
+                <RibbonGroup x:Name="mode" Header="Selection mode">
+                    <RibbonButton x:Name="Face" Click="Face_Click" Label="Face" KeyTip="X"   />
+                    <RibbonButton x:Name="Edge" Click="Edge_Click" Label="Edge" KeyTip="X"   />
+                    <RibbonButton x:Name="Vertex" Click="Vertex_Click" Label="Vertex" KeyTip="X"   />
+                    <RibbonButton x:Name="Shape" Click="Shape_Click" Label="Shape" KeyTip="X"   />
+                    <RibbonButton x:Name="Wire" Click="Wire_Click" Label="Wire" KeyTip="X"   />
+
+                </RibbonGroup>
+                <RibbonGroup x:Name="view" Header="View">
                     <RibbonButton  Label="X view" KeyTip="X"   />
                     <RibbonButton  Label="Y view" KeyTip="X"    />
                     <RibbonButton  Label="Z view" KeyTip="X"   />
@@ -69,7 +111,9 @@
                         <RibbonButton   Label="Switch up" KeyTip="X"   />
                         <RibbonButton   Label="Switch from" KeyTip="X"   />
                     </RibbonMenuButton>
-                    <RibbonToggleButton  x:Name="showNormalsToggle"  Label="Show normals"  KeyTip="X"   />
+                    <RibbonButton  Label="Grid" Click="Grid_Click" SmallImageSource="Icons/grid.png" />
+
+                    
                 </RibbonGroup>
                 <RibbonGroup x:Name="settings" Header="Settings ">
                     <RibbonButton  Label="Settings" SmallImageSource="Icons/gear.png" />
@@ -82,7 +126,7 @@
             <RibbonTab x:Name="draftTab"  IsEnabled="false" Header="Draft" KeyTip="I">
                 <RibbonGroup x:Name="general" Header="General ">
                     <RibbonButton x:Name="undo"  Label="Undo" KeyTip="X"  SmallImageSource="Icons/arrow-curve-180-left.ico"/>
-                    <RibbonButton x:Name="fitAll"  Label="Fit all"  KeyTip="F" SmallImageSource="Icons/magnifier.ico"/>
+                    <RibbonButton x:Name="fitAll" Click="fitAll_Click"  Label="Fit all"  KeyTip="F" SmallImageSource="Icons/magnifier.ico"/>
 
                 </RibbonGroup>
                 
@@ -105,6 +149,7 @@
                     <RibbonButton x:Name="offset"  SmallImageSource="Icons/layer-resize.png" Label="Offset" KeyTip="X"  />
 
                 </RibbonGroup>
+                
                 <RibbonGroup x:Name="helpers" Header="Helpers ">
                     <RibbonButton x:Name="Image" SmallImageSource="Icons/picture.png"   Label="Image" KeyTip="I"  />
                 </RibbonGroup >

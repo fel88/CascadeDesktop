@@ -4,9 +4,9 @@ using System.Windows.Forms;
 
 namespace CascadeDesktop.Tools
 {
-    public class AdjointTool : AbstractTool
+    public class AdjoinTool : AbstractTool
     {
-        public AdjointTool(IEditor editor) : base(editor)
+        public AdjoinTool(IEditor editor) : base(editor)
         {
 
         }

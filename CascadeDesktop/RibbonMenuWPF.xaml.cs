@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -18,7 +19,7 @@ namespace CascadeDesktop
     /// <summary>
     /// Interaction logic for RibbonMenuWPF.xaml
     /// </summary>
-    public partial class RibbonMenuWPF : UserControl
+    public partial class RibbonMenuWPF : System.Windows.Controls.UserControl
     {
         public RibbonMenuWPF()
         {
@@ -41,6 +42,102 @@ namespace CascadeDesktop
             ab.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             ab.ShowDialog();
 
-        }        
+        }
+        public Form1 Form => Form1.Form;
+
+        private void fitAll_Click(object sender, RoutedEventArgs e)
+        {
+            Form.ZoomAll();
+        }
+
+        private void Box_Click(object sender, RoutedEventArgs e)
+        {
+            Form.AddBox();
+        }
+
+        private void Adjoin_Click(object sender, RoutedEventArgs e)
+        {
+            Form.AdjoinTool();
+        }
+
+        private void Grid_Click(object sender, RoutedEventArgs e)
+        {
+            Form.GridSwitch();
+            Form.Proxy.UpdateCurrentViewer();
+        }
+
+        private void Move_Click(object sender, RoutedEventArgs e)
+        {
+            Form.MoveSelected();
+        }
+
+        private void Rotate_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Face_Click(object sender, RoutedEventArgs e)
+        {
+            Form.FaceSelectionMode();
+        }
+
+        private void Vertex_Click(object sender, RoutedEventArgs e)
+        {
+            Form.VertexSelectionMode();
+
+        }
+
+        private void Edge_Click(object sender, RoutedEventArgs e)
+        {
+            Form.EdgeSelectionMode();
+        }
+
+        private void Import_Click(object sender, RoutedEventArgs e)
+        {
+            Form.ImportModel();
+        }
+
+        private void StepExport_Click(object sender, RoutedEventArgs e)
+        {
+            Form.ExportSelectedToStep();
+        }
+
+        
+
+        private void ObjExport_Click(object sender, RoutedEventArgs e)
+        {
+            Form.ExportSelectedToObj();
+
+        }
+
+        private void Delete_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Delete();
+        }
+
+        private void Fuse_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Fuse();
+        }
+
+        private void ImportDraft_Click(object sender, RoutedEventArgs e)
+        {
+            Form.ImportDraft();
+        }
+
+        private void DrawDraft_Click(object sender, RoutedEventArgs e)
+        {
+            Form.DrawDraft();
+        }
+
+        private void Wire_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Shape_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
