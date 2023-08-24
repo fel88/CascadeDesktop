@@ -18,6 +18,7 @@ namespace CascadeDesktop
         public Form1()
         {
             InitializeComponent();
+            Load += Form1_Load;
             Shown += Form1_Shown;
             SizeChanged += Form1_SizeChanged;
             Paint += Form1_Paint;
@@ -30,6 +31,23 @@ namespace CascadeDesktop
 
             _currentTool = new SelectionTool(this);
         }
+        RibbonMenu menu;
+        public static Form1 Form;
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            menu = new RibbonMenu();
+            Controls.Add(menu);
+            menu.AutoSize = true;
+            menu.Dock = DockStyle.Top;
+
+            mf = new MessageFilter();
+            Application.AddMessageFilter(mf);
+
+            //toolStrip1.Visible = false;
+
+        }
+        MessageFilter mf = null;
 
         private void Panel1_MouseUp(object sender, MouseEventArgs e)
         {

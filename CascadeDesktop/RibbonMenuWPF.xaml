@@ -1,0 +1,139 @@
+﻿<UserControl x:Class="CascadeDesktop.RibbonMenuWPF"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:CascadeDesktop"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Ribbon x:Name="RibbonWin"  SelectedIndex="0">
+            <Ribbon.HelpPaneContent>
+                <RibbonButton x:Name="HelpButton" Click="HelpButton_Click" SmallImageSource="Icons\question.png"/>
+            </Ribbon.HelpPaneContent>
+            <Ribbon.ApplicationMenu>
+                <RibbonApplicationMenu Visibility="Collapsed">
+
+                </RibbonApplicationMenu>
+            </Ribbon.ApplicationMenu>
+            <Ribbon.QuickAccessToolBar>
+                <RibbonQuickAccessToolBar Visibility="Collapsed">
+
+                </RibbonQuickAccessToolBar>
+            </Ribbon.QuickAccessToolBar>
+            <RibbonTab x:Name="projectTab" Header="Project" KeyTip="H" >
+                <!-- Home  group-->
+                <RibbonGroup x:Name="General" Header="General">
+                    <RibbonToggleButton  Label="Selection"  KeyTip="X" SmallImageSource="Icons/cursor.ico"/>
+                    <RibbonButton  Label="Fit all"  KeyTip="F" SmallImageSource="Icons/magnifier.ico"/>
+                    <RibbonButton  Label="Undo"  SmallImageSource="Icons/arrow-curve-180-left.ico" />
+
+
+
+                    <!--<RibbonMenuButton  Label="Employee" KeyTip="V">
+                    <RibbonMenuItem  Header="Keep Text Only" KeyTip="T"/>
+                    <RibbonMenuItem Header="Paste Special..." KeyTip="S"/>
+                </RibbonMenuButton>
+                <RibbonButton  Label="Save" KeyTip="X" />
+                <RibbonButton  Label="Add" KeyTip="C" />-->
+                </RibbonGroup>
+                <RibbonGroup x:Name="FileGroup" Header="File">
+                    <RibbonButton  Label="New" KeyTip="C" SmallImageSource="Icons/blue-document.png"   />
+                    <RibbonButton  Label="Open" KeyTip="C" SmallImageSource="Icons/folder-horizontal-open.png"  />
+                    <RibbonButton  Label="Save as" KeyTip="X"   SmallImageSource="Icons/disk.ico" />
+                    <RibbonMenuButton Label="Export as"  SmallImageSource="Icons/blue-document-export.png" KeyTip="V">
+                        <RibbonMenuItem  Header="Step" KeyTip="T"/>
+                    </RibbonMenuButton>
+                    <!--<RibbonButton  Label="Format Painter" KeyTip="FP" />-->
+                </RibbonGroup>
+                <!-- Employee And Payroll group-->
+
+
+                <RibbonGroup x:Name="operators" Header="Operators ">
+                    <RibbonButton  Label="Extrude" KeyTip="X"   SmallImageSource="Icons/fill-090.png"/>
+                    <RibbonToggleButton x:Name="adjointButton"  Label="Adjoint" KeyTip="X" SmallImageSource="Icons/magnet.ico" />
+                    <RibbonButton  Label="Merge" KeyTip="M"   SmallImageSource="Icons/plug-connect.png"/>
+                </RibbonGroup>
+                <RibbonGroup x:Name="camera" Header="Camera ">
+                    <RibbonButton  Label="X view" KeyTip="X"   />
+                    <RibbonButton  Label="Y view" KeyTip="X"    />
+                    <RibbonButton  Label="Z view" KeyTip="X"   />
+                    <RibbonButton   Label="Reset camera" KeyTip="X"   />
+
+                    <RibbonMenuButton Label="Switch" >
+                        <RibbonButton   Label="Switch up" KeyTip="X"   />
+                        <RibbonButton   Label="Switch from" KeyTip="X"   />
+                    </RibbonMenuButton>
+                    <RibbonToggleButton  x:Name="showNormalsToggle"  Label="Show normals"  KeyTip="X"   />
+                </RibbonGroup>
+                <RibbonGroup x:Name="settings" Header="Settings ">
+                    <RibbonButton  Label="Settings" SmallImageSource="Icons/gear.png" />
+                </RibbonGroup>
+                
+            </RibbonTab>
+
+
+            <!-- Ribbon Tab #2: -->
+            <RibbonTab x:Name="draftTab"  IsEnabled="false" Header="Draft" KeyTip="I">
+                <RibbonGroup x:Name="general" Header="General ">
+                    <RibbonButton x:Name="undo"  Label="Undo" KeyTip="X"  SmallImageSource="Icons/arrow-curve-180-left.ico"/>
+                    <RibbonButton x:Name="fitAll"  Label="Fit all"  KeyTip="F" SmallImageSource="Icons/magnifier.ico"/>
+
+                </RibbonGroup>
+                
+                <RibbonGroup x:Name="drawing" Header="Drawing ">
+                    <RibbonButton x:Name="Selection"   Label="Selection" KeyTip="X" SmallImageSource="Icons/cursor.ico" />
+                    <RibbonButton x:Name="Erase"  Label="Erase" KeyTip="X" SmallImageSource="Icons/eraser.ico"  />
+                    <RibbonButton x:Name="Line"   Label="Line" KeyTip="X" SmallImageSource="Icons/layer-shape-line.ico"  />
+                    <RibbonButton x:Name="CloseLine" SmallImageSource="Icons/layer-shape-polygon.png"  Label="Close Line" KeyTip="X"  />
+                    <RibbonButton  x:Name="Rectangle"  Label="Rectangle" KeyTip="X"  SmallImageSource="Icons/layer-shape.ico"/>
+                    <RibbonButton x:Name="Circle"  Label="Circle" KeyTip="X" SmallImageSource="Icons/layer-shape-ellipse.ico"  />
+                    <RibbonButton x:Name="Hex"   Label="Hex" KeyTip="H"   />
+                    <RibbonButton x:Name="CutEdge"   Label="Cut edge" KeyTip="X" SmallImageSource="Icons/cutter.png"  />
+                    <RibbonButton x:Name="Merge"   Label="Merge" KeyTip="X"   />
+                </RibbonGroup>
+                <RibbonGroup x:Name="operts" Header="Operators ">
+                    <RibbonButton x:Name="flipV"   Label="Flip vertical" SmallImageSource="Icons/layer-flip-vertical.png" KeyTip="X"  />
+                    <RibbonButton x:Name="flipH"   Label="Flip horizontal" SmallImageSource="Icons/layer-flip.png" KeyTip="X"  />
+                    <RibbonButton x:Name="array"   Label="Array" SmallImageSource="Icons/grid.png"  KeyTip="X"  />
+                    <RibbonButton x:Name="translate"     Label="Translate" KeyTip="X"  />
+                    <RibbonButton x:Name="offset"  SmallImageSource="Icons/layer-resize.png" Label="Offset" KeyTip="X"  />
+
+                </RibbonGroup>
+                <RibbonGroup x:Name="helpers" Header="Helpers ">
+                    <RibbonButton x:Name="Image" SmallImageSource="Icons/picture.png"   Label="Image" KeyTip="I"  />
+                </RibbonGroup >
+                <RibbonGroup x:Name="misc" Header="Misc ">
+
+                    <RibbonButton x:Name="Export" SmallImageSource="Icons/blue-document-export.png"   Label="Export" KeyTip="X"  />
+                    
+                    <RibbonToggleButton  x:Name="hVis"  Label="Helpers hide"  KeyTip="X"  >
+                        <RibbonToggleButton.Style>
+                            <Style TargetType="{x:Type RibbonToggleButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding 
+                              RelativeSource={RelativeSource Self}, 
+                            Path=IsChecked}" Value="True">
+                                        <Setter Property="SmallImageSource" Value="Icons/light-bulb-off.png" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding 
+                            RelativeSource={RelativeSource Self}, 
+                            Path=IsChecked}" Value="False">
+                                        <Setter Property="SmallImageSource" Value="Icons/light-bulb.ico" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </RibbonToggleButton.Style>
+
+                    </RibbonToggleButton>
+                    
+                </RibbonGroup>
+            </RibbonTab>
+        </Ribbon>
+    </Grid>
+</UserControl>
