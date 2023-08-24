@@ -29,9 +29,9 @@ namespace CascadeDesktop.Tools
 
         public override void MouseUp(MouseEventArgs e)
         {
-            if (!Editor.Proxy.IsObjectSelected())            
+            if (!Editor.Proxy.IsObjectSelected())
                 return;
-            
+
             var proxy = Editor.Proxy;
             var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
 

@@ -41,6 +41,7 @@
 #include <NCollection_Haft.h>
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepBuilderAPI_Copy.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
 #include <BRepPrimAPI_MakeCone.hxx>
@@ -1583,6 +1584,28 @@ public:
 		ObjHandle h2 = mh2->ToObjHandle();
 		const auto ret = impl->MakeBoolFuse(h1, h2, fixShape);
 		myAISContext()->Display(new AIS_Shape(ret), true);
+	}
+
+	ManagedObjHandle^ Clone(ManagedObjHandle^ m) {
+		BRepBuilderAPI_Copy copy;
+		ObjHandle h = m->ToObjHandle();
+		
+		const auto* object1 = impl->getObject(h);
+
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		copy.Perform(shape0);	
+
+		auto shapeCopy = copy.Shape();
+
+		auto ais = new AIS_Shape(shapeCopy);
+		myAISContext()->Display(ais, true);
+
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
+
 	}
 
 	ManagedObjHandle^ MakePrism(ManagedObjHandle^ m, double height) {

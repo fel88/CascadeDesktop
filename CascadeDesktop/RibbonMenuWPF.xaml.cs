@@ -73,7 +73,7 @@ namespace CascadeDesktop
 
         private void Rotate_Click(object sender, RoutedEventArgs e)
         {
-
+            Form.RotateSelected();
         }
 
         private void Face_Click(object sender, RoutedEventArgs e)
@@ -102,7 +102,7 @@ namespace CascadeDesktop
             Form.ExportSelectedToStep();
         }
 
-        
+
 
         private void ObjExport_Click(object sender, RoutedEventArgs e)
         {
@@ -117,7 +117,7 @@ namespace CascadeDesktop
 
         private void Fuse_Click(object sender, RoutedEventArgs e)
         {
-            Form.Fuse();
+            Form.FuseTool();
         }
 
         private void ImportDraft_Click(object sender, RoutedEventArgs e)
@@ -138,6 +138,71 @@ namespace CascadeDesktop
         private void Shape_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void Fillet_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Fillet();
+        }
+
+        private void Clone_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Clone();
+        }
+
+        private void Cylinder_Click(object sender, RoutedEventArgs e)
+        {
+            Form.AddCylinder();
+        }
+
+        private void ResetView_Click(object sender, RoutedEventArgs e)
+        {
+            Form.ResetView();
+        }
+
+        private void Diff_Click(object sender, RoutedEventArgs e)
+        {
+            Form.DiffTool();
+        }
+
+        private void Intersect_Click(object sender, RoutedEventArgs e)
+        {
+            Form.CommonTool();
+        }
+        private void FrontView_Click(object sender, RoutedEventArgs e)
+        {
+
+            Form.FrontView();
+        }
+
+        private void TopView_Click(object sender, RoutedEventArgs e)
+        {
+            Form.TopView();
+        }
+
+        private void RightView_Click(object sender, RoutedEventArgs e)
+        {
+            Form.RightView();
+        }
+
+        private void BottomView_Click(object sender, RoutedEventArgs e)
+        {
+            Form.BottomView();
+        }
+
+        private void LeftView_Click(object sender, RoutedEventArgs e)
+        {
+            Form.LeftView();
+        }
+
+        private void BackView_Click(object sender, RoutedEventArgs e)
+        {
+            Form.BackView();
+        }
+
+        private void Extrude_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Extrude();
         }
     }
 }

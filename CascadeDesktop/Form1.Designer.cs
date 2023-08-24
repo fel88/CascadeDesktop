@@ -58,6 +58,8 @@
             this.chamferToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.extrudeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.revolutionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.adjointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripButton4 = new System.Windows.Forms.ToolStripButton();
             this.toolStripDropDownButton4 = new System.Windows.Forms.ToolStripDropDownButton();
             this.faceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -86,8 +88,7 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
-            this.adjointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cloneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tableLayoutPanel1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -187,28 +188,28 @@
             // topToolStripMenuItem
             // 
             this.topToolStripMenuItem.Name = "topToolStripMenuItem";
-            this.topToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.topToolStripMenuItem.Size = new System.Drawing.Size(100, 22);
             this.topToolStripMenuItem.Text = "top";
             this.topToolStripMenuItem.Click += new System.EventHandler(this.topToolStripMenuItem_Click);
             // 
             // frontToolStripMenuItem
             // 
             this.frontToolStripMenuItem.Name = "frontToolStripMenuItem";
-            this.frontToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.frontToolStripMenuItem.Size = new System.Drawing.Size(100, 22);
             this.frontToolStripMenuItem.Text = "front";
             this.frontToolStripMenuItem.Click += new System.EventHandler(this.frontToolStripMenuItem_Click);
             // 
             // leftToolStripMenuItem
             // 
             this.leftToolStripMenuItem.Name = "leftToolStripMenuItem";
-            this.leftToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.leftToolStripMenuItem.Size = new System.Drawing.Size(100, 22);
             this.leftToolStripMenuItem.Text = "left";
             this.leftToolStripMenuItem.Click += new System.EventHandler(this.leftToolStripMenuItem_Click);
             // 
             // axoToolStripMenuItem
             // 
             this.axoToolStripMenuItem.Name = "axoToolStripMenuItem";
-            this.axoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.axoToolStripMenuItem.Size = new System.Drawing.Size(100, 22);
             this.axoToolStripMenuItem.Text = "axo";
             this.axoToolStripMenuItem.Click += new System.EventHandler(this.axoToolStripMenuItem_Click);
             // 
@@ -339,7 +340,8 @@
             this.extrudeToolStripMenuItem,
             this.revolutionToolStripMenuItem,
             this.toolStripSeparator5,
-            this.adjointToolStripMenuItem});
+            this.adjointToolStripMenuItem,
+            this.cloneToolStripMenuItem});
             this.toolStripDropDownButton5.Image = ((System.Drawing.Image)(resources.GetObject("toolStripDropDownButton5.Image")));
             this.toolStripDropDownButton5.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripDropDownButton5.Name = "toolStripDropDownButton5";
@@ -373,6 +375,18 @@
             this.revolutionToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.revolutionToolStripMenuItem.Text = "revolution";
             this.revolutionToolStripMenuItem.Click += new System.EventHandler(this.revolutionToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(177, 6);
+            // 
+            // adjointToolStripMenuItem
+            // 
+            this.adjointToolStripMenuItem.Name = "adjointToolStripMenuItem";
+            this.adjointToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.adjointToolStripMenuItem.Text = "adjoint";
+            this.adjointToolStripMenuItem.Click += new System.EventHandler(this.adjointToolStripMenuItem_Click);
             // 
             // toolStripButton4
             // 
@@ -617,17 +631,12 @@
             this.toolStripStatusLabel3.Size = new System.Drawing.Size(17, 19);
             this.toolStripStatusLabel3.Text = "..";
             // 
-            // toolStripSeparator5
+            // cloneToolStripMenuItem
             // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(177, 6);
-            // 
-            // adjointToolStripMenuItem
-            // 
-            this.adjointToolStripMenuItem.Name = "adjointToolStripMenuItem";
-            this.adjointToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.adjointToolStripMenuItem.Text = "adjoint";
-            this.adjointToolStripMenuItem.Click += new System.EventHandler(this.adjointToolStripMenuItem_Click);
+            this.cloneToolStripMenuItem.Name = "cloneToolStripMenuItem";
+            this.cloneToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.cloneToolStripMenuItem.Text = "clone";
+            this.cloneToolStripMenuItem.Click += new System.EventHandler(this.cloneToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -712,6 +721,7 @@
         private System.Windows.Forms.ToolStripMenuItem facesInfoToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem adjointToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cloneToolStripMenuItem;
     }
 }
 

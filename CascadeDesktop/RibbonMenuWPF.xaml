@@ -56,12 +56,13 @@
                         <RibbonMenuItem  Header="Mesh" Click="ObjExport_Click" KeyTip="T"/>
                     </RibbonMenuButton>
                     <RibbonButton x:Name="delete" Click="Delete_Click"  Label="Delete"  KeyTip="X"  />
+                    <RibbonButton x:Name="clone" Click="Clone_Click"  Label="Clone"  KeyTip="X"  />
 
                 </RibbonGroup>
                 <RibbonGroup x:Name="add" Header="Add">
                     <RibbonButton x:Name="box" Click="Box_Click"  Label="Box"  KeyTip="X"  />
                     <RibbonButton x:Name="sphere"   Label="Sphere"  KeyTip="X"  />
-                    <RibbonButton x:Name="cylinder"   Label="Cylinder"  KeyTip="X"  />
+                    <RibbonButton x:Name="cylinder" Click="Cylinder_Click"   Label="Cylinder"  KeyTip="X"  />
                     <RibbonButton x:Name="cone"   Label="Cone"   KeyTip="X"  />
 
 
@@ -80,17 +81,17 @@
 
 
                 <RibbonGroup x:Name="operators" Header="Operators ">
-                    <RibbonButton  Label="Extrude" KeyTip="X"   SmallImageSource="Icons/fill-090.png"/>
+                    <RibbonButton  Label="Extrude" KeyTip="X" Click="Extrude_Click"   SmallImageSource="Icons/fill-090.png"/>
                     <RibbonToggleButton x:Name="adjoinButton" Click="Adjoin_Click" Label="Adjoin" KeyTip="X" SmallImageSource="Icons/magnet.ico" />
                     <RibbonButton  Label="Merge" KeyTip="M"   SmallImageSource="Icons/plug-connect.png"/>
                     <RibbonButton  Label="Revolution" KeyTip="M"   />
-                    <RibbonButton  Label="Fillet" KeyTip="M"   />
+                    <RibbonButton  Click="Fillet_Click" Label="Fillet" KeyTip="M"   />
                     <RibbonButton  Label="Chamfer" KeyTip="M"   />
                 </RibbonGroup>
                 <RibbonGroup x:Name="bool" Header="Bool">
                     <RibbonButton  Label="Fuse" Click="Fuse_Click" KeyTip="M"   />
-                    <RibbonButton  Label="Diff" KeyTip="M"   />
-                    <RibbonButton  Label="Intersect" KeyTip="M"   />
+                    <RibbonButton  Label="Diff" Click="Diff_Click" KeyTip="M"   />
+                    <RibbonButton  Label="Intersect" Click="Intersect_Click" KeyTip="M"   />
                 </RibbonGroup>
 
                 <RibbonGroup x:Name="mode" Header="Selection mode">
@@ -102,10 +103,13 @@
 
                 </RibbonGroup>
                 <RibbonGroup x:Name="view" Header="View">
-                    <RibbonButton  Label="X view" KeyTip="X"   />
-                    <RibbonButton  Label="Y view" KeyTip="X"    />
-                    <RibbonButton  Label="Z view" KeyTip="X"   />
-                    <RibbonButton   Label="Reset camera" KeyTip="X"   />
+                    <RibbonButton  Label="Front" Click="FrontView_Click" KeyTip="X"   />
+                    <RibbonButton  Label="Top" Click="TopView_Click" KeyTip="X"    />
+                    <RibbonButton  Label="Right" Click="RightView_Click" KeyTip="X"   />
+                    <RibbonButton  Label="Bottom" Click="BottomView_Click" KeyTip="X"   />
+                    <RibbonButton  Label="Left" Click="LeftView_Click" KeyTip="X"   />
+                    <RibbonButton  Label="Back" Click="BackView_Click" KeyTip="X"   />
+                    <RibbonButton Click="ResetView_Click"  Label="Reset camera" KeyTip="X"   />
 
                     <RibbonMenuButton Label="Switch" >
                         <RibbonButton   Label="Switch up" KeyTip="X"   />
