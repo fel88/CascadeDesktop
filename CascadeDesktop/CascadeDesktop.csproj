@@ -78,6 +78,8 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
+    <Compile Include="AbstractTool.cs" />
+    <Compile Include="Tools\AdjointTool.cs" />
     <Compile Include="ArcElement.cs" />
     <Compile Include="Contour.cs" />
     <Compile Include="DraftEditor.cs">
@@ -95,15 +97,20 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="GeomHelpers.cs" />
     <Compile Include="IDrawingContext.cs" />
+    <Compile Include="IEditor.cs" />
     <Compile Include="IElement.cs" />
     <Compile Include="InfoType.cs" />
+    <Compile Include="ITool.cs" />
     <Compile Include="LineElement.cs" />
     <Compile Include="LocalContour.cs" />
     <Compile Include="NFP.cs" />
+    <Compile Include="Plane.cs" />
     <Compile Include="PolylineElement.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tools\SelectionTool.cs" />
     <Compile Include="StaticHelpers.cs" />
     <Compile Include="SvgPoint.cs" />
     <EmbeddedResource Include="AboutBox1.resx">

@@ -9,10 +9,11 @@ using System.Net.Mail;
 using System.Text;
 using System.Windows.Forms;
 using AutoDialog;
+using CascadeDesktop.Tools;
 
 namespace CascadeDesktop
 {
-    public partial class Form1 : Form
+    public partial class Form1 : Form, IEditor
     {
         public Form1()
         {
@@ -26,6 +27,8 @@ namespace CascadeDesktop
             panel1.MouseUp += Panel1_MouseUp;
 
             toolStripStatusLabel3.Alignment = ToolStripItemAlignment.Right;
+
+            _currentTool = new SelectionTool(this);
         }
 
         private void Panel1_MouseUp(object sender, MouseEventArgs e)
@@ -35,6 +38,7 @@ namespace CascadeDesktop
             {
                 proxy.Select(ModifierKeys.HasFlag(Keys.Control));
                 SelectionChanged();
+                _currentTool.MouseUp(e);
             }
         }
 
@@ -52,7 +56,7 @@ namespace CascadeDesktop
                 isDrag = true;
             }
         }
-
+        
         public void SelectionChanged()
         {
             if (!proxy.IsObjectSelected())
@@ -93,6 +97,12 @@ namespace CascadeDesktop
             proxy.Zoom(0, 0, e.Delta / 8, 0);
         }
 
+        public void ResetTool()
+        {
+            //uncheckedAllToolButtons();
+            SetTool(new SelectionTool(this));
+            //toolStripButton9.Checked = true;
+        }
         private void Panel1_Paint(object sender, PaintEventArgs e)
         {
             proxy.RedrawView();
@@ -142,6 +152,7 @@ namespace CascadeDesktop
             proxy.SetBackgroundColor(clr1.R, clr1.G, clr1.B, clr2.R, clr2.G, clr2.B);
         }
 
+        public OCCTProxy Proxy => proxy;
         OCCTProxy proxy;
 
         private void toolStripButton1_Click(object sender, EventArgs e)
@@ -702,6 +713,24 @@ namespace CascadeDesktop
                     r.AppendText($"{info.GetType().Name}{info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
             }
             ff.Show();
+        }
+
+        ITool _currentTool;
+
+        public event Action<ITool> ToolChanged;
+
+        public void SetTool(ITool tool)
+        {
+            _currentTool.Deselect();
+            _currentTool = tool;
+            _currentTool.Select();
+            ToolChanged?.Invoke(_currentTool);
+        }
+        private void adjointToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetTool(new AdjointTool(this));
+            return;
+
         }
     }
 }
