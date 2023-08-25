@@ -217,5 +217,23 @@
     <Resource Include="Icons\puzzle.png" />
     <Resource Include="Icons\question.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\broom.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\arrow-move.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\arrow-circle-315.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\fill-270.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\blue-document-view.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\infocard.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

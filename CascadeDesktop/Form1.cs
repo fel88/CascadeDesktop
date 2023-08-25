@@ -46,8 +46,8 @@ namespace CascadeDesktop
             Application.AddMessageFilter(mf);
 
             toolStrip1.Visible = false;
-
         }
+
         MessageFilter mf = null;
 
         private void Panel1_MouseUp(object sender, MouseEventArgs e)
@@ -163,7 +163,7 @@ namespace CascadeDesktop
 
             proxy.UpdateCurrentViewer();
             proxy.UpdateView();
-
+            Width = Width + 1;
         }
 
         void SetBgGradient(Color clr1, Color clr2)
@@ -290,7 +290,8 @@ namespace CascadeDesktop
         }
         public void Delete()
         {
-            proxy.Erase(proxy.GetSelectedObject());
+            if (proxy.IsObjectSelected())
+                proxy.Erase(proxy.GetSelectedObject());
         }
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
@@ -320,7 +321,11 @@ namespace CascadeDesktop
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Face);
 
         }
+        public void WireSelectionMode()
+        {
+            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Wire);
 
+        }
         private void leftToolStripMenuItem_Click(object sender, EventArgs e)
         {
             proxy.LeftView();
@@ -473,23 +478,30 @@ namespace CascadeDesktop
             AddCylinder();
         }
 
-        private void sphereToolStripMenuItem_Click(object sender, EventArgs e)
+        public void AddSphere()
         {
             var d = DialogHelpers.StartDialog();
+            d.Text = "New sphere";
             d.AddNumericField("r", "Radius", 50);
 
-            d.ShowDialog();
+            if (!d.ShowDialog())
+                return;
 
             var r = d.GetNumericField("r");
             var cs = proxy.MakeSphere(r);
             objs.Add(cs);
         }
 
+        private void sphereToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AddSphere();
+        }
+
         public void RotateSelected()
         {
             if (!CheckObjectSelectedUI())
                 return;
-            
+
             var d = DialogHelpers.StartDialog();
             d.AddNumericField("a", "Angle", 90);
             d.AddNumericField("x", "x", 0);
@@ -509,7 +521,7 @@ namespace CascadeDesktop
 
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         bool grid = true;
@@ -572,9 +584,6 @@ namespace CascadeDesktop
 
         private void filletToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (!CheckObjectSelectedUI())
-                return;
-
             Fillet();
         }
 
@@ -652,9 +661,9 @@ namespace CascadeDesktop
             d.Text = "Extrude";
             d.AddNumericField("h", "Height", 50);
 
-            if (!d.ShowDialog())            
+            if (!d.ShowDialog())
                 return;
-            
+
             var h = d.GetNumericField("h");
             proxy.MakePrism(proxy.GetSelectedObject(), h);
         }
@@ -784,17 +793,26 @@ namespace CascadeDesktop
             proxy.SetDefaultGradient();
         }
 
-        private void chamferToolStripMenuItem_Click(object sender, EventArgs e)
+        public void Chamfer()
         {
+            if (!CheckObjectSelectedUI())
+                return;
+
             var d = DialogHelpers.StartDialog();
             d.AddNumericField("r", "Radius", 15);
 
-            d.ShowDialog();
+            if (!d.ShowDialog())
+                return;
 
             var r = d.GetNumericField("r");
             var so = proxy.GetSelectedObject();
             var cs = proxy.MakeChamfer(so, r);
             proxy.Erase(so);
+        }
+
+        private void chamferToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Chamfer();
         }
 
         private void revolutionToolStripMenuItem_Click(object sender, EventArgs e)
@@ -814,12 +832,10 @@ namespace CascadeDesktop
             return true;
         }
 
-        private void coneToolStripMenuItem_Click(object sender, EventArgs e)
+        public void AddCone()
         {
-            if (!CheckObjectSelectedUI())
-                return;
-
             var d = DialogHelpers.StartDialog();
+            d.Text = "New cone";
             d.AddNumericField("r1", "Radius 1", 50);
             d.AddNumericField("r2", "Radius 2", 25);
             d.AddNumericField("h", "Height", 25);
@@ -834,24 +850,14 @@ namespace CascadeDesktop
             var cs = proxy.MakeCone(r1, r2, h);
             objs.Add(cs);
         }
-
+        private void coneToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AddCone();
+        }
+        
         private void facesInfoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var infos = proxy.GetFacesInfo(proxy.GetSelectedObject());
-            Form ff = new Form();
-            RichTextBox r = new RichTextBox();
-            r.Dock = DockStyle.Fill;
-            ff.Controls.Add(r);
-            foreach (var info in infos)
-            {
-                if (info is PlaneSurfInfo p)
-                    r.AppendText($"PLANE {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
-                else if (info is CylinderSurfInfo c)
-                    r.AppendText($"CYLINDER {c.Position.X} {c.Position.Y} {c.Position.Z}   radius: {c.Radius} {Environment.NewLine}");
-                else
-                    r.AppendText($"{info.GetType().Name}{info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
-            }
-            ff.Show();
+            FacesInfo();
         }
 
         ITool _currentTool;
@@ -927,6 +933,40 @@ namespace CascadeDesktop
         {
             proxy.LeftView();
             ZoomAll();
+        }
+
+        internal void ShapeSelectionMode()
+        {
+            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Shape);
+        }
+
+        internal void SetDarkBackground()
+        {
+            SetBgGradient(Color.Black, Color.Black);
+        }
+
+        internal void SetLightBackground()
+        {
+            proxy.SetDefaultGradient();
+        }
+
+        internal void FacesInfo()
+        {
+            var infos = proxy.GetFacesInfo(proxy.GetSelectedObject());
+            Form ff = new Form();
+            RichTextBox r = new RichTextBox();
+            r.Dock = DockStyle.Fill;
+            ff.Controls.Add(r);
+            foreach (var info in infos)
+            {
+                if (info is PlaneSurfInfo p)
+                    r.AppendText($"PLANE {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
+                else if (info is CylinderSurfInfo c)
+                    r.AppendText($"CYLINDER {c.Position.X} {c.Position.Y} {c.Position.Z}   radius: {c.Radius} {Environment.NewLine}");
+                else
+                    r.AppendText($"{info.GetType().Name}{info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
+            }
+            ff.Show();
         }
     }
 }
