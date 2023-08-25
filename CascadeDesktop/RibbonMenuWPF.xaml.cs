@@ -132,12 +132,12 @@ namespace CascadeDesktop
 
         private void Wire_Click(object sender, RoutedEventArgs e)
         {
-
+            Form.WireSelectionMode();
         }
 
         private void Shape_Click(object sender, RoutedEventArgs e)
         {
-
+            Form.ShapeSelectionMode();
         }
 
         private void Fillet_Click(object sender, RoutedEventArgs e)
@@ -203,6 +203,37 @@ namespace CascadeDesktop
         private void Extrude_Click(object sender, RoutedEventArgs e)
         {
             Form.Extrude();
+        }
+
+        private void Chamfer_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Chamfer();
+        }
+
+        private void Sphere_Click(object sender, RoutedEventArgs e)
+        {
+            Form.AddSphere();
+        }
+
+        private void Cone_CLick(object sender, RoutedEventArgs e)
+        {
+            Form.AddCone();
+        }
+             
+        private void DarkBackground_Click(object sender, RoutedEventArgs e)
+        {
+            Form.SetDarkBackground();
+        }
+
+        private void LightBackground_Click(object sender, RoutedEventArgs e)
+        {
+            Form.SetLightBackground();
+
+        }
+
+        private void FacesInfo_Click(object sender, RoutedEventArgs e)
+        {
+            Form.FacesInfo();
         }
     }
 }
