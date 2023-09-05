@@ -118,6 +118,8 @@ public:
 
 public ref struct Vector3 {
 public:
+	Vector3() {}
+	Vector3(double x, double y, double z) { X = x;Y = y;Z = z; }
 	double X;
 	double Y;
 	double Z;
@@ -156,6 +158,7 @@ public:
 public ref class CylinderSurfInfo :SurfInfo {
 public:
 	double Radius;
+	Vector3^ Axis;
 };
 
 
@@ -408,7 +411,7 @@ public:
 		return reinterpret_cast<TopoDS_Shape*> (handle.handleF);
 	}
 
-	TopoDS_Shape MakeBoolDiff(ObjHandle h1, ObjHandle h2) {
+	TopoDS_Shape MakeBoolDiff(ObjHandle h1, ObjHandle h2, bool fixShape = true) {
 		const auto* obj1 = getObject(h1);
 		const auto* obj2 = getObject(h2);
 
@@ -417,18 +420,7 @@ public:
 		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
 		shape1 = shape1.Located(obj2->LocalTransformation());
 		const TopoDS_Shape shape = BRepAlgoAPI_Cut(shape0, shape1);
-		return shape;
-	}
 
-	TopoDS_Shape MakeBoolFuse(ObjHandle h1, ObjHandle h2, bool fixShape) {
-		const auto* obj1 = getObject(h1);
-		const auto* obj2 = getObject(h2);
-
-		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(obj1)->Shape();
-		shape0 = shape0.Located(obj1->LocalTransformation());
-		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
-		shape1 = shape1.Located(obj2->LocalTransformation());
-		const TopoDS_Shape shape = BRepAlgoAPI_Fuse(shape0, shape1);
 		if (fixShape) {
 			ShapeUpgrade_UnifySameDomain unif(shape, true, true, false);
 			unif.Build();
@@ -438,7 +430,26 @@ public:
 		return shape;
 	}
 
-	TopoDS_Shape MakeBoolCommon(ObjHandle h1, ObjHandle h2) {
+	TopoDS_Shape MakeBoolFuse(ObjHandle h1, ObjHandle h2, bool fixShape = true) {
+		const auto* obj1 = getObject(h1);
+		const auto* obj2 = getObject(h2);
+
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(obj1)->Shape();
+		shape0 = shape0.Located(obj1->LocalTransformation());
+		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
+		shape1 = shape1.Located(obj2->LocalTransformation());
+		const TopoDS_Shape shape = BRepAlgoAPI_Fuse(shape0, shape1);
+
+		if (fixShape) {
+			ShapeUpgrade_UnifySameDomain unif(shape, true, true, false);
+			unif.Build();
+			auto shape2 = unif.Shape();
+			return shape2;
+		}
+		return shape;
+	}
+
+	TopoDS_Shape MakeBoolCommon(ObjHandle h1, ObjHandle h2, bool fixShape = true) {
 		const auto* obj1 = getObject(h1);
 		const auto* obj2 = getObject(h2);
 
@@ -447,6 +458,13 @@ public:
 		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
 		shape1 = shape1.Located(obj2->LocalTransformation());
 		const TopoDS_Shape shape = BRepAlgoAPI_Common(shape0, shape1);
+
+		if (fixShape) {
+			ShapeUpgrade_UnifySameDomain unif(shape, true, true, false);
+			unif.Build();
+			auto shape2 = unif.Shape();
+			return shape2;
+		}
 		return shape;
 	}
 };
@@ -1552,6 +1570,37 @@ public:
 		myAISContext()->SetLocation(o, p);
 	}
 
+	void MirrorObject(ManagedObjHandle^ h, Vector3^ dir, Vector3^ pnt, bool axis2, bool rel)
+	{
+		ObjHandle oh = h->ToObjHandle();
+		const auto* object1 = impl->getObject(oh);
+
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		gp_Trsf tr;
+		if (axis2) {
+			gp_Ax2 ax2(gp_Pnt(pnt->X, pnt->Y, pnt->Z), gp_Dir(dir->X, dir->Y, dir->Z));
+			tr.SetMirror(ax2);
+		}
+		else {
+			gp_Ax1 ax(gp_Pnt(pnt->X, pnt->Y, pnt->Z), gp_Dir(dir->X, dir->Y, dir->Z));
+			tr.SetMirror(ax);
+		}
+
+
+		if (rel) {
+			auto mtr = GetObjectMatrix(h);
+			tr.Multiply(mtr);
+		}
+
+		auto shape = BRepBuilderAPI_Transform(shape0, tr, Standard_True);
+		//TopLoc_Location p(tr);		
+		//myAISContext()->SetLocation(o, p);		
+		myAISContext()->Display(new AIS_Shape(shape.Shape()), true);
+	}
+
 	System::Collections::Generic::List<Vector3^>^
 		IteratePoly(ManagedObjHandle^ h) {
 
@@ -1579,21 +1628,21 @@ public:
 		myAISContext()->Display(new AIS_Shape(ret), true);
 	}
 
-	void MakeFuse(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2, bool fixShape) {
+	void MakeFuse(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
-		const auto ret = impl->MakeBoolFuse(h1, h2, fixShape);
+		const auto ret = impl->MakeBoolFuse(h1, h2);
 		myAISContext()->Display(new AIS_Shape(ret), true);
 	}
 
 	ManagedObjHandle^ Clone(ManagedObjHandle^ m) {
 		BRepBuilderAPI_Copy copy;
 		ObjHandle h = m->ToObjHandle();
-		
+
 		const auto* object1 = impl->getObject(h);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
-		copy.Perform(shape0);	
+		copy.Perform(shape0);
 
 		auto shapeCopy = copy.Shape();
 
@@ -1777,6 +1826,11 @@ public:
 		Handle(Geom_Surface) aSurf = BRep_Tool::Surface(aFace, aLocation);
 		auto cyl = Handle(Geom_CylindricalSurface)::DownCast(aSurf);
 		auto rad = (*cyl).Radius();
+
+		auto dir = cyl->Axis().Direction().Transformed(aLocation.Transformation());
+		if (orient == TopAbs_REVERSED) {
+			dir.Reverse();
+		}
 		float aU = 0;
 		float aV = 0;
 
@@ -1790,6 +1844,11 @@ public:
 		BRepGProp::SurfaceProperties(ttt, massProps);
 		gp_Pnt gPt = massProps.CentreOfMass();
 
+		nrm->X = dir.X();
+		nrm->Y = dir.Y();
+		nrm->Z = dir.Z();
+
+
 		pos->X = aPnt.X();
 		pos->Y = aPnt.Y();
 		pos->Z = aPnt.Z();
@@ -1800,6 +1859,7 @@ public:
 		ret->COM->Z = gPt.Z();
 		ret->Position = pos;
 		ret->Radius = rad;
+		ret->Axis = nrm;
 		return ret;
 	}
 
@@ -1831,7 +1891,7 @@ public:
 		pos->Y = aPnt.Y();
 		pos->Z = aPnt.Z();
 
-		auto dir = pln.Axis().Direction();
+		auto dir = pln.Axis().Direction().Transformed(aLocation.Transformation());
 		if (orient == TopAbs_REVERSED) {
 			dir.Reverse();
 		}

@@ -95,6 +95,7 @@
     <Compile Include="RibbonMenuWPF.xaml.cs">
       <DependentUpon>RibbonMenuWPF.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tools\AdjoinCOMsTool.cs" />
     <Compile Include="Tools\AdjoinTool.cs" />
     <Compile Include="ArcElement.cs" />
     <Compile Include="Contour.cs" />
@@ -127,6 +128,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools\BoolTool.cs" />
+    <Compile Include="Tools\RulerTool.cs" />
     <Compile Include="Tools\SelectionTool.cs" />
     <Compile Include="StaticHelpers.cs" />
     <Compile Include="SvgPoint.cs" />
@@ -234,6 +236,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\infocard.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\ruler-triangle.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\layer-shape-round.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -10,6 +10,7 @@ using System.Text;
 using System.Windows.Forms;
 using AutoDialog;
 using CascadeDesktop.Tools;
+using System.Windows;
 
 namespace CascadeDesktop
 {
@@ -29,9 +30,28 @@ namespace CascadeDesktop
             panel1.MouseUp += Panel1_MouseUp;
 
             toolStripStatusLabel3.Alignment = ToolStripItemAlignment.Right;
+            toolStripStatusLabel3.Click += ToolStripStatusLabel3_Click;
+            toolStripStatusLabel3.MouseEnter += ToolStripStatusLabel3_MouseEnter;
+            toolStripStatusLabel3.MouseLeave += ToolStripStatusLabel3_MouseLeave;
 
             _currentTool = new SelectionTool(this);
         }
+
+        private void ToolStripStatusLabel3_MouseLeave(object sender, EventArgs e)
+        {
+            statusStrip1.Cursor = Cursors.Default;
+        }
+
+        private void ToolStripStatusLabel3_MouseEnter(object sender, EventArgs e)
+        {
+            statusStrip1.Cursor = Cursors.Hand;
+        }
+
+        private void ToolStripStatusLabel3_Click(object sender, EventArgs e)
+        {
+            shortStatusOutputFormat = !shortStatusOutputFormat;
+        }
+
         RibbonMenu menu;
         public static Form1 Form;
 
@@ -43,7 +63,7 @@ namespace CascadeDesktop
             menu.Dock = DockStyle.Top;
 
             mf = new MessageFilter();
-            Application.AddMessageFilter(mf);
+            System.Windows.Forms.Application.AddMessageFilter(mf);
 
             toolStrip1.Visible = false;
         }
@@ -61,7 +81,7 @@ namespace CascadeDesktop
             }
         }
 
-        Point startDrag;
+        System.Drawing.Point startDrag;
         private void Panel1_MouseDown(object sender, MouseEventArgs e)
         {
             startDrag = e.Location;
@@ -98,7 +118,10 @@ namespace CascadeDesktop
                 if (face is PlaneSurfInfo p)
                 {
                     var nrm = p.Normal.ToVector3d();
-                    SetStatus3($"plane: {vect.X} {vect.Y} {vect.Z}  normal: {nrm.X} {nrm.Y} {nrm.Z}");
+                    SetStatus3(string.Empty);
+                    AppendStatusVector(vect, "plane");
+                    AppendStatusVector(nrm, "normal");
+                    AppendStatusVector(p.COM.ToVector3d(), "com");
                 }
                 else if (face is CylinderSurfInfo c)
                     SetStatus3($"cylinder: {vect.X} {vect.Y} {vect.Z}  radius: {c.Radius}");
@@ -231,7 +254,7 @@ namespace CascadeDesktop
         {
             toolStripStatusLabel1.Text = text;
             toolStripStatusLabel1.ForeColor = Color.Black;
-            toolStripStatusLabel1.BackColor = SystemColors.Control;
+            toolStripStatusLabel1.BackColor = System.Drawing.SystemColors.Control;
             switch (type)
             {
                 case InfoType.Warning:
@@ -248,6 +271,18 @@ namespace CascadeDesktop
         public void SetStatus3(string text)
         {
             toolStripStatusLabel3.Text = text;
+        }
+        bool shortStatusOutputFormat = false;
+        public void AppendStatus3(string text)
+        {
+            toolStripStatusLabel3.Text += text;
+        }
+        public void AppendStatusVector(Vector3d v, string caption)
+        {
+            if (shortStatusOutputFormat)
+                AppendStatus3($"{caption}: {v.X} {v.Y} {v.Z} ");
+            else
+                AppendStatus3($"{caption}: {v.X:0.##} {v.Y:0.##} {v.Z:0.##} ");
         }
 
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
@@ -281,7 +316,7 @@ namespace CascadeDesktop
             }
             if (e.Button == MouseButtons.Left && isDrag)
             {
-                var delta = new Point(e.Location.X - startDrag.X, startDrag.Y - e.Location.Y);
+                var delta = new System.Drawing.Point(e.Location.X - startDrag.X, startDrag.Y - e.Location.Y);
                 proxy.Pan(delta.X, delta.Y);
                 startDrag = e.Location;
             }
@@ -369,7 +404,7 @@ namespace CascadeDesktop
         public void Fuse()
         {
             //todo: refactor to separate tool
-            proxy.MakeFuse(obj1, obj2, true);
+            proxy.MakeFuse(obj1, obj2);
             proxy.Erase(obj1);
             proxy.Erase(obj2);
         }
@@ -517,6 +552,37 @@ namespace CascadeDesktop
             var z = d.GetNumericField("z");
 
             proxy.RotateObject(proxy.GetSelectedObject(), x, y, z, ang * Math.PI / 180f, true);
+        }
+
+        public void MirrorSelected()
+        {
+            if (!CheckObjectSelectedUI())
+                return;
+
+            var d = DialogHelpers.StartDialog();
+            d.Text = "Mirror object";
+
+            d.AddNumericField("x", "Pivot X", 0);
+            d.AddNumericField("y", "Pivot Y", 0);
+            d.AddNumericField("z", "Pivot Z", 0);
+
+            d.AddNumericField("dx", "Dir X", 0);
+            d.AddNumericField("dy", "Dir Y", 0);
+            d.AddNumericField("dz", "Dir Z", 1);
+
+            if (!d.ShowDialog())
+                return;
+
+
+            var x = d.GetNumericField("x");
+            var y = d.GetNumericField("y");
+            var z = d.GetNumericField("z");
+
+            var dx = d.GetNumericField("dx");
+            var dy = d.GetNumericField("dy");
+            var dz = d.GetNumericField("dz");
+
+            proxy.MirrorObject(proxy.GetSelectedObject(), new Vector3(dx, dy, dz), new Vector3(dx, dy, dz), true, true);
         }
 
         private void toolStripButton7_Click(object sender, EventArgs e)
@@ -854,7 +920,7 @@ namespace CascadeDesktop
         {
             AddCone();
         }
-        
+
         private void facesInfoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FacesInfo();
@@ -873,12 +939,17 @@ namespace CascadeDesktop
         }
         private void adjointToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            AdjoinTool();
+            AdjoinTool(false);
         }
 
-        public void AdjoinTool()
+        public void AdjoinTool(bool withDistance)
         {
-            SetTool(new AdjoinTool(this));
+            SetTool(new AdjoinTool(this, withDistance));
+
+        }
+        public void AdjoinCOMsTool()
+        {
+            SetTool(new AdjoinCOMsTool(this));
 
         }
         public void FuseTool()
@@ -962,11 +1033,16 @@ namespace CascadeDesktop
                 if (info is PlaneSurfInfo p)
                     r.AppendText($"PLANE {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
                 else if (info is CylinderSurfInfo c)
-                    r.AppendText($"CYLINDER {c.Position.X} {c.Position.Y} {c.Position.Z}   radius: {c.Radius} {Environment.NewLine}");
+                    r.AppendText($"CYLINDER {c.Position.X} {c.Position.Y} {c.Position.Z}   axis: {c.Axis.X} {c.Axis.Y} {c.Axis.Z}   radius: {c.Radius} {Environment.NewLine}");
                 else
                     r.AppendText($"{info.GetType().Name}{info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
             }
             ff.Show();
+        }
+
+        internal void RulerTool()
+        {
+            SetTool(new RulerTool(this));
         }
     }
 }

@@ -57,7 +57,7 @@ namespace CascadeDesktop
 
         private void Adjoin_Click(object sender, RoutedEventArgs e)
         {
-            Form.AdjoinTool();
+            Form.AdjoinTool(false);
         }
 
         private void Grid_Click(object sender, RoutedEventArgs e)
@@ -234,6 +234,27 @@ namespace CascadeDesktop
         private void FacesInfo_Click(object sender, RoutedEventArgs e)
         {
             Form.FacesInfo();
+        }
+
+        private void Mirror_Click(object sender, RoutedEventArgs e)
+        {
+            Form.MirrorSelected();
+        }
+
+        private void AdjoinWithDistance_Click(object sender, RoutedEventArgs e)
+        {
+            Form.AdjoinTool(true);
+        }
+
+        private void Ruler_Click(object sender, RoutedEventArgs e)
+        {
+            Form.RulerTool();
+
+        }
+
+        private void AdjoinCOMs_Click(object sender, RoutedEventArgs e)
+        {
+            Form.AdjoinCOMsTool();
         }
     }
 }

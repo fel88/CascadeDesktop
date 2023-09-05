@@ -48,7 +48,7 @@ namespace CascadeDesktop.Tools
                     switch (Operation)
                     {
                         case FuseOperation.Fuse:
-                            Editor.Proxy.MakeFuse(objs[0], objs[1], true);
+                            Editor.Proxy.MakeFuse(objs[0], objs[1]);
                             break;
                         case FuseOperation.Diff:
                             Editor.Proxy.MakeDiff(objs[0], objs[1]);

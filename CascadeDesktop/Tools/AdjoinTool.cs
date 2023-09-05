@@ -1,14 +1,18 @@
-﻿using System;
+﻿using AutoDialog;
+using System;
 using System.Collections.Generic;
+using System.Security.AccessControl;
 using System.Windows.Forms;
+using System.Windows.Media.Media3D;
 
 namespace CascadeDesktop.Tools
 {
     public class AdjoinTool : AbstractTool
     {
-        public AdjoinTool(IEditor editor) : base(editor)
+        bool WithDistance;
+        public AdjoinTool(IEditor editor, bool withDistance) : base(editor)
         {
-
+            WithDistance = withDistance;
         }
 
         public override void Deselect()
@@ -35,7 +39,10 @@ namespace CascadeDesktop.Tools
             var proxy = Editor.Proxy;
             var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
 
-            if (face != null && face is PlaneSurfInfo p)
+            if (face == null)
+                return;
+
+            if (face is PlaneSurfInfo p)
             {
                 planes.Add(p);
                 objs.Add(proxy.GetSelectedObject());
@@ -44,7 +51,54 @@ namespace CascadeDesktop.Tools
                     var shift = GeomHelpers.GetAdjointFacesShift(planes[0], planes[1]);
                     if (shift != null)
                     {
-                        Editor.Proxy.MoveObject(objs[0], shift.Value.X, shift.Value.Y, shift.Value.Z, true);
+                        var dir = shift.Value.Normalized();
+                        if (WithDistance)
+                        {
+                            var d = DialogHelpers.StartDialog();
+                            d.AddNumericField("d", "dist", 0, 10000, -10000);
+
+                            if (!d.ShowDialog())
+                                return;
+
+                            var dist = d.GetNumericField("d");
+
+                            Editor.Proxy.MoveObject(objs[0], shift.Value.X, shift.Value.Y, shift.Value.Z, true);
+                            var res = -dir * dist;
+                            Editor.Proxy.MoveObject(objs[0], res.X, res.Y, res.Z, true);
+                        }
+                        else
+                            Editor.Proxy.MoveObject(objs[0], shift.Value.X, shift.Value.Y, shift.Value.Z, true);
+                    }
+                    Editor.ResetTool();
+                }
+            }
+            else if (face is CylinderSurfInfo c)
+            {
+                cylinders.Add(c);
+                objs.Add(proxy.GetSelectedObject());
+                if (cylinders.Count == 2)
+                {
+                    var shift = GeomHelpers.GetAdjointFacesShift(cylinders[0], cylinders[1]);
+                    if (shift != null)
+                    {
+                        var dir = shift.Value.Normalized();
+                        if (WithDistance)
+                        {
+                            var d = DialogHelpers.StartDialog();
+                            d.AddNumericField("d", "dist", 0, 10000, -10000);
+
+
+                            if (!d.ShowDialog())
+                                return;
+
+                            var dist = d.GetNumericField("d");
+
+                            Editor.Proxy.MoveObject(objs[0], shift.Value.X, shift.Value.Y, shift.Value.Z, true);
+                            var res = -dir * dist;
+                            Editor.Proxy.MoveObject(objs[0], res.X, res.Y, res.Z, true);
+                        }
+                        else
+                            Editor.Proxy.MoveObject(objs[0], shift.Value.X, shift.Value.Y, shift.Value.Z, true);
                     }
                     Editor.ResetTool();
                 }
@@ -53,6 +107,7 @@ namespace CascadeDesktop.Tools
 
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
         List<PlaneSurfInfo> planes = new List<PlaneSurfInfo>();
+        List<CylinderSurfInfo> cylinders = new List<CylinderSurfInfo>();
 
         public override void Select()
         {

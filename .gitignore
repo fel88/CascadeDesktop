@@ -1,3 +1,6 @@
+*.7z
+*.patch
+*.zip
 packages/
 .vs/
 *.user

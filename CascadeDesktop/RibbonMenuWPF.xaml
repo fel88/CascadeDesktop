@@ -50,14 +50,15 @@
                     <!--<RibbonButton  Label="Format Painter" KeyTip="FP" />-->
                 </RibbonGroup>
                 <RibbonGroup x:Name="model" Header="Model">
-                    <RibbonButton x:Name="import" Click="Import_Click"  Label="Import"  KeyTip="X"  SmallImageSource="Icons/fill-270.png" />
-                    <RibbonMenuButton Label="Export as"  SmallImageSource="Icons/blue-document-export.png" KeyTip="V">
+                    <RibbonButton x:Name="import" Click="Import_Click"  Label="Import"  KeyTip="X"  SmallImageSource="Icons/fill-270.png" />                    
+                    <RibbonMenuButton  Label="Export as"  SmallImageSource="Icons/blue-document-export.png" KeyTip="V">
                         <RibbonMenuItem  Header="Step" Click="StepExport_Click" KeyTip="T"/>
                         <RibbonMenuItem  Header="Mesh" Click="ObjExport_Click" KeyTip="T"/>
                     </RibbonMenuButton>
                     <RibbonButton x:Name="delete" Click="Delete_Click"  Label="Delete"  SmallImageSource="Icons/eraser.ico" KeyTip="X"  />
                     <RibbonButton x:Name="clone" Click="Clone_Click"  Label="Clone"  KeyTip="X" SmallImageSource="Icons/blue-document-view.png"  />
-                    <RibbonButton x:Name="facesInfo" Click="FacesInfo_Click"  SmallImageSource="Icons/infocard.png" Label="Info"  />                   
+                    <RibbonButton x:Name="facesInfo" Click="FacesInfo_Click"  SmallImageSource="Icons/infocard.png" Label="Info"  />
+                    <RibbonButton x:Name="ruler" Click="Ruler_Click"  SmallImageSource="Icons/ruler-triangle.png" Label="Ruler"  />
 
                 </RibbonGroup>
                 <RibbonGroup x:Name="add" Header="Add">
@@ -76,6 +77,7 @@
                 <RibbonGroup x:Name="transformations" Header="Transformations">
                     <RibbonButton x:Name="move" Click="Move_Click"  Label="Move"   SmallImageSource="Icons/arrow-move.png" KeyTip="X"  />
                     <RibbonButton x:Name="rotate" Click="Rotate_Click"  Label="Rotate"  SmallImageSource="Icons/arrow-circle-315.png"  KeyTip="X"  />
+                    <RibbonButton x:Name="mirror" Click="Mirror_Click"  Label="Mirror"  SmallImageSource="Icons/layer-flip.png"  KeyTip="M"  />
 
                 </RibbonGroup>
                 <!-- Employee And Payroll group-->
@@ -83,10 +85,15 @@
 
                 <RibbonGroup x:Name="operators" Header="Operators ">
                     <RibbonButton  Label="Extrude" KeyTip="X" Click="Extrude_Click"   SmallImageSource="Icons/fill-090.png"/>
-                    <RibbonToggleButton x:Name="adjoinButton" Click="Adjoin_Click" Label="Adjoin" KeyTip="X" SmallImageSource="Icons/magnet.ico" />
+                    <RibbonSplitButton Click="Adjoin_Click" Label="Adjoin" SmallImageSource="Icons/magnet.ico" >
+                        <RibbonButton Label="With distance" Click="AdjoinWithDistance_Click"></RibbonButton>
+                        <RibbonButton Label="COMs only" Click="AdjoinCOMs_Click"></RibbonButton>    
+                    </RibbonSplitButton>
+                    
+                    
                     <!--<RibbonButton  Label="Merge" KeyTip="M"   SmallImageSource="Icons/plug-connect.png"/>-->
                     <RibbonButton  Label="Revolution" KeyTip="M"   />
-                    <RibbonButton  Click="Fillet_Click" Label="Fillet" KeyTip="M"   />
+                    <RibbonButton  Click="Fillet_Click" Label="Fillet"  SmallImageSource="Icons/layer-shape-round.png" KeyTip="M"   />
                     <RibbonButton  Label="Chamfer" Click="Chamfer_Click" KeyTip="M"   />
                 </RibbonGroup>
                 <RibbonGroup x:Name="bool" Header="Bool">
