@@ -3,7 +3,7 @@ OpenCASCADE GUI Viewer/Editor
 
 Simple debug tool based on OpenCASCADE for debugging purposes
 
-![изображение](https://github.com/gandalf-007/CascadeDesktop/assets/110347699/2b3c138a-7efe-494f-bf9c-d49aec410ada)
+![image](https://github.com/fel88/CascadeDesktop/assets/15663687/75145153-fc5e-4921-9231-16878c69ce21)
 
 # How to use:
 
