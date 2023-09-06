@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CascadeDesktop.Tools;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -255,6 +256,16 @@ namespace CascadeDesktop
         private void AdjoinCOMs_Click(object sender, RoutedEventArgs e)
         {
             Form.AdjoinCOMsTool();
+        }
+
+        private void Selection_Click(object sender, RoutedEventArgs e)
+        {
+            Form.SelectionTool();
+        }
+
+        private void ExtrudeFace_Click(object sender, RoutedEventArgs e)
+        {
+            Form.ExtrudeFace();
         }
     }
 }

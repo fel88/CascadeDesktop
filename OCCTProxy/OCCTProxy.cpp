@@ -125,6 +125,14 @@ public:
 	double Z;
 };
 
+public ref class EdgeInfo {
+public:
+	Vector3^ Start;
+	Vector3^ End;
+	unsigned __int64 Handle;
+	unsigned __int64 THandle;
+};
+
 public ref class SurfInfo {
 public:
 	Vector3^ Position;
@@ -1519,13 +1527,17 @@ public:
 		Face = 4
 	};
 
-	void SetSelectionMode(SelectionModeEnum t) {
-		myAISContext()->Deactivate();
+	void ResetSelectionMode() {
+		myAISContext()->Deactivate();		
+	}
+
+	void SetSelectionMode(SelectionModeEnum t) {		
 		if (t != SelectionModeEnum::None) {
 			myAISContext()->Activate((int)t, true);
 		}
 		//currentMode=t;
 	}
+
 	void Erase(ManagedObjHandle^ h) {
 		Handle(AIS_InteractiveObject) o;
 		o.reset((AIS_InteractiveObject*)h->Handle);
@@ -1642,9 +1654,10 @@ public:
 		const auto* object1 = impl->getObject(h);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
 		copy.Perform(shape0);
-
-		auto shapeCopy = copy.Shape();
+		
+		auto shapeCopy = copy.Shape();		
 
 		auto ais = new AIS_Shape(shapeCopy);
 		myAISContext()->Display(ais, true);
@@ -1668,17 +1681,30 @@ public:
 		int counter = 0;
 		for (TopExp_Explorer aExpFace(shape0, TopAbs_WIRE); aExpFace.More(); aExpFace.Next())
 		{
-			TopoDS_Wire wire = TopoDS::Wire(aExpFace.Current());
-			BRepBuilderAPI_MakeFace face1(wire);
-			if (counter > 0) {
+			const auto ttt = aExpFace.Current();
+			const auto& edgee = TopoDS::Wire(ttt);
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+			auto ttt4 = (unsigned __int64)(&ttt);
 
-				//wire.Reverse();
-				bface.Add(wire);
+			if (edgee.IsNull()) {
+				continue;
 			}
-			else
-				bface.Init(face1);
+			//if (ttt3 == h.handleT) 
+			//{
+				TopoDS_Wire wire = TopoDS::Wire(aExpFace.Current());
+				BRepBuilderAPI_MakeFace face1(wire);
+				if (counter > 0) {
 
-			counter++;
+					//wire.Reverse();
+					bface.Add(wire);
+				}
+				else
+					bface.Init(face1);
+
+				counter++;
+			//}					
 		}
 
 		auto profile = bface.Face();
@@ -1709,7 +1735,90 @@ public:
 		//const auto ret = impl->MakeBoolFuse(h1, h2, fixShape);
 		//myAISContext()->Display(new AIS_Shape(ret), true);
 	}
+	ManagedObjHandle^ MakePrismFromFace(ManagedObjHandle^ m, double height) {
+		ObjHandle h = m->ToObjHandle();
+		BRepBuilderAPI_MakeFace bface;
+		const auto* object1 = impl->getObject(h);
 
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();		
+		shape0 = shape0.Located(object1->LocalTransformation());
+		int counter = 0;
+		for (TopExp_Explorer aExpFace(shape0, TopAbs_FACE); aExpFace.More(); aExpFace.Next())
+		{
+			const auto ttt = aExpFace.Current();
+			const auto& edgee = TopoDS::Face(ttt);
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+			auto ttt4 = (unsigned __int64)(&ttt);
+
+			if (edgee.IsNull()) {
+				continue;
+			}
+			if (ttt3 == h.handleT) {
+
+
+				TopLoc_Location aLocation;
+				Handle(Geom_Surface) aSurf = BRep_Tool::Surface(edgee, aLocation);
+
+				auto plane = Handle(Geom_Plane)::DownCast(aSurf);
+
+				auto pln = (*plane).Pln();
+
+				float aU = 0;
+				float aV = 0;
+				gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
+				Vector3^ pos = gcnew Vector3();
+				Vector3^ nrm = gcnew Vector3();
+
+				PlaneSurfInfo^ ret = gcnew PlaneSurfInfo();
+				GProp_GProps massProps;
+				BRepGProp::SurfaceProperties(ttt, massProps);
+				gp_Pnt gPt = massProps.CentreOfMass();
+
+				pos->X = aPnt.X();
+				pos->Y = aPnt.Y();
+				pos->Z = aPnt.Z();
+
+				auto orient = edgee.Orientation();
+
+				auto dir = pln.Axis().Direction().Transformed(aLocation.Transformation());
+				if (orient == TopAbs_REVERSED) {
+					dir.Reverse();
+				}
+				gp_Vec vec(dir.X(), dir.Y(), dir.Z());
+				vec *= height;				
+
+				auto body = BRepPrimAPI_MakePrism(edgee, vec);
+
+				auto shape = body.Shape();
+				//BRepMesh_IncrementalMesh mesh(shape,0.00001);
+				/*bool fixShape = true;
+				if (fixShape) {
+					ShapeUpgrade_UnifySameDomain unif(shape, true, true, false);
+					unif.Build();
+					auto shape2 = unif.Shape();
+					shape = shape2;
+				}*/
+				auto ais = new AIS_Shape(shape);
+				myAISContext()->Display(ais, true);
+
+				ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+				auto hn = GetHandle(*ais);
+				hhh->FromObjHandle(hn);
+				return hhh;
+			}
+
+		}
+
+		
+		return nullptr;
+
+
+		//const auto ret = impl->MakeBoolFuse(h1, h2, fixShape);
+		//myAISContext()->Display(new AIS_Shape(ret), true);
+	}
 	void MakeCommon(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
@@ -1810,6 +1919,55 @@ public:
 				ret->X = p.X();
 				ret->Y = p.Y();
 				ret->Z = p.Z();
+				return ret;
+			}
+		}
+		return nullptr;
+	}
+
+	EdgeInfo^ GetEdgeInfoPoition(ManagedObjHandle^ h1)
+	{
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+
+		for (TopExp_Explorer exp(shape0, TopAbs_EDGE); exp.More(); exp.Next()) {
+			const auto ttt = exp.Current();
+			const auto& edgee = TopoDS::Edge(ttt);
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+			auto ttt4 = (unsigned __int64)(&ttt);
+
+			if (edgee.IsNull()) {
+				continue;
+			}
+			if (ttt3 == hh.handleT) {
+				
+				//Analysis of Edge
+				Standard_Real First, Last;
+				Handle(Geom_Curve) curve = BRep_Tool::Curve(edgee, First, Last); //Extract the curve from the edge
+				GeomAdaptor_Curve aAdaptedCurve(curve);
+				GeomAbs_CurveType curveType = aAdaptedCurve.GetType();
+				gp_Pnt pnt1, pnt2;
+				aAdaptedCurve.D0(First, pnt1);
+				aAdaptedCurve.D0(Last, pnt2);
+				int nPoles = 2;
+				if (curveType == GeomAbs_BezierCurve || curveType == GeomAbs_BSplineCurve)
+					nPoles = aAdaptedCurve.NbPoles();
+
+				EdgeInfo^ ret = gcnew EdgeInfo();
+				ret->Start = gcnew Vector3();
+				ret->End = gcnew Vector3();
+								
+				ret->Start->X = pnt1.X();
+				ret->Start->Y = pnt1.Y();
+				ret->Start->Z = pnt1.Z();
+
+				ret->End->X = pnt2.X();
+				ret->End->Y = pnt2.Y();
+				ret->End->Z = pnt2.Z();
 				return ret;
 			}
 		}

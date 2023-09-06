@@ -29,7 +29,7 @@
             <RibbonTab x:Name="projectTab" Header="Project" KeyTip="H" >
                 <!-- Home  group-->
                 <RibbonGroup x:Name="General" Header="General">
-                    <RibbonToggleButton  Label="Selection"  KeyTip="X" SmallImageSource="Icons/cursor.ico"/>
+                    <RibbonToggleButton  Label="Selection"  KeyTip="X" Click="Selection_Click" SmallImageSource="Icons/cursor.ico"/>
                     <RibbonButton Click="fitAll_Click"  Label="Fit all"  KeyTip="F" SmallImageSource="Icons/magnifier.ico"/>
                     <RibbonButton  Label="Undo"  SmallImageSource="Icons/arrow-curve-180-left.ico" />
 
@@ -60,6 +60,7 @@
                     <RibbonButton x:Name="facesInfo" Click="FacesInfo_Click"  SmallImageSource="Icons/infocard.png" Label="Info"  />
                     <RibbonButton x:Name="ruler" Click="Ruler_Click"  SmallImageSource="Icons/ruler-triangle.png" Label="Ruler"  />
 
+
                 </RibbonGroup>
                 <RibbonGroup x:Name="add" Header="Add">
                     <RibbonButton x:Name="box" Click="Box_Click"  Label="Box"  KeyTip="X"  />
@@ -72,6 +73,7 @@
                 <RibbonGroup x:Name="draft" Header="Draft">
                     <RibbonButton x:Name="importDraft" Click="ImportDraft_Click"   Label="Import"   KeyTip="X"  />
                     <RibbonButton x:Name="drawDraft" Click="DrawDraft_Click"  Label="Draw"   KeyTip="X"  />
+                    <RibbonButton Click="Extrude_Click" Label="Extrude" SmallImageSource="Icons/fill-090.png" />
 
                 </RibbonGroup>
                 <RibbonGroup x:Name="transformations" Header="Transformations">
@@ -84,7 +86,9 @@
 
 
                 <RibbonGroup x:Name="operators" Header="Operators ">
-                    <RibbonButton  Label="Extrude" KeyTip="X" Click="Extrude_Click"   SmallImageSource="Icons/fill-090.png"/>
+                    <RibbonButton  Label="Extrude" KeyTip="B" Click="ExtrudeFace_Click"  SmallImageSource="Icons/fill-090.png"/>
+
+                  
                     <RibbonSplitButton Click="Adjoin_Click" Label="Adjoin" SmallImageSource="Icons/magnet.ico" >
                         <RibbonButton Label="With distance" Click="AdjoinWithDistance_Click"></RibbonButton>
                         <RibbonButton Label="COMs only" Click="AdjoinCOMs_Click"></RibbonButton>    

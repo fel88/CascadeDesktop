@@ -106,7 +106,17 @@ namespace CascadeDesktop
 
             var v = proxy.GetVertexPoition(proxy.GetSelectedObject());
             var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
+            var edge = proxy.GetEdgeInfoPoition(proxy.GetSelectedObject());
 
+            if (edge != null)
+            {
+                var vect = edge.Start.ToVector3d();
+                var vect2 = edge.End.ToVector3d();
+                SetStatus3(string.Empty);
+                AppendStatusVector(vect, "edge");
+                AppendStatusVector(vect2, " ");
+            }
+            else
             if (v != null)
             {
                 var vect = v.ToVector3d();
@@ -353,19 +363,21 @@ namespace CascadeDesktop
 
         public void FaceSelectionMode()
         {
+            proxy.ResetSelectionMode();
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Face);
 
         }
         public void WireSelectionMode()
         {
+            proxy.ResetSelectionMode();
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Wire);
 
         }
+
         private void leftToolStripMenuItem_Click(object sender, EventArgs e)
         {
             proxy.LeftView();
         }
-
 
         public void ExportSelectedToStep()
         {
@@ -427,6 +439,21 @@ namespace CascadeDesktop
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            if (keyData == (Keys.Control | Keys.E))
+            {
+                EdgeSelectionMode();
+                SetStatus("edge selection mode");
+            }
+            if (keyData == (Keys.Control | Keys.F))
+            {
+                FaceSelectionMode();
+                SetStatus("face selection mode");
+            }
+            if (keyData == (Keys.Control | Keys.V))
+            {
+                VertexSelectionMode();
+                SetStatus("vertex selection mode");
+            }            
             if (keyData == Keys.Delete)
             {
                 if (proxy.IsObjectSelected())
@@ -617,6 +644,7 @@ namespace CascadeDesktop
 
         public void EdgeSelectionMode()
         {
+            proxy.ResetSelectionMode();
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
 
@@ -655,6 +683,7 @@ namespace CascadeDesktop
 
         private void toolStripButton10_Click(object sender, EventArgs e)
         {
+            proxy.ResetSelectionMode();
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
 
@@ -718,6 +747,8 @@ namespace CascadeDesktop
         {
             ExportSelectedToObj();
         }
+
+
         public void Extrude()
         {
             if (!CheckObjectSelectedUI())
@@ -966,6 +997,7 @@ namespace CascadeDesktop
         }
         internal void VertexSelectionMode()
         {
+            proxy.ResetSelectionMode();
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Vertex);
 
         }
@@ -1008,6 +1040,7 @@ namespace CascadeDesktop
 
         internal void ShapeSelectionMode()
         {
+            proxy.ResetSelectionMode();
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Shape);
         }
 
@@ -1043,6 +1076,27 @@ namespace CascadeDesktop
         internal void RulerTool()
         {
             SetTool(new RulerTool(this));
+        }
+
+        internal void SelectionTool()
+        {
+            SetTool(new SelectionTool(this));
+        }
+
+        internal void ExtrudeFace()
+        {
+            if (!CheckObjectSelectedUI())
+                return;
+
+            var d = DialogHelpers.StartDialog();
+            d.Text = "Extrude";
+            d.AddNumericField("h", "Height", 50);
+
+            if (!d.ShowDialog())
+                return;
+
+            var h = d.GetNumericField("h");
+            proxy.MakePrismFromFace(proxy.GetSelectedObject(), h);
         }
     }
 }
