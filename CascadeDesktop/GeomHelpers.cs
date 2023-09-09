@@ -21,6 +21,12 @@ namespace CascadeDesktop
             return null;
         }
 
+        public static bool IsCollinear(Vector3d axis1, Vector3d axis2, float eps = 1e-8f)
+        {
+            var cross1 = Vector3d.Cross(axis1, axis2);
+            return Math.Abs(cross1.Length) < eps;
+        }
+
         public static Vector3d? GetAdjointFacesShift(CylinderSurfInfo cylinder1, CylinderSurfInfo cylinder2, float eps = 1e-8f)
         {
             var cross1 = Vector3d.Cross(cylinder1.Axis.ToVector3d(), cylinder2.Axis.ToVector3d());

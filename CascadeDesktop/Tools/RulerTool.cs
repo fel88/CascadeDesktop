@@ -70,10 +70,26 @@ namespace CascadeDesktop.Tools
                 if (mobjs.Any(z => z is Vector3) && mobjs.Any(z => z is PlaneSurfInfo))
                 {
                     var vec = mobjs.First(z => z is Vector3) as Vector3;
-                    var pln= mobjs.First(z => z is PlaneSurfInfo) as PlaneSurfInfo;
+                    var pln = mobjs.First(z => z is PlaneSurfInfo) as PlaneSurfInfo;
                     var p = new Plane() { Location = pln.Position.ToVector3d(), Normal = pln.Normal.ToVector3d() };
                     var len = (vec.ToVector3d() - p.GetProjPoint(vec.ToVector3d())).Length;
                     Editor.SetStatus($"point to plane face dist: {len}");
+                    Editor.ResetTool();
+                }
+                else
+                if (mobjs.All(z => z is PlaneSurfInfo))
+                {
+                    var v1 = mobjs.First(z => z is PlaneSurfInfo) as PlaneSurfInfo;
+                    var v2 = mobjs.First(z => z != v1 && z is PlaneSurfInfo) as PlaneSurfInfo;
+                    if (!GeomHelpers.IsCollinear(v1.Normal.ToVector3d(), v2.Normal.ToVector3d()))
+                    {
+                        Editor.SetStatus($"plane to plane dist: not collinear");
+                        Editor.ResetTool();
+                        return;
+                    }
+                    var p = new Plane() { Location = v1.Position.ToVector3d(), Normal = v1.Normal.ToVector3d() };
+                    var len = (v2.Position.ToVector3d() - p.GetProjPoint(v2.Position.ToVector3d())).Length;
+                    Editor.SetStatus($"plane to plane dist: {len}");
                     Editor.ResetTool();
                 }
             }

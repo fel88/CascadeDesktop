@@ -129,6 +129,7 @@ public ref class EdgeInfo {
 public:
 	Vector3^ Start;
 	Vector3^ End;
+	double Length;
 	unsigned __int64 Handle;
 	unsigned __int64 THandle;
 };
@@ -1944,12 +1945,17 @@ public:
 				continue;
 			}
 			if (ttt3 == hh.handleT) {
-				
+
+				GProp_GProps massProps;
+				BRepGProp::LinearProperties(ttt, massProps);
+				auto len = massProps.Mass();
+
 				//Analysis of Edge
 				Standard_Real First, Last;
 				Handle(Geom_Curve) curve = BRep_Tool::Curve(edgee, First, Last); //Extract the curve from the edge
 				GeomAdaptor_Curve aAdaptedCurve(curve);
 				GeomAbs_CurveType curveType = aAdaptedCurve.GetType();
+
 				gp_Pnt pnt1, pnt2;
 				aAdaptedCurve.D0(First, pnt1);
 				aAdaptedCurve.D0(Last, pnt2);
@@ -1958,6 +1964,7 @@ public:
 					nPoles = aAdaptedCurve.NbPoles();
 
 				EdgeInfo^ ret = gcnew EdgeInfo();
+				ret->Length = len;
 				ret->Start = gcnew Vector3();
 				ret->End = gcnew Vector3();
 								

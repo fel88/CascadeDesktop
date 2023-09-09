@@ -115,6 +115,7 @@ namespace CascadeDesktop
                 SetStatus3(string.Empty);
                 AppendStatusVector(vect, "edge");
                 AppendStatusVector(vect2, " ");
+                AppendStatus3(" len: " + edge.Length);
             }
             else
             if (v != null)
@@ -453,7 +454,7 @@ namespace CascadeDesktop
             {
                 VertexSelectionMode();
                 SetStatus("vertex selection mode");
-            }            
+            }
             if (keyData == Keys.Delete)
             {
                 if (proxy.IsObjectSelected())
