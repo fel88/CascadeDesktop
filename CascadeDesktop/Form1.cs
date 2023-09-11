@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net.Mail;
 using System.Text;
 using System.Windows.Forms;
 using AutoDialog;
@@ -19,7 +18,7 @@ namespace CascadeDesktop
         public Form1()
         {
             InitializeComponent();
-            Form = this;
+            Form = this;            
             Load += Form1_Load;
             Shown += Form1_Shown;
             SizeChanged += Form1_SizeChanged;
@@ -50,6 +49,7 @@ namespace CascadeDesktop
         private void ToolStripStatusLabel3_Click(object sender, EventArgs e)
         {
             shortStatusOutputFormat = !shortStatusOutputFormat;
+            UpdateStatus(lastSelected);
         }
 
         RibbonMenu menu;
@@ -96,29 +96,24 @@ namespace CascadeDesktop
             }
         }
 
-        public void SelectionChanged()
-        {
-            if (!proxy.IsObjectSelected())
-            {
-                SetStatus3(string.Empty);
-                return;
-            }
+        ManagedObjHandle lastSelected = null;
 
-            var v = proxy.GetVertexPoition(proxy.GetSelectedObject());
-            var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
-            var edge = proxy.GetEdgeInfoPoition(proxy.GetSelectedObject());
+        private void UpdateStatus(ManagedObjHandle obj)
+        {
+            var v = proxy.GetVertexPoition(obj);
+            var face = proxy.GetFaceInfo(obj);
+            var edge = proxy.GetEdgeInfoPoition(obj);
 
             if (edge != null)
             {
                 var vect = edge.Start.ToVector3d();
                 var vect2 = edge.End.ToVector3d();
                 SetStatus3(string.Empty);
-                AppendStatusVector(vect, "edge");
-                AppendStatusVector(vect2, " ");
-                AppendStatus3(" len: " + edge.Length);
+                AppendStatusVector("edge", vect);
+                AppendStatusVector(" ", vect2);
+                AppendStatus3($" len: {edge.Length}");
             }
-            else
-            if (v != null)
+            else if (v != null)
             {
                 var vect = v.ToVector3d();
                 SetStatus3($"vertex: {vect.X} {vect.Y} {vect.Z}");
@@ -129,20 +124,47 @@ namespace CascadeDesktop
                 if (face is PlaneSurfInfo p)
                 {
                     var nrm = p.Normal.ToVector3d();
-                    SetStatus3(string.Empty);
-                    AppendStatusVector(vect, "plane");
-                    AppendStatusVector(nrm, "normal");
-                    AppendStatusVector(p.COM.ToVector3d(), "com");
+                    ClearStatus3();
+                    AppendStatusVector("plane", vect);
+                    AppendStatusVector("normal", nrm);
+                    AppendStatusVector("com", p.COM.ToVector3d());
                 }
                 else if (face is CylinderSurfInfo c)
-                    SetStatus3($"cylinder: {vect.X} {vect.Y} {vect.Z}  radius: {c.Radius}");
+                {
+                    ClearStatus3();
+                    AppendStatusVector("cylinder", vect);
+                    AppendStatusVector("COM", c.COM.ToVector3d());
+                    AppendDouble("radius", c.Radius);
+
+                }
                 else
-                    SetStatus3($"{face.GetType().Name}: {vect.X} {vect.Y} {vect.Z} ");
+                {
+                    ClearStatus3();
+                    AppendStatusVector(face.GetType().Name, vect);
+                    AppendStatusVector("COM", face.COM.ToVector3d());                    
+                }
             }
             else
             {
                 SetStatus3(string.Empty);
             }
+        }
+
+        private void ClearStatus3()
+        {
+            SetStatus3(string.Empty);
+        }
+
+        public void SelectionChanged()
+        {
+            if (!proxy.IsObjectSelected())
+            {
+                SetStatus3(string.Empty);
+                return;
+            }
+
+            lastSelected = proxy.GetSelectedObject();
+            UpdateStatus(lastSelected);
         }
 
         private void Panel1_MouseWheel(object sender, MouseEventArgs e)
@@ -288,12 +310,20 @@ namespace CascadeDesktop
         {
             toolStripStatusLabel3.Text += text;
         }
-        public void AppendStatusVector(Vector3d v, string caption)
+        public void AppendStatusVector(string caption, Vector3d v)
         {
             if (shortStatusOutputFormat)
                 AppendStatus3($"{caption}: {v.X} {v.Y} {v.Z} ");
             else
                 AppendStatus3($"{caption}: {v.X:0.##} {v.Y:0.##} {v.Z:0.##} ");
+        }
+
+        public void AppendDouble(string caption, double v)
+        {
+            if (shortStatusOutputFormat)
+                AppendStatus3($"{caption}: {v} ");
+            else
+                AppendStatus3($"{caption}: {v:0.##} ");
         }
 
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
