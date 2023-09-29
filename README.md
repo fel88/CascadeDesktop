@@ -27,5 +27,14 @@ https://user-images.githubusercontent.com/15663687/223809990-b63d45bb-d33a-4a0f-
 https://github.com/fel88/CascadeDesktop/assets/15663687/446fb389-447d-4e24-8220-a98b91b34a01
 
 
+## How to build:
+- Install OpenCASCADE 7.7 (https://dev.opencascade.org/system/files/occt/OCC_7.7.0_release/opencascade-7.7.0-vc14-64.exe)
+   - Installation path should be : C:\OpenCASCADE-7.7.0-vc14-64
+- Install Visual Studio Community edition (https://visualstudio.microsoft.com/ru/vs/community/), with next modules:
+  - Desktop development with C++
+  - .Net desktop development
+- Open soultion Cascade.sln
+- Build and run Cascade project (Ctrl+F5)
+  
 
 <sub>Some icons by [Yusuke Kamiyamane](http://p.yusukekamiyamane.com/). Licensed under a [Creative Commons Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/)</sub>
