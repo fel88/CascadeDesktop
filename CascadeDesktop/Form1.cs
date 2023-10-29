@@ -18,7 +18,7 @@ namespace CascadeDesktop
         public Form1()
         {
             InitializeComponent();
-            Form = this;            
+            Form = this;
             Load += Form1_Load;
             Shown += Form1_Shown;
             SizeChanged += Form1_SizeChanged;
@@ -141,7 +141,7 @@ namespace CascadeDesktop
                 {
                     ClearStatus3();
                     AppendStatusVector(face.GetType().Name, vect);
-                    AppendStatusVector("COM", face.COM.ToVector3d());                    
+                    AppendStatusVector("COM", face.COM.ToVector3d());
                 }
             }
             else
@@ -331,6 +331,7 @@ namespace CascadeDesktop
         {
             AddBox();
         }
+
         public void AddBox()
         {
             var d = DialogHelpers.StartDialog();
@@ -339,7 +340,8 @@ namespace CascadeDesktop
             d.AddNumericField("l", "Length", 50);
             d.AddNumericField("h", "Height", 50);
 
-            d.ShowDialog();
+            if (!d.ShowDialog())
+                return;
 
             var w = d.GetNumericField("w");
             var h = d.GetNumericField("h");
@@ -596,7 +598,7 @@ namespace CascadeDesktop
                 return;
 
             var d = DialogHelpers.StartDialog();
-            d.AddNumericField("a", "Angle", 90);
+            d.AddNumericField("a", "Angle", 90, 720, -720);
             d.AddNumericField("x", "x", 0);
             d.AddNumericField("y", "y", 0);
             d.AddNumericField("z", "z", 1);
@@ -978,6 +980,7 @@ namespace CascadeDesktop
             var cs = proxy.MakeCone(r1, r2, h);
             objs.Add(cs);
         }
+
         private void coneToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AddCone();
