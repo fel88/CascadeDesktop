@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using AutoDialog;
 using CascadeDesktop.Tools;
 using System.Windows;
+using OpenTK.Platform.Windows;
 
 namespace CascadeDesktop
 {
@@ -162,6 +163,9 @@ namespace CascadeDesktop
                 SetStatus3(string.Empty);
                 return;
             }
+            var occ = GetSelectedOccObject();
+
+            SetStatus2(occ == null ? string.Empty : occ.Name);
 
             lastSelected = proxy.GetSelectedObject();
             UpdateStatus(lastSelected);
@@ -197,7 +201,7 @@ namespace CascadeDesktop
 
         private void Form1_Shown(object sender, EventArgs e)
         {
-            proxy = new OCCTProxy();
+            proxy = new OCCTProxyWrapper();
             proxy.InitOCCTProxy();
 
 
@@ -227,8 +231,11 @@ namespace CascadeDesktop
             proxy.SetBackgroundColor(clr1.R, clr1.G, clr1.B, clr2.R, clr2.G, clr2.B);
         }
 
-        public OCCTProxy Proxy => proxy;
-        OCCTProxy proxy;
+        public IOCCTProxyInterface Proxy => proxy;
+
+        public List<OccSceneObject> Objs => objs;
+
+        IOCCTProxyInterface proxy;
 
         public void ZoomAll()
         {
@@ -252,11 +259,11 @@ namespace CascadeDesktop
 
             if (ofd.FileName.ToLower().EndsWith(".stp") || ofd.FileName.ToLower().EndsWith(".step"))
             {
-                proxy.ImportStep(ofd.FileName);
+                objs.AddRange(proxy.ImportStep(ofd.FileName).Select(z => new OccSceneObject(z, proxy)));
             }
             if (ofd.FileName.ToLower().EndsWith(".igs") || ofd.FileName.ToLower().EndsWith(".iges"))
             {
-                proxy.ImportIges(ofd.FileName);
+                objs.AddRange(proxy.ImportIges(ofd.FileName).Select(z => new OccSceneObject(z, proxy)));
             }
             proxy.SetDisplayMode(1);
             proxy.RedrawView();
@@ -305,6 +312,10 @@ namespace CascadeDesktop
         {
             toolStripStatusLabel3.Text = text;
         }
+        public void SetStatus2(string text)
+        {
+            toolStripStatusLabel2.Text = text;
+        }
         bool shortStatusOutputFormat = false;
         public void AppendStatus3(string text)
         {
@@ -326,7 +337,7 @@ namespace CascadeDesktop
                 AppendStatus3($"{caption}: {v:0.##} ");
         }
 
-        List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
+        List<OccSceneObject> objs = new List<OccSceneObject>();
         private void boxToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AddBox();
@@ -347,7 +358,7 @@ namespace CascadeDesktop
             var h = d.GetNumericField("h");
             var l = d.GetNumericField("l");
             var cs = proxy.MakeBox(0, 0, 0, w, l, h);
-            objs.Add(cs);
+            objs.Add(new OccSceneObject(cs, proxy));
         }
 
         bool isDrag = false;
@@ -565,7 +576,7 @@ namespace CascadeDesktop
             var h = d.GetNumericField("h");
 
             var cs = proxy.MakeCylinder(r, h);
-            objs.Add(cs);
+            objs.Add(new OccSceneObject(cs, proxy));
         }
 
         private void cylinderToolStripMenuItem_Click(object sender, EventArgs e)
@@ -584,7 +595,7 @@ namespace CascadeDesktop
 
             var r = d.GetNumericField("r");
             var cs = proxy.MakeSphere(r);
-            objs.Add(cs);
+            objs.Add(new OccSceneObject(cs, proxy));
         }
 
         private void sphereToolStripMenuItem_Click(object sender, EventArgs e)
@@ -666,7 +677,7 @@ namespace CascadeDesktop
         {
             foreach (var item in objs)
             {
-                proxy.Erase(item);
+                item.Remove();
             }
         }
 
@@ -696,8 +707,13 @@ namespace CascadeDesktop
 
             var r = d.GetNumericField("r");
             var so = proxy.GetSelectedObject();
+            var occ = GetSelectedOccObject();
+            if (occ == null)
+                return;
+
             var cs = proxy.MakeFillet(so, r);
-            proxy.Erase(so);
+            objs.Add(new OccSceneObject(cs, proxy));
+            occ.Remove();
         }
 
         public void Clone()
@@ -705,8 +721,13 @@ namespace CascadeDesktop
             if (!CheckObjectSelectedUI())
                 return;
 
+            var occ = GetSelectedOccObject();
+            if (occ == null)
+                return;
+
             var so = proxy.GetSelectedObject();
             var cs = proxy.Clone(so);
+            objs.Add(new OccSceneObject(cs, proxy) { Name = $"{occ.Name}_cloned" });
         }
 
         private void filletToolStripMenuItem_Click(object sender, EventArgs e)
@@ -978,7 +999,7 @@ namespace CascadeDesktop
             var h = d.GetNumericField("h");
 
             var cs = proxy.MakeCone(r1, r2, h);
-            objs.Add(cs);
+            objs.Add(new OccSceneObject(cs, proxy));
         }
 
         private void coneToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1090,6 +1111,9 @@ namespace CascadeDesktop
 
         internal void FacesInfo()
         {
+            if (!CheckObjectSelectedUI())
+                return;
+
             var infos = proxy.GetFacesInfo(proxy.GetSelectedObject());
             Form ff = new Form();
             RichTextBox r = new RichTextBox();
@@ -1131,6 +1155,39 @@ namespace CascadeDesktop
 
             var h = d.GetNumericField("h");
             proxy.MakePrismFromFace(proxy.GetSelectedObject(), h);
+        }
+
+        public OccSceneObject GetSelectedOccObject()
+        {
+            var h = proxy.GetSelectedObject();
+            var fr = objs.FirstOrDefault(z => z.IsEquals(h));
+            return fr;
+        }
+
+        internal void Transparency()
+        {
+            if (!CheckObjectSelectedUI())
+                return;
+
+            var fr = GetSelectedOccObject();
+            if (fr == null)
+                return;
+
+            fr.SwitchTransparency();
+        }
+
+        internal void SetName()
+        {
+            var occ = GetSelectedOccObject();
+            if (occ == null)
+                return;
+
+            var d = DialogHelpers.StartDialog();
+            d.AddStringField("name", "Name", occ.Name);
+            if (!d.ShowDialog())
+                return;
+
+            occ.Name = d.GetStringField("name");
         }
     }
 }

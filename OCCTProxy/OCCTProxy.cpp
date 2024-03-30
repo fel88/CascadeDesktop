@@ -1139,6 +1139,21 @@ aView->Update();
 	/// <summary>
 	///set transparency
 	/// </summary>
+	void SetTransparency(ManagedObjHandle^ h, double theTrans)
+	{
+		if (myAISContext().IsNull())
+			return;
+
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		myAISContext()->SetTransparency(o, theTrans, true);
+		myAISContext()->SetTransparency(o, theTrans, true);
+	}
+
+
+	/// <summary>
+	///set transparency
+	/// </summary>
 	void SetTransparency(int theTrans)
 	{
 		if (myAISContext().IsNull())
@@ -1283,23 +1298,25 @@ public:
 	}
 	//#include <msclr/marshal_cppstd.h>
 
-	bool ImportStep(System::String^ str)
+	System::Collections::Generic::List<ManagedObjHandle^>^ ImportStep(System::String^ str)
 	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
 		return ImportStep(aFilename);
 	}
 
-	bool ImportIges(System::String^ str)
+	System::Collections::Generic::List<ManagedObjHandle^>^ ImportIges(System::String^ str)
 	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
 		return ImportIges(aFilename);
 	}
+
 	/// <summary>
 	///Import Step file
 	/// </summary>
 	/// <param name="theFileName">Name of import file</param>
-	bool ImportStep(const TCollection_AsciiString& theFileName)
+	System::Collections::Generic::List<ManagedObjHandle^>^ ImportStep(const TCollection_AsciiString& theFileName)
 	{
+		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
 		STEPControl_Reader aReader;
 		IFSelect_ReturnStatus aStatus = aReader.ReadFile(theFileName.ToCString());
 		if (aStatus == IFSelect_RetDone)
@@ -1318,26 +1335,39 @@ public:
 					for (int i = 1; i <= aNbShap; i++)
 					{
 						TopoDS_Shape aShape = aReader.Shape(i);
-						myAISContext()->Display(new AIS_Shape(aShape), Standard_False);
+
+						auto ais = new AIS_Shape(aShape);
+
+
+						ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+						auto hn = GetHandle(*ais);
+						hhh->FromObjHandle(hn);
+						ret->Add(hhh);
+
+						myAISContext()->Display(ais, Standard_False);
 					}
+
 					myAISContext()->UpdateCurrentViewer();
 				}
 			}
 		}
-		else
+		/*else
 		{
 			return false;
-		}
+		}*/
 
-		return true;
+		return ret;
 	}
 
 	/// <summary>
 	///Import Iges file
 	/// </summary>
 	/// <param name="theFileName">Name of import file</param>
-	bool ImportIges(const TCollection_AsciiString& theFileName)
+	System::Collections::Generic::List<ManagedObjHandle^>^ ImportIges(const TCollection_AsciiString& theFileName)
 	{
+		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
+
 		IGESControl_Reader aReader;
 		int aStatus = aReader.ReadFile(theFileName.ToCString());
 
@@ -1345,15 +1375,26 @@ public:
 		{
 			aReader.TransferRoots();
 			TopoDS_Shape aShape = aReader.OneShape();
-			myAISContext()->Display(new AIS_Shape(aShape), Standard_False);
+			auto ais = new AIS_Shape(aShape);
+
+
+			ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+			auto hn = GetHandle(*ais);
+			hhh->FromObjHandle(hn);
+			ret->Add(hhh);
+
+			myAISContext()->Display(ais, Standard_False);
+
+			
 		}
-		else
+		/*else
 		{
 			return false;
-		}
+		}*/
 
 		myAISContext()->UpdateCurrentViewer();
-		return true;
+		return ret;
 	}
 
 	/// <summary>
@@ -1529,10 +1570,10 @@ public:
 	};
 
 	void ResetSelectionMode() {
-		myAISContext()->Deactivate();		
+		myAISContext()->Deactivate();
 	}
 
-	void SetSelectionMode(SelectionModeEnum t) {		
+	void SetSelectionMode(SelectionModeEnum t) {
 		if (t != SelectionModeEnum::None) {
 			myAISContext()->Activate((int)t, true);
 		}
@@ -1634,18 +1675,39 @@ public:
 		return ret;
 	}
 
-	void MakeDiff(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
+	ManagedObjHandle^ MakeDiff(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
 		const auto ret = impl->MakeBoolDiff(h1, h2);
-		myAISContext()->Display(new AIS_Shape(ret), true);
+		auto ais = new AIS_Shape(ret);
+		myAISContext()->Display(ais, true);
+
+				
+
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
 	}
 
-	void MakeFuse(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
+	ManagedObjHandle^ MakeFuse(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
 		const auto ret = impl->MakeBoolFuse(h1, h2);
-		myAISContext()->Display(new AIS_Shape(ret), true);
+
+		
+		auto ais = new AIS_Shape(ret);
+		myAISContext()->Display(ais, true);
+
+
+
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
+
 	}
 
 	ManagedObjHandle^ Clone(ManagedObjHandle^ m) {
@@ -1657,8 +1719,8 @@ public:
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
 		shape0 = shape0.Located(object1->LocalTransformation());
 		copy.Perform(shape0);
-		
-		auto shapeCopy = copy.Shape();		
+
+		auto shapeCopy = copy.Shape();
 
 		auto ais = new AIS_Shape(shapeCopy);
 		myAISContext()->Display(ais, true);
@@ -1694,17 +1756,17 @@ public:
 			}
 			//if (ttt3 == h.handleT) 
 			//{
-				TopoDS_Wire wire = TopoDS::Wire(aExpFace.Current());
-				BRepBuilderAPI_MakeFace face1(wire);
-				if (counter > 0) {
+			TopoDS_Wire wire = TopoDS::Wire(aExpFace.Current());
+			BRepBuilderAPI_MakeFace face1(wire);
+			if (counter > 0) {
 
-					//wire.Reverse();
-					bface.Add(wire);
-				}
-				else
-					bface.Init(face1);
+				//wire.Reverse();
+				bface.Add(wire);
+			}
+			else
+				bface.Init(face1);
 
-				counter++;
+			counter++;
 			//}					
 		}
 
@@ -1741,7 +1803,7 @@ public:
 		BRepBuilderAPI_MakeFace bface;
 		const auto* object1 = impl->getObject(h);
 
-		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();		
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
 		shape0 = shape0.Located(object1->LocalTransformation());
 		int counter = 0;
 		for (TopExp_Explorer aExpFace(shape0, TopAbs_FACE); aExpFace.More(); aExpFace.Next())
@@ -1788,7 +1850,7 @@ public:
 					dir.Reverse();
 				}
 				gp_Vec vec(dir.X(), dir.Y(), dir.Z());
-				vec *= height;				
+				vec *= height;
 
 				auto body = BRepPrimAPI_MakePrism(edgee, vec);
 
@@ -1813,18 +1875,29 @@ public:
 
 		}
 
-		
+
 		return nullptr;
 
 
 		//const auto ret = impl->MakeBoolFuse(h1, h2, fixShape);
 		//myAISContext()->Display(new AIS_Shape(ret), true);
 	}
-	void MakeCommon(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
+	ManagedObjHandle^ MakeCommon(ManagedObjHandle^ mh1, ManagedObjHandle^ mh2) {
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
 		const auto ret = impl->MakeBoolCommon(h1, h2);
-		myAISContext()->Display(new AIS_Shape(ret), true);
+		
+
+		auto ais = new AIS_Shape(ret);
+		myAISContext()->Display(ais, true);
+
+
+
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
 	}
 
 	void MakeBool() {
@@ -1967,7 +2040,7 @@ public:
 				ret->Length = len;
 				ret->Start = gcnew Vector3();
 				ret->End = gcnew Vector3();
-								
+
 				ret->Start->X = pnt1.X();
 				ret->Start->Y = pnt1.Y();
 				ret->Start->Z = pnt1.Z();
@@ -2479,7 +2552,7 @@ public:
 		return h;
 	}
 
-	/// <summary>
+	/*/// <summary>
 	///Define which Import/Export function must be called
 	/// </summary>
 	/// <param name="theFileName">Name of Import/Export file</param>
@@ -2534,7 +2607,7 @@ public:
 			}
 		}
 		return isResult;
-	}
+	}*/
 
 	/// <summary>
 	///Initialize OCCTProxy

@@ -1,9 +1,13 @@
-﻿namespace CascadeDesktop
+﻿using System.Collections.Generic;
+
+namespace CascadeDesktop
 {
     public interface IEditor
     {
-        OCCTProxy Proxy { get; }
+        IOCCTProxyInterface Proxy { get; }
         void ResetTool();
+        OccSceneObject GetSelectedOccObject();                
+        List<OccSceneObject> Objs { get; }
         void SetStatus(string text, InfoType type = InfoType.Info);        
     }
 }

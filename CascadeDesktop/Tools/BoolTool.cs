@@ -38,36 +38,48 @@ namespace CascadeDesktop.Tools
                 return;
 
             var proxy = Editor.Proxy;
-            var obj = proxy.GetSelectedObject();
+            var obj = Editor.GetSelectedOccObject();
 
-            if (obj != null)
+            if (obj == null)
+                return;
+
+            objs.Add(obj);
+            if (objs.Count == 2)
             {
-                objs.Add(proxy.GetSelectedObject());
-                if (objs.Count == 2)
+                switch (Operation)
                 {
-                    switch (Operation)
-                    {
-                        case FuseOperation.Fuse:
-                            Editor.Proxy.MakeFuse(objs[0], objs[1]);
-                            break;
-                        case FuseOperation.Diff:
-                            Editor.Proxy.MakeDiff(objs[0], objs[1]);
-                            break;
-                        case FuseOperation.Intersect:
-                            Editor.Proxy.MakeCommon(objs[0], objs[1]);
-                            break;
-                    }
-                    
+                    case FuseOperation.Fuse:
+                        {
+                            var cs = Editor.Proxy.MakeFuse(objs[0].Handle, objs[1].Handle);
+                            Editor.Objs.Add(new OccSceneObject(cs, Editor.Proxy) { Name = $"{objs[0].Name}_{objs[1].Name}_fuse" });
+                        }
+                        break;
+                    case FuseOperation.Diff:
+                        {
+                            var cs = Editor.Proxy.MakeDiff(objs[0].Handle, objs[1].Handle);
+                            Editor.Objs.Add(new OccSceneObject(cs, Editor.Proxy) { Name = $"{objs[0].Name}_{objs[1].Name}_diff" });
+                        }
+                        break;
+                    case FuseOperation.Intersect:
+                        {
+                            var cs = Editor.Proxy.MakeCommon(objs[0].Handle, objs[1].Handle);
+                            Editor.Objs.Add(new OccSceneObject(cs, Editor.Proxy) { Name = $"{objs[0].Name}_{objs[1].Name}_common" });
+                        }
+                        break;
+                }
+                if (MessageBox.Show("Remove source objects?", "OCC", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
                     foreach (var item in objs)
                     {
-                        proxy.Erase(item);
+                        item.Remove();
                     }
-                    Editor.ResetTool();
                 }
+                Editor.ResetTool();
             }
+
         }
 
-        List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
+        List<OccSceneObject> objs = new List<OccSceneObject>();
 
         public override void Select()
         {

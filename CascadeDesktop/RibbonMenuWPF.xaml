@@ -59,8 +59,8 @@
                     <RibbonButton x:Name="clone" Click="Clone_Click"  Label="Clone"  KeyTip="X" SmallImageSource="Icons/blue-document-view.png"  />
                     <RibbonButton x:Name="facesInfo" Click="FacesInfo_Click"  SmallImageSource="Icons/infocard.png" Label="Info"  />
                     <RibbonButton x:Name="ruler" Click="Ruler_Click"  SmallImageSource="Icons/ruler-triangle.png" Label="Ruler"  />
-
-
+                    <RibbonButton x:Name="transparency" Click="transparency_Click"  SmallImageSource="Icons/eye.png" Label="Transparency"  />
+                    <RibbonButton x:Name="setName" Click="setName_Click"   Label="Set name"  />
                 </RibbonGroup>
                 <RibbonGroup x:Name="add" Header="Add">
                     <RibbonButton x:Name="box" Click="Box_Click"  Label="Box"  KeyTip="X"  />

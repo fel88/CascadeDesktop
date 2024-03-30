@@ -267,5 +267,15 @@ namespace CascadeDesktop
         {
             Form.ExtrudeFace();
         }
+
+        private void transparency_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Transparency();
+        }
+
+        private void setName_Click(object sender, RoutedEventArgs e)
+        {
+            Form.SetName();
+        }
     }
 }
