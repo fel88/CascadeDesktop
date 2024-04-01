@@ -108,7 +108,23 @@ using namespace Cascade::Common;
 #pragma comment(lib, "TKBO.lib")
 #pragma comment(lib, "TKShHealing.lib")
 #pragma comment(lib, "TKFillet.lib")
+class membuf : public std::basic_streambuf<char> {
+public:
+	membuf(const uint8_t* p, size_t l) {
+		setg((char*)p, (char*)p, (char*)p + l);
+	}
+};
+class memstream : public std::istream {
+public:
+	memstream(const uint8_t* p, size_t l) :
+		std::istream(&_buffer),
+		_buffer(p, l) {
+		rdbuf(&_buffer);
+	}
 
+private:
+	membuf _buffer;
+};
 struct ObjHandle {
 public:
 	unsigned __int64 handle;
@@ -1304,6 +1320,27 @@ public:
 		return ImportStep(aFilename);
 	}
 
+
+
+	System::Collections::Generic::List<ManagedObjHandle^>^ ImportStep(System::String^ name, System::Collections::Generic::List<System::Byte>^ bts)
+	{		
+		auto buf = new uint8_t[bts->Count];
+		for (int i = 0;i < bts->Count;i++) {
+			buf[i] = bts[i];
+		}
+		memstream s(buf, bts->Count);
+
+		//char b;
+
+		/*do {
+			s.read(&b, 1);
+			std::cout << "read: " << (int)b << std::endl;
+		} while (s.good());*/
+
+		const TCollection_AsciiString aFilename = toAsciiString(name);
+		return ImportStep(aFilename, s);
+	}
+
 	System::Collections::Generic::List<ManagedObjHandle^>^ ImportIges(System::String^ str)
 	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
@@ -1318,7 +1355,59 @@ public:
 	{
 		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
 		STEPControl_Reader aReader;
+
 		IFSelect_ReturnStatus aStatus = aReader.ReadFile(theFileName.ToCString());
+		if (aStatus == IFSelect_RetDone)
+		{
+			bool isFailsonly = false;
+			aReader.PrintCheckLoad(isFailsonly, IFSelect_ItemsByEntity);
+
+			int aNbRoot = aReader.NbRootsForTransfer();
+			aReader.PrintCheckTransfer(isFailsonly, IFSelect_ItemsByEntity);
+			for (Standard_Integer n = 1; n <= aNbRoot; n++)
+			{
+				Standard_Boolean ok = aReader.TransferRoot(n);
+				int aNbShap = aReader.NbShapes();
+				if (aNbShap > 0)
+				{
+					for (int i = 1; i <= aNbShap; i++)
+					{
+						TopoDS_Shape aShape = aReader.Shape(i);
+
+						auto ais = new AIS_Shape(aShape);
+
+
+						ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+						auto hn = GetHandle(*ais);
+						hhh->FromObjHandle(hn);
+						ret->Add(hhh);
+
+						myAISContext()->Display(ais, Standard_False);
+					}
+
+					myAISContext()->UpdateCurrentViewer();
+				}
+			}
+		}
+		/*else
+		{
+			return false;
+		}*/
+
+		return ret;
+	}
+
+	/// <summary>
+	///Import Step stream
+	/// </summary>
+	/// <param name="theFileName">Name of import file</param>
+	System::Collections::Generic::List<ManagedObjHandle^>^ ImportStep(const TCollection_AsciiString& name, std::istream& stream)
+	{
+		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
+		STEPControl_Reader aReader;
+		IFSelect_ReturnStatus aStatus = aReader.ReadStream(name.ToCString(), stream);
+
 		if (aStatus == IFSelect_RetDone)
 		{
 			bool isFailsonly = false;
@@ -1386,7 +1475,7 @@ public:
 
 			myAISContext()->Display(ais, Standard_False);
 
-			
+
 		}
 		/*else
 		{
@@ -1682,7 +1771,7 @@ public:
 		auto ais = new AIS_Shape(ret);
 		myAISContext()->Display(ais, true);
 
-				
+
 
 		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
 
@@ -1696,7 +1785,7 @@ public:
 		ObjHandle h2 = mh2->ToObjHandle();
 		const auto ret = impl->MakeBoolFuse(h1, h2);
 
-		
+
 		auto ais = new AIS_Shape(ret);
 		myAISContext()->Display(ais, true);
 
@@ -1886,7 +1975,7 @@ public:
 		ObjHandle h1 = mh1->ToObjHandle();
 		ObjHandle h2 = mh2->ToObjHandle();
 		const auto ret = impl->MakeBoolCommon(h1, h2);
-		
+
 
 		auto ais = new AIS_Shape(ret);
 		myAISContext()->Display(ais, true);
@@ -2627,6 +2716,4 @@ private:
 	NCollection_Haft<Handle(AIS_InteractiveContext)> myAISContext;
 	NCollection_Haft<Handle(OpenGl_GraphicDriver)> myGraphicDriver;
 };
-
-
 

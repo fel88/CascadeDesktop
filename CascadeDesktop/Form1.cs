@@ -11,6 +11,8 @@ using AutoDialog;
 using CascadeDesktop.Tools;
 using System.Windows;
 using OpenTK.Platform.Windows;
+using Microsoft.Win32.SafeHandles;
+using System.IO.Compression;
 
 namespace CascadeDesktop
 {
@@ -233,7 +235,7 @@ namespace CascadeDesktop
 
         public IOCCTProxyInterface Proxy => proxy;
 
-        public List<OccSceneObject> Objs => objs;
+        public List<OccSceneObject> Objs => Scene.Objs;
 
         IOCCTProxyInterface proxy;
 
@@ -248,7 +250,6 @@ namespace CascadeDesktop
             ZoomAll();
         }
 
-
         public void ImportModel()
         {
             //curForm.ImportModel(ModelFormat.STEP);
@@ -259,11 +260,12 @@ namespace CascadeDesktop
 
             if (ofd.FileName.ToLower().EndsWith(".stp") || ofd.FileName.ToLower().EndsWith(".step"))
             {
-                objs.AddRange(proxy.ImportStep(ofd.FileName).Select(z => new OccSceneObject(z, proxy)));
+                var bts = File.ReadAllBytes(ofd.FileName).ToList();
+                Objs.AddRange(proxy.ImportStep(ofd.FileName, bts).Select(z => new ImportedOccSceneObject(ofd.FileName, z, proxy)));
             }
             if (ofd.FileName.ToLower().EndsWith(".igs") || ofd.FileName.ToLower().EndsWith(".iges"))
             {
-                objs.AddRange(proxy.ImportIges(ofd.FileName).Select(z => new OccSceneObject(z, proxy)));
+                Objs.AddRange(proxy.ImportIges(ofd.FileName).Select(z => new OccSceneObject(z, proxy)));
             }
             proxy.SetDisplayMode(1);
             proxy.RedrawView();
@@ -337,7 +339,7 @@ namespace CascadeDesktop
                 AppendStatus3($"{caption}: {v:0.##} ");
         }
 
-        List<OccSceneObject> objs = new List<OccSceneObject>();
+        
         private void boxToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AddBox();
@@ -358,7 +360,7 @@ namespace CascadeDesktop
             var h = d.GetNumericField("h");
             var l = d.GetNumericField("l");
             var cs = proxy.MakeBox(0, 0, 0, w, l, h);
-            objs.Add(new OccSceneObject(cs, proxy));
+            Objs.Add(new OccSceneObject(cs, proxy));
         }
 
         bool isDrag = false;
@@ -576,7 +578,7 @@ namespace CascadeDesktop
             var h = d.GetNumericField("h");
 
             var cs = proxy.MakeCylinder(r, h);
-            objs.Add(new OccSceneObject(cs, proxy));
+            Objs.Add(new OccSceneObject(cs, proxy));
         }
 
         private void cylinderToolStripMenuItem_Click(object sender, EventArgs e)
@@ -595,7 +597,7 @@ namespace CascadeDesktop
 
             var r = d.GetNumericField("r");
             var cs = proxy.MakeSphere(r);
-            objs.Add(new OccSceneObject(cs, proxy));
+            Objs.Add(new OccSceneObject(cs, proxy));
         }
 
         private void sphereToolStripMenuItem_Click(object sender, EventArgs e)
@@ -675,7 +677,7 @@ namespace CascadeDesktop
 
         private void toolStripButton9_Click(object sender, EventArgs e)
         {
-            foreach (var item in objs)
+            foreach (var item in Objs)
             {
                 item.Remove();
             }
@@ -712,7 +714,7 @@ namespace CascadeDesktop
                 return;
 
             var cs = proxy.MakeFillet(so, r);
-            objs.Add(new OccSceneObject(cs, proxy));
+            Objs.Add(new OccSceneObject(cs, proxy));
             occ.Remove();
         }
 
@@ -727,7 +729,7 @@ namespace CascadeDesktop
 
             var so = proxy.GetSelectedObject();
             var cs = proxy.Clone(so);
-            objs.Add(new OccSceneObject(cs, proxy) { Name = $"{occ.Name}_cloned" });
+            Objs.Add(new OccSceneObject(cs, proxy) { Name = $"{occ.Name}_cloned" });
         }
 
         private void filletToolStripMenuItem_Click(object sender, EventArgs e)
@@ -999,7 +1001,7 @@ namespace CascadeDesktop
             var h = d.GetNumericField("h");
 
             var cs = proxy.MakeCone(r1, r2, h);
-            objs.Add(new OccSceneObject(cs, proxy));
+            Objs.Add(new OccSceneObject(cs, proxy));
         }
 
         private void coneToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1157,10 +1159,12 @@ namespace CascadeDesktop
             proxy.MakePrismFromFace(proxy.GetSelectedObject(), h);
         }
 
+        public OccScene Scene = new OccScene();
+
         public OccSceneObject GetSelectedOccObject()
         {
             var h = proxy.GetSelectedObject();
-            var fr = objs.FirstOrDefault(z => z.IsEquals(h));
+            var fr = Objs.FirstOrDefault(z => z.IsEquals(h));
             return fr;
         }
 
@@ -1188,6 +1192,44 @@ namespace CascadeDesktop
                 return;
 
             occ.Name = d.GetStringField("name");
+        }
+
+        internal void SaveAsProject()
+        {
+            SaveFileDialog sfd = new SaveFileDialog();
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
+
+            //save zip here
+            StoreZipContext szc = new StoreZipContext();
+
+            using (var fileStream = new FileStream(sfd.FileName, FileMode.Create))
+            {
+                using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, true))
+                {
+                    //save project xml
+                    szc.Zip = archive;
+
+                    foreach (var item in Objs)
+                    {
+                        item.StoreToZip(szc);
+                    }
+                }
+            }
+        }
+
+        internal void OpenProject()
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            if (ofd.ShowDialog() != DialogResult.OK)
+                return;
+
+            //read zip and restore all models
+        }
+
+        internal void NewProject()
+        {
+            
         }
     }
 }

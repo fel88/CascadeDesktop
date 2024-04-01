@@ -108,7 +108,7 @@
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(913, 438);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1184, 712);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // panel1
@@ -117,7 +117,7 @@
             this.panel1.Location = new System.Drawing.Point(2, 3);
             this.panel1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(909, 432);
+            this.panel1.Size = new System.Drawing.Size(1180, 706);
             this.panel1.TabIndex = 0;
             this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
             this.panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseMove);
@@ -126,10 +126,10 @@
             // 
             this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertyGrid1.HelpVisible = false;
-            this.propertyGrid1.Location = new System.Drawing.Point(915, 3);
+            this.propertyGrid1.Location = new System.Drawing.Point(1186, 3);
             this.propertyGrid1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             this.propertyGrid1.Name = "propertyGrid1";
-            this.propertyGrid1.Size = new System.Drawing.Size(1, 432);
+            this.propertyGrid1.Size = new System.Drawing.Size(1, 706);
             this.propertyGrid1.TabIndex = 1;
             // 
             // toolStrip1
@@ -158,7 +158,7 @@
             this.toolStripSeparator3});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(913, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(1184, 25);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -616,10 +616,10 @@
             this.toolStripStatusLabel3,
             this.toolStripStatusLabel2});
             this.statusStrip1.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow;
-            this.statusStrip1.Location = new System.Drawing.Point(0, 463);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 737);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 11, 0);
-            this.statusStrip1.Size = new System.Drawing.Size(913, 24);
+            this.statusStrip1.Size = new System.Drawing.Size(1184, 24);
             this.statusStrip1.TabIndex = 2;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -650,7 +650,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(913, 487);
+            this.ClientSize = new System.Drawing.Size(1184, 761);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.statusStrip1);

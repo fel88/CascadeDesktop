@@ -277,5 +277,21 @@ namespace CascadeDesktop
         {
             Form.SetName();
         }
+
+
+        private void open_Click(object sender, RoutedEventArgs e)
+        {
+            Form.OpenProject();
+        }
+
+        private void new_Click(object sender, RoutedEventArgs e)
+        {
+            Form.NewProject();
+        }
+
+        private void saveAs_Click(object sender, RoutedEventArgs e)
+        {
+            Form.SaveAsProject();
+        }
     }
 }

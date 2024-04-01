@@ -43,9 +43,9 @@
                 <RibbonButton  Label="Add" KeyTip="C" />-->
                 </RibbonGroup>
                 <RibbonGroup x:Name="FileGroup" Header="File">
-                    <RibbonButton  Label="New" KeyTip="C" SmallImageSource="Icons/blue-document.png"   />
-                    <RibbonButton  Label="Open" KeyTip="C" SmallImageSource="Icons/folder-horizontal-open.png"  />
-                    <RibbonButton  Label="Save as" KeyTip="X"   SmallImageSource="Icons/disk.ico" />
+                    <RibbonButton x:Name="new"  Label="New" Click="new_Click" KeyTip="C" SmallImageSource="Icons/blue-document.png"   />
+                    <RibbonButton  x:Name="open"  Label="Open" Click="open_Click"  KeyTip="C" SmallImageSource="Icons/folder-horizontal-open.png"  />
+                    <RibbonButton x:Name="saveAs"  Label="Save as" KeyTip="X" Click="saveAs_Click"  SmallImageSource="Icons/disk.ico" />
                    
                     <!--<RibbonButton  Label="Format Painter" KeyTip="FP" />-->
                 </RibbonGroup>

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.IO.Compression;
 
 namespace CascadeDesktop
 {
@@ -47,6 +49,20 @@ namespace CascadeDesktop
             Proxy.Erase(Handle);
         }
 
+        internal virtual void StoreToZip(StoreZipContext ctx)
+        {
+            //store xml with description
+            //store file
+            //autonomous or external file
+            /*var demoFile = ctx.Zip.CreateEntry("foo.txt");
+
+            using (var entryStream = demoFile.Open())
+            using (var streamWriter = new StreamWriter(entryStream))
+            {
+                streamWriter.Write("Bar!");
+            }*/
+        }
+
         public enum TransparencyLevel
         {
             None, Half, Full
@@ -54,4 +70,5 @@ namespace CascadeDesktop
 
         public TransparencyLevel Transparency;
     }
+
 }

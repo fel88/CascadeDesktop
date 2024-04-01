@@ -1,6 +1,7 @@
 ﻿using Cascade.Common;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace CascadeDesktop
 {
@@ -18,6 +19,7 @@ namespace CascadeDesktop
         void ShowCube();
         void ZoomAllView();
         List<ManagedObjHandle> ImportStep(string path);
+        List<ManagedObjHandle> ImportStep(string path, List<byte> stream);
         List<ManagedObjHandle> ImportIges(string path);
         void LeftView();
         void ActivateGrid(bool enabled);
