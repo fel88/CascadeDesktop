@@ -48,6 +48,7 @@ namespace CascadeDesktop
         ManagedObjHandle MakeSphere(double r);
         ManagedObjHandle MakeCylinder(double r, double h);
         bool ExportStep(ManagedObjHandle managedObjHandle, string fileName);
+        List<byte> ExportStepStream(ManagedObjHandle managedObjHandle);
         void MoveTo(int x, int y);
         void Pan(int x, int y);
         void Rotation(int x, int y);

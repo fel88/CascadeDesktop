@@ -339,7 +339,7 @@ namespace CascadeDesktop
                 AppendStatus3($"{caption}: {v:0.##} ");
         }
 
-        
+
         private void boxToolStripMenuItem_Click(object sender, EventArgs e)
         {
             AddBox();
@@ -1214,6 +1214,7 @@ namespace CascadeDesktop
                     {
                         item.StoreToZip(szc);
                     }
+                    fileStream.Flush();
                 }
             }
         }
@@ -1225,11 +1226,38 @@ namespace CascadeDesktop
                 return;
 
             //read zip and restore all models
+
+            int counter = 0;
+            using (ZipArchive zip = ZipFile.Open(ofd.FileName, ZipArchiveMode.Read))
+                foreach (ZipArchiveEntry entry in zip.Entries)
+                {
+                    if (entry.Name.ToLower().EndsWith(".model"))
+                    {
+                        MemoryStream ms = new MemoryStream();
+                        using (var str = entry.Open())
+                        {
+                            str.CopyTo(ms);
+                        }
+                        ms.Seek(0, SeekOrigin.Begin);
+                        var bts = ms.ToArray();
+                        var hh = proxy.ImportStep(entry.Name, bts.ToList());
+                        foreach (var hitem in hh)
+                        {
+                            Objs.Add(new OccSceneObject(hitem, proxy) { Name = $"{entry.Name}_{counter++}" });
+                        }
+                    }
+                }
         }
 
         internal void NewProject()
         {
-            
+
+        }
+
+        public void Remove(OccSceneObject item)
+        {
+            Objs.Remove(item);
+            item.Remove();
         }
     }
 }

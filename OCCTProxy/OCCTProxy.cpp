@@ -1323,7 +1323,7 @@ public:
 
 
 	System::Collections::Generic::List<ManagedObjHandle^>^ ImportStep(System::String^ name, System::Collections::Generic::List<System::Byte>^ bts)
-	{		
+	{
 		auto buf = new uint8_t[bts->Count];
 		for (int i = 0;i < bts->Count;i++) {
 			buf[i] = bts[i];
@@ -1540,6 +1540,43 @@ public:
 		}
 
 		return true;
+	}
+
+	/// <summary>
+	///Export Step file
+	/// </summary>
+	/// <param name="theFileName">Name of export file</param>
+	System::Collections::Generic::List<System::Byte>^ ExportStepStream(ManagedObjHandle^ h)
+	{
+		STEPControl_StepModelType aType = STEPControl_AsIs;
+		IFSelect_ReturnStatus aStatus;
+		STEPControl_Writer aWriter;
+
+		//auto anIO = impl->getObject(h);
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto anIO = o;
+				
+		Handle(AIS_Shape) anIS = Handle(AIS_Shape)::DownCast(anIO);
+		TopoDS_Shape aShape = anIS->Shape();
+		aStatus = aWriter.Transfer(aShape, aType);
+
+		if (aStatus != IFSelect_RetDone)		
+			return nullptr;		
+
+		auto bts = gcnew System::Collections::Generic::List<System::Byte>();
+		std::stringstream  ostr;
+		aStatus = aWriter.WriteStream(ostr);
+		unsigned char n2;
+		while (!ostr.eof()) {
+			ostr.read((char*)&n2, sizeof(n2));
+			bts->Add(n2);
+		}
+
+		if (aStatus != IFSelect_RetDone)		
+			return nullptr;
+		
+		return bts;
 	}
 
 	/// <summary>

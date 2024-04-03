@@ -45,7 +45,7 @@ namespace CascadeDesktop
         }
 
         internal void Remove()
-        {
+        {            
             Proxy.Erase(Handle);
         }
 
@@ -54,13 +54,18 @@ namespace CascadeDesktop
             //store xml with description
             //store file
             //autonomous or external file
-            /*var demoFile = ctx.Zip.CreateEntry("foo.txt");
+            var file = ctx.Zip.CreateEntry($"{Name}.model");             
 
-            using (var entryStream = demoFile.Open())
-            using (var streamWriter = new StreamWriter(entryStream))
+            var r = Proxy.ExportStepStream(Handle).ToArray();
+            //ctx..ExportStep(proxy.GetSelectedObject(), sfd.FileName);
+            MemoryStream ms = new MemoryStream();
+            ms.Write(r, 0, r.Length);
+            ms.Seek(0,SeekOrigin.Begin);
+            using (var entryStream = file.Open())
+            //using (var streamWriter = new StreamWriter(entryStream))
             {
-                streamWriter.Write("Bar!");
-            }*/
+                ms.CopyTo(entryStream);                
+            }
         }
 
         public enum TransparencyLevel

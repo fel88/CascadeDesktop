@@ -70,9 +70,9 @@ namespace CascadeDesktop.Tools
                 if (MessageBox.Show("Remove source objects?", "OCC", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     foreach (var item in objs)
-                    {
-                        item.Remove();
-                    }
+                    {   
+                        Editor.Remove(item);
+                    }                    
                 }
                 Editor.ResetTool();
             }

@@ -8,6 +8,7 @@ namespace CascadeDesktop
         void ResetTool();
         OccSceneObject GetSelectedOccObject();                
         List<OccSceneObject> Objs { get; }
-        void SetStatus(string text, InfoType type = InfoType.Info);        
+        void SetStatus(string text, InfoType type = InfoType.Info);
+        void Remove(OccSceneObject item);
     }
 }
