@@ -137,6 +137,21 @@ namespace CascadeDesktop
             Proxy.SetMatrixValues(Handle, doubles.ToList());
         }
 
+        public bool Wireframe { get; private set; } = false;
+        internal void SwitchWireframe()
+        {
+            Wireframe = !Wireframe;
+            Proxy.Display(Handle, Wireframe);
+        }
+        internal void SwitchVisible()
+        {
+            Visible = !Visible;
+            if (Visible)
+                Proxy.Display(Handle, Wireframe);
+            else
+                Proxy.Erase(Handle);
+        }
+
         public enum TransparencyLevel
         {
             None, Half, Full

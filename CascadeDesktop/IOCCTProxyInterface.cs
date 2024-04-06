@@ -14,6 +14,7 @@ namespace CascadeDesktop
         ManagedObjHandle GetSelectedObject();
         bool IsObjectSelected();
         void SetDisplayMode(int m);
+        void Display(ManagedObjHandle m, bool wireframe);
         void InitOCCTProxy();
         void RedrawView();
         void ShowCube();
@@ -30,6 +31,7 @@ namespace CascadeDesktop
         void MoveObject(ManagedObjHandle h1, double x, double y, double z, bool rel);
         void RotateObject(ManagedObjHandle h1, double x, double y, double z, double rot, bool rel);
         void Erase(ManagedObjHandle h1);
+        void Remove(ManagedObjHandle h1);
         void UpdateView();
         void UpdateCurrentViewer();
         void SetTransparency(ManagedObjHandle managedObjHandle, double v);
@@ -67,6 +69,6 @@ namespace CascadeDesktop
         void Select(bool v);
         List<Vector3> IteratePoly(ManagedObjHandle managedObjHandle);
         ManagedObjHandle AddWireDraft(double height);
-        ManagedObjHandle ImportBlueprint(Blueprint blueprint);        
+        ManagedObjHandle ImportBlueprint(Blueprint blueprint);
     }
 }

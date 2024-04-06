@@ -299,5 +299,15 @@ namespace CascadeDesktop
         {
             Form.SetColor();
         }
+
+        private void objectsList_Click(object sender, RoutedEventArgs e)
+        {
+            Form.ShowObjectsList();
+        }
+
+        private void wireframe_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Wireframe();
+        }
     }
 }

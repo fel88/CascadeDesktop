@@ -60,8 +60,10 @@
                     <RibbonButton x:Name="facesInfo" Click="FacesInfo_Click"  SmallImageSource="Icons/infocard.png" Label="Info"  />
                     <RibbonButton x:Name="ruler" Click="Ruler_Click"  SmallImageSource="Icons/ruler-triangle.png" Label="Ruler"  />
                     <RibbonButton x:Name="transparency" Click="transparency_Click"  SmallImageSource="Icons/eye.png" Label="Transparency"  />
-                    <RibbonButton x:Name="setName" Click="setName_Click"   Label="Set name"  />
+                    <RibbonButton x:Name="setName" Click="setName_Click" SmallImageSource="Icons/license-key.png"   Label="Set name"  />
                     <RibbonButton x:Name="color" Click="color_Click"  SmallImageSource="Icons/color.png" Label="Color"  />
+                    <RibbonButton x:Name="objectsList" Click="objectsList_Click"  SmallImageSource="Icons/abacus.png" Label="Objects"  />
+                    <RibbonButton x:Name="wireframe" Click="wireframe_Click"  SmallImageSource="Icons/grid-dot.png" Label="Wireframe"  />
                 </RibbonGroup>
                 <RibbonGroup x:Name="add" Header="Add">
                     <RibbonButton x:Name="box" Click="Box_Click"  Label="Box"  KeyTip="X"  />

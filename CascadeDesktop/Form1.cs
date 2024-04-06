@@ -1319,5 +1319,23 @@ namespace CascadeDesktop
             if (cd.ShowDialog() == DialogResult.OK)
                 occ.SetColor(cd.Color);
         }
+
+        internal void ShowObjectsList()
+        {
+            ObjectsList ol = new ObjectsList();
+            ol.Init(this);
+            ol.TopMost = true;
+            ol.Show();
+        }
+
+        internal void Wireframe()
+        {
+
+            var occ = GetSelectedOccObject();
+            if (occ == null)
+                return;
+
+            occ.SwitchWireframe();
+        }
     }
 }

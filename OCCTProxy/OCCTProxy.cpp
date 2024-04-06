@@ -570,6 +570,7 @@ public:
 		auto drawer = ais->DefaultDrawer();
 		drawer->SetFaceBoundaryDraw(true);
 		drawer->SetColor(Quantity_NOC_BLACK);
+		//myAISContext()->EnableDrawHiddenLine();
 		//drawer->SetLineAspect()
 		/*
 		* raphic3d_RenderingParams& aParams = aView->ChangeRenderingParams();
@@ -1724,6 +1725,19 @@ public:
 		Handle(AIS_InteractiveObject) o;
 		o.reset((AIS_InteractiveObject*)h->Handle);
 		myAISContext()->Erase(o, true);
+	}
+
+	void Remove(ManagedObjHandle^ h) {
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		myAISContext()->Remove(o, true);
+	}
+
+	void Display(ManagedObjHandle^ h, bool wireframe) {
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		myAISContext()->Display(o, false);
+		myAISContext()->SetDisplayMode(o, wireframe ? AIS_WireFrame : AIS_Shaded, true);
 	}
 
 	gp_Trsf GetObjectMatrix(ManagedObjHandle^ h) {
