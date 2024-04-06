@@ -75,7 +75,12 @@ namespace CascadeDesktop
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("<root>");
-            sb.AppendLine($"<model name=\"{name}\" path=\"{path}\" color=\"{Color.R};{Color.G};{Color.G}\" transparency=\"{Transparency}\"/>");
+            var tr = Proxy.GetObjectMatrixValues(Handle);
+
+            sb.Append($"<model name=\"{name}\" path=\"{path}\" color=\"{Color.R};{Color.G};{Color.G}\" transparency=\"{Transparency}\" ");
+            sb.Append($"matrix=\"{string.Join(";", tr)}\"");
+            sb.AppendLine("/>");
+
             sb.AppendLine("</root>");
             return sb.ToString();
         }
@@ -125,6 +130,11 @@ namespace CascadeDesktop
         {
             Color = color;
             Proxy.SetColor(Handle, color.R, color.G, color.B);
+        }
+
+        internal void SetMatrix(double[] doubles)
+        {
+            Proxy.SetMatrixValues(Handle, doubles.ToList());
         }
 
         public enum TransparencyLevel

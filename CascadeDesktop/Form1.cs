@@ -265,7 +265,7 @@ namespace CascadeDesktop
             if (ofd.FileName.ToLower().EndsWith(".stp") || ofd.FileName.ToLower().EndsWith(".step"))
             {
                 var bts = File.ReadAllBytes(ofd.FileName).ToList();
-                Objs.AddRange(proxy.ImportStep(ofd.FileName, bts).Select(z => new ImportedOccSceneObject(ofd.FileName, z, proxy)));
+                Objs.AddRange(proxy.ImportStep(ofd.FileName, bts).Select(z => new ImportedOccSceneObject(ofd.FileName, z, proxy) { Name = Path.GetFileNameWithoutExtension(ofd.FileName) }));
             }
             if (ofd.FileName.ToLower().EndsWith(".igs") || ofd.FileName.ToLower().EndsWith(".iges"))
             {
@@ -515,11 +515,7 @@ namespace CascadeDesktop
             }
             if (keyData == Keys.Delete)
             {
-                if (proxy.IsObjectSelected())
-                    if (DialogHelpers.ShowQuestion("Are you sure to delete?", "Question"))
-                    {
-                        proxy.Erase(proxy.GetSelectedObject());
-                    }
+                Delete();
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
@@ -1271,7 +1267,7 @@ namespace CascadeDesktop
                 foreach (ZipArchiveEntry entry in zip.Entries)
                 {
                     var name = entry.Name.ToLower();
-                    if (name.EndsWith(".xml") && name.StartsWith("model"))
+                    if (name.EndsWith(".xml") && name.StartsWith("info"))
                     {
                         XDocument doc = null;
                         using (StreamReader reader = new StreamReader(entry.Open()))
@@ -1282,6 +1278,7 @@ namespace CascadeDesktop
                         var path = xx.Attribute("path").Value;
                         var nm = xx.Attribute("name").Value;
                         var tr = xx.Attribute("transparency").Value;
+                        var matrix = xx.Attribute("matrix").Value;
                         var ee = zip.Entries.FirstOrDefault(z => z.Name == path);
                         if (ee.Name.ToLower().EndsWith(".model"))
                         {
@@ -1293,6 +1290,7 @@ namespace CascadeDesktop
                                 ccc.Name = nm;
                                 ccc.SetTransparency((TransparencyLevel)Enum.Parse(typeof(TransparencyLevel), tr));
                                 ccc.SetColor(Color.FromArgb(cc[0], cc[1], cc[2]));
+                                ccc.SetMatrix(matrix.Split(';').Select(StaticHelpers.ParseDouble).ToArray());
                             }
                             Objs.AddRange(rr);
                         }

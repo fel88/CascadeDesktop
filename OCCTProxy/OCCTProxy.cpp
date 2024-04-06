@@ -1732,6 +1732,20 @@ public:
 		return trans;
 	}
 
+	System::Collections::Generic::List<double>^ GetObjectMatrixValues(ManagedObjHandle^ h) {
+		System::Collections::Generic::List<double>^ ret = gcnew System::Collections::Generic::List<double>();
+		AIS_InteractiveObject* p = (AIS_InteractiveObject*)(h->Handle);
+		auto trans = p->Transformation();
+		for (size_t i = 1; i <= 3; i++)
+		{
+			for (size_t j = 1; j <= 4; j++)
+			{
+				ret->Add(trans.Value(i, j));
+			}
+		}
+		return ret;
+	}
+
 	void MoveObject(ManagedObjHandle^ h, double x, double y, double z, bool rel)
 	{
 		Handle(AIS_InteractiveObject) o;
@@ -1745,6 +1759,35 @@ public:
 
 		TopLoc_Location p(tr);
 		myAISContext()->SetLocation(o, p);
+	}
+
+	void SetMatrixValues(ManagedObjHandle^ h, System::Collections::Generic::List<double>^ m)
+	{
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		gp_Trsf tr;
+		double a11 = m[0];
+		double a12 = m[1];
+		double a13 = m[2];
+		double a14 = m[3];
+
+		double a21 = m[0 + 4];
+		double a22 = m[1 + 4];
+		double a23 = m[2 + 4];
+		double a24 = m[3 + 4];
+
+		double a31 = m[0 + 8];
+		double a32 = m[1 + 8];
+		double a33 = m[2 + 8];
+		double a34 = m[3 + 8];
+		tr.SetValues(a11, a12, a13, a14,
+			a21, a22, a23, a24,
+			a31, a32, a33, a34
+		);
+
+		TopLoc_Location p(tr);
+		myAISContext()->SetLocation(o, p);
+
 	}
 
 	void RotateObject(ManagedObjHandle^ h, double x, double y, double z, double ang, bool rel)

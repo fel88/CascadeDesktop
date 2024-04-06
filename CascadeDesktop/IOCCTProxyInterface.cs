@@ -40,6 +40,8 @@ namespace CascadeDesktop
         void BottomView();
         void RightView();
         void SetColor(ManagedObjHandle h, int red, int green, int blue);
+        List<double> GetObjectMatrixValues(ManagedObjHandle h);
+        void SetMatrixValues(ManagedObjHandle h, List<double> m);
         ManagedObjHandle MakeCone(double r1, double r2, double h);
         ManagedObjHandle MakeChamfer(ManagedObjHandle so, double r);
         ManagedObjHandle MakePrism(ManagedObjHandle managedObjHandle, double h);
@@ -65,6 +67,6 @@ namespace CascadeDesktop
         void Select(bool v);
         List<Vector3> IteratePoly(ManagedObjHandle managedObjHandle);
         ManagedObjHandle AddWireDraft(double height);
-        ManagedObjHandle ImportBlueprint(Blueprint blueprint);
+        ManagedObjHandle ImportBlueprint(Blueprint blueprint);        
     }
 }
