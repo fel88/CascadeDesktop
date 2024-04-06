@@ -220,7 +220,7 @@ namespace CascadeDesktop
         {
             Form.AddCone();
         }
-             
+
         private void DarkBackground_Click(object sender, RoutedEventArgs e)
         {
             Form.SetDarkBackground();
@@ -292,6 +292,12 @@ namespace CascadeDesktop
         private void saveAs_Click(object sender, RoutedEventArgs e)
         {
             Form.SaveAsProject();
+        }
+
+
+        private void color_Click(object sender, RoutedEventArgs e)
+        {
+            Form.SetColor();
         }
     }
 }

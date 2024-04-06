@@ -103,7 +103,7 @@
       <DependentUpon>RibbonMenuWPF.xaml</DependentUpon>
     </Compile>
     <Compile Include="SceneObject.cs" />
-    <Compile Include="StoreZipContext.cs" />
+    <Compile Include="IOZipContext.cs" />
     <Compile Include="Tools\AdjoinCOMsTool.cs" />
     <Compile Include="Tools\AdjoinTool.cs" />
     <Compile Include="ArcElement.cs" />
@@ -254,6 +254,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\eye.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\color.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

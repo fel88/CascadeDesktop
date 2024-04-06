@@ -13,6 +13,10 @@ using System.Windows;
 using OpenTK.Platform.Windows;
 using Microsoft.Win32.SafeHandles;
 using System.IO.Compression;
+using System.Xml.Linq;
+using System.Diagnostics;
+using System.Reflection;
+using static CascadeDesktop.OccSceneObject;
 
 namespace CascadeDesktop
 {
@@ -379,11 +383,20 @@ namespace CascadeDesktop
             proxy.MoveTo(e.Location.X, e.Location.Y);
 
         }
+
         public void Delete()
         {
-            if (proxy.IsObjectSelected())
-                proxy.Erase(proxy.GetSelectedObject());
+            var occ = GetSelectedOccObject();
+            if (occ == null)
+                return;
+
+            if (StaticHelpers.ShowQuestion($"Are you sure to delete: {occ.Name}?", Text))
+            {
+                Objs.Remove(occ);
+                occ.Remove();
+            }
         }
+
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
             Delete();
@@ -655,7 +668,8 @@ namespace CascadeDesktop
             var dy = d.GetNumericField("dy");
             var dz = d.GetNumericField("dz");
 
-            proxy.MirrorObject(proxy.GetSelectedObject(), new Vector3(dx, dy, dz), new Vector3(dx, dy, dz), true, true);
+            var h = proxy.MirrorObject(proxy.GetSelectedObject(), new Vector3(dx, dy, dz), new Vector3(x, y, z), true, true);
+            Objs.Add(new OccSceneObject(h, proxy) { Name = "mirrored" });
         }
 
         private void toolStripButton7_Click(object sender, EventArgs e)
@@ -959,8 +973,13 @@ namespace CascadeDesktop
 
             var r = d.GetNumericField("r");
             var so = proxy.GetSelectedObject();
+            var occ = GetSelectedOccObject();
+            if (occ == null)
+                return;
+
             var cs = proxy.MakeChamfer(so, r);
-            proxy.Erase(so);
+            Objs.Add(new OccSceneObject(cs, proxy));
+            occ.Remove();
         }
 
         private void chamferToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1156,7 +1175,9 @@ namespace CascadeDesktop
                 return;
 
             var h = d.GetNumericField("h");
-            proxy.MakePrismFromFace(proxy.GetSelectedObject(), h);
+            var mh = proxy.MakePrismFromFace(proxy.GetSelectedObject(), h);
+            var occ = new OccSceneObject(mh, proxy) { Name = "extrude" };
+            Objs.Add(occ);
         }
 
         public OccScene Scene = new OccScene();
@@ -1201,11 +1222,11 @@ namespace CascadeDesktop
                 return;
 
             //save zip here
-            StoreZipContext szc = new StoreZipContext();
+            IOZipContext szc = new IOZipContext();
 
             using (var fileStream = new FileStream(sfd.FileName, FileMode.Create))
             {
-                using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, true))
+                using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Update, true))
                 {
                     //save project xml
                     szc.Zip = archive;
@@ -1219,31 +1240,61 @@ namespace CascadeDesktop
             }
         }
 
+        OccSceneObject[] LoadModelFromZipStream(IOZipContext ctx, ZipArchiveEntry entry)
+        {
+            MemoryStream ms = new MemoryStream();
+            using (var str = entry.Open())
+            {
+                str.CopyTo(ms);
+            }
+            ms.Seek(0, SeekOrigin.Begin);
+            var bts = ms.ToArray();
+            var hh = proxy.ImportStep(entry.Name, bts.ToList());
+            List<OccSceneObject> ret = new List<OccSceneObject>();
+            foreach (var hitem in hh)
+            {
+                ret.Add(new OccSceneObject(hitem, proxy) { Name = $"{entry.Name}_{ctx.ModelIdx++}" });
+            }
+            return ret.ToArray();
+        }
+
         internal void OpenProject()
         {
             OpenFileDialog ofd = new OpenFileDialog();
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
 
-            //read zip and restore all models
+            IOZipContext ctx = new IOZipContext();
+            //read zip and restore all models            
 
-            int counter = 0;
             using (ZipArchive zip = ZipFile.Open(ofd.FileName, ZipArchiveMode.Read))
                 foreach (ZipArchiveEntry entry in zip.Entries)
                 {
-                    if (entry.Name.ToLower().EndsWith(".model"))
+                    var name = entry.Name.ToLower();
+                    if (name.EndsWith(".xml") && name.StartsWith("model"))
                     {
-                        MemoryStream ms = new MemoryStream();
-                        using (var str = entry.Open())
+                        XDocument doc = null;
+                        using (StreamReader reader = new StreamReader(entry.Open()))
                         {
-                            str.CopyTo(ms);
+                            doc = XDocument.Parse(reader.ReadToEnd());
                         }
-                        ms.Seek(0, SeekOrigin.Begin);
-                        var bts = ms.ToArray();
-                        var hh = proxy.ImportStep(entry.Name, bts.ToList());
-                        foreach (var hitem in hh)
+                        var xx = doc.Root.Element("model");
+                        var path = xx.Attribute("path").Value;
+                        var nm = xx.Attribute("name").Value;
+                        var tr = xx.Attribute("transparency").Value;
+                        var ee = zip.Entries.FirstOrDefault(z => z.Name == path);
+                        if (ee.Name.ToLower().EndsWith(".model"))
                         {
-                            Objs.Add(new OccSceneObject(hitem, proxy) { Name = $"{entry.Name}_{counter++}" });
+                            var rr = LoadModelFromZipStream(ctx, ee);
+                            var clr = xx.Attribute("color").Value;
+                            var cc = clr.Split(new char[] { ';' }).Select(int.Parse).ToArray();
+                            foreach (var ccc in rr)
+                            {
+                                ccc.Name = nm;
+                                ccc.SetTransparency((TransparencyLevel)Enum.Parse(typeof(TransparencyLevel), tr));
+                                ccc.SetColor(Color.FromArgb(cc[0], cc[1], cc[2]));
+                            }
+                            Objs.AddRange(rr);
                         }
                     }
                 }
@@ -1258,6 +1309,17 @@ namespace CascadeDesktop
         {
             Objs.Remove(item);
             item.Remove();
+        }
+
+        internal void SetColor()
+        {
+            var occ = GetSelectedOccObject();
+            if (occ == null)
+                return;
+
+            ColorDialog cd = new ColorDialog();
+            if (cd.ShowDialog() == DialogResult.OK)
+                occ.SetColor(cd.Color);
         }
     }
 }

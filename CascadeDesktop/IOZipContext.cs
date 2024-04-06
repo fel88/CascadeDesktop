@@ -2,8 +2,9 @@
 
 namespace CascadeDesktop
 {
-    public class StoreZipContext
+    public class IOZipContext
     {
         public ZipArchive Zip;
+        public int ModelIdx;
     }
 }

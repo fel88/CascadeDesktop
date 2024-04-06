@@ -39,12 +39,13 @@ namespace CascadeDesktop
         void BackView();
         void BottomView();
         void RightView();
+        void SetColor(ManagedObjHandle h, int red, int green, int blue);
         ManagedObjHandle MakeCone(double r1, double r2, double h);
         ManagedObjHandle MakeChamfer(ManagedObjHandle so, double r);
         ManagedObjHandle MakePrism(ManagedObjHandle managedObjHandle, double h);
         ManagedObjHandle Clone(ManagedObjHandle so);
         ManagedObjHandle MakeFillet(ManagedObjHandle so, double r);
-        void MirrorObject(ManagedObjHandle managedObjHandle, Vector3 dir, Vector3 pnt, bool axis2, bool rel);
+        ManagedObjHandle MirrorObject(ManagedObjHandle managedObjHandle, Vector3 dir, Vector3 pnt, bool axis2, bool rel);
         ManagedObjHandle MakeSphere(double r);
         ManagedObjHandle MakeCylinder(double r, double h);
         bool ExportStep(ManagedObjHandle managedObjHandle, string fileName);

@@ -1166,6 +1166,20 @@ aView->Update();
 		myAISContext()->SetTransparency(o, theTrans, true);
 	}
 
+	/// <summary>
+///set color
+/// </summary>
+	void SetColor(ManagedObjHandle^ h, int red, int green, int blue)
+	{
+		if (myAISContext().IsNull())
+			return;
+
+		Handle(AIS_InteractiveObject) o;
+		o.reset((AIS_InteractiveObject*)h->Handle);
+		Quantity_Color c(red / 255., green / 255., blue / 255., Quantity_TOC_RGB);
+		myAISContext()->SetColor(o, c, true);
+	}
+
 
 	/// <summary>
 	///set transparency
@@ -1556,13 +1570,13 @@ public:
 		Handle(AIS_InteractiveObject) o;
 		o.reset((AIS_InteractiveObject*)h->Handle);
 		auto anIO = o;
-				
+
 		Handle(AIS_Shape) anIS = Handle(AIS_Shape)::DownCast(anIO);
 		TopoDS_Shape aShape = anIS->Shape();
 		aStatus = aWriter.Transfer(aShape, aType);
 
-		if (aStatus != IFSelect_RetDone)		
-			return nullptr;		
+		if (aStatus != IFSelect_RetDone)
+			return nullptr;
 
 		auto bts = gcnew System::Collections::Generic::List<System::Byte>();
 		std::stringstream  ostr;
@@ -1573,9 +1587,9 @@ public:
 			bts->Add(n2);
 		}
 
-		if (aStatus != IFSelect_RetDone)		
+		if (aStatus != IFSelect_RetDone)
 			return nullptr;
-		
+
 		return bts;
 	}
 
@@ -1750,7 +1764,7 @@ public:
 		myAISContext()->SetLocation(o, p);
 	}
 
-	void MirrorObject(ManagedObjHandle^ h, Vector3^ dir, Vector3^ pnt, bool axis2, bool rel)
+	ManagedObjHandle^ MirrorObject(ManagedObjHandle^ h, Vector3^ dir, Vector3^ pnt, bool axis2, bool rel)
 	{
 		ObjHandle oh = h->ToObjHandle();
 		const auto* object1 = impl->getObject(oh);
@@ -1777,8 +1791,18 @@ public:
 
 		auto shape = BRepBuilderAPI_Transform(shape0, tr, Standard_True);
 		//TopLoc_Location p(tr);		
-		//myAISContext()->SetLocation(o, p);		
-		myAISContext()->Display(new AIS_Shape(shape.Shape()), true);
+		//myAISContext()->SetLocation(o, p);	
+		auto ais = new AIS_Shape(shape.Shape());
+		//myAISContext()->Display(new AIS_Shape(shape.Shape()), true);
+		myAISContext()->Display(ais, true);
+
+
+
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
 	}
 
 	System::Collections::Generic::List<Vector3^>^
