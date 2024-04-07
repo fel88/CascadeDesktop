@@ -141,8 +141,22 @@ public:
 	double Z;
 };
 
+public enum class CurveType
+{
+	Line,
+	Circle,
+	Ellipse,
+	Hyperbola,
+	Parabola,
+	BezierCurve,
+	BSplineCurve,
+	OffsetCurve,
+	OtherCurve
+};
+
 public ref class EdgeInfo {
 public:
+	CurveType CurveType;
 	Vector3^ Start;
 	Vector3^ End;
 	double Length;
@@ -1163,13 +1177,17 @@ aView->Update();
 
 		Handle(AIS_InteractiveObject) o;
 		o.reset((AIS_InteractiveObject*)h->Handle);
-		myAISContext()->SetTransparency(o, theTrans, true);
-		myAISContext()->SetTransparency(o, theTrans, true);
+		myAISContext()->SetTransparency(o, theTrans, AutoViewerUpdate);
+	}
+	
+	void SetAutoViewerUpdate(bool v)
+	{
+		AutoViewerUpdate = v;
 	}
 
 	/// <summary>
-///set color
-/// </summary>
+	///set color
+	/// </summary>
 	void SetColor(ManagedObjHandle^ h, int red, int green, int blue)
 	{
 		if (myAISContext().IsNull())
@@ -1178,9 +1196,8 @@ aView->Update();
 		Handle(AIS_InteractiveObject) o;
 		o.reset((AIS_InteractiveObject*)h->Handle);
 		Quantity_Color c(red / 255., green / 255., blue / 255., Quantity_TOC_RGB);
-		myAISContext()->SetColor(o, c, true);
+		myAISContext()->SetColor(o, c, AutoViewerUpdate);
 	}
-
 
 	/// <summary>
 	///set transparency
@@ -1452,7 +1469,7 @@ public:
 						myAISContext()->Display(ais, Standard_False);
 					}
 
-					myAISContext()->UpdateCurrentViewer();
+					//myAISContext()->UpdateCurrentViewer();
 				}
 			}
 		}
@@ -2245,6 +2262,7 @@ public:
 
 				EdgeInfo^ ret = gcnew EdgeInfo();
 				ret->Length = len;
+				ret->CurveType = (CurveType)curveType;
 				ret->Start = gcnew Vector3();
 				ret->End = gcnew Vector3();
 
@@ -2829,6 +2847,7 @@ public:
 
 private:
 	// fields
+	bool AutoViewerUpdate;
 	NCollection_Haft<Handle(V3d_Viewer)> myViewer;
 	NCollection_Haft<Handle(V3d_View)> myView;
 	NCollection_Haft<Handle(AIS_InteractiveContext)> myAISContext;

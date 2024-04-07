@@ -1,8 +1,5 @@
-﻿using OpenTK;
-using System.Collections.Generic;
-using System.IO.Packaging;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace CascadeDesktop.Tools
@@ -62,8 +59,16 @@ namespace CascadeDesktop.Tools
                 {
                     var vec = mobjs.First(z => z is Vector3) as Vector3;
                     var edg = mobjs.First(z => z is EdgeInfo) as EdgeInfo;
-                    //get projection point to edge
-                    Editor.SetStatus($"point to edge dist: unsupported");
+                    if (edg.CurveType == CurveType.Line)
+                    {
+                        //get projection point to edge
+                        var d = GeomHelpers.dist(vec.ToVector3d(), edg.Start.ToVector3d(), edg.End.ToVector3d());
+                        Editor.SetStatus($"dist: {d}");
+                    }
+                    else
+                    {
+                        Editor.SetStatus($"point to edge ({edg.CurveType}) dist: unsupported");
+                    }
                     Editor.ResetTool();
                 }
                 else

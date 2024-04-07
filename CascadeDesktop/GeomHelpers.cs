@@ -27,6 +27,19 @@ namespace CascadeDesktop
             return Math.Abs(cross1.Length) < eps;
         }
 
+        public static double dist(Vector3d pitem, Vector3d start, Vector3d end)
+        {
+            return (point_on_line(start, end, pitem) - pitem).Length;
+        }
+
+        public static Vector3d point_on_line(Vector3d a, Vector3d b, Vector3d p)
+        {
+            var ap = p - a;
+            var ab = b - a;
+
+            var result = a + Vector3d.Dot(ap, ab) / Vector3d.Dot(ab, ab) * ab;
+            return result;
+        }
         public static Vector3d? GetAdjointFacesShift(CylinderSurfInfo cylinder1, CylinderSurfInfo cylinder2, float eps = 1e-8f)
         {
             var cross1 = Vector3d.Cross(cylinder1.Axis.ToVector3d(), cylinder2.Axis.ToVector3d());

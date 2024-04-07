@@ -17,6 +17,7 @@ using System.Xml.Linq;
 using System.Diagnostics;
 using System.Reflection;
 using static CascadeDesktop.OccSceneObject;
+using System.Security.Cryptography;
 
 namespace CascadeDesktop
 {
@@ -384,22 +385,27 @@ namespace CascadeDesktop
 
         }
 
-        public void Delete()
+        public void DeleteSelected()
         {
             var occ = GetSelectedOccObject();
+            DeleteUI(occ);
+        }
+
+        public void DeleteUI(OccSceneObject occ)
+        {
             if (occ == null)
                 return;
 
             if (StaticHelpers.ShowQuestion($"Are you sure to delete: {occ.Name}?", Text))
             {
-                Objs.Remove(occ);
-                occ.Remove();
+                Remove(occ);
+                Proxy.UpdateCurrentViewer();
             }
         }
 
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
-            Delete();
+            DeleteSelected();
         }
 
         enum TopAbs_ShapeEnum
@@ -515,7 +521,7 @@ namespace CascadeDesktop
             }
             if (keyData == Keys.Delete)
             {
-                Delete();
+                DeleteSelected();
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
@@ -691,6 +697,7 @@ namespace CascadeDesktop
             {
                 item.Remove();
             }
+            Objs.Clear();
         }
 
         private void edgeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -725,7 +732,7 @@ namespace CascadeDesktop
 
             var cs = proxy.MakeFillet(so, r);
             Objs.Add(new OccSceneObject(cs, proxy));
-            occ.Remove();
+            Remove(occ);
         }
 
         public void Clone()
@@ -740,6 +747,7 @@ namespace CascadeDesktop
             var so = proxy.GetSelectedObject();
             var cs = proxy.Clone(so);
             Objs.Add(new OccSceneObject(cs, proxy) { Name = $"{occ.Name}_cloned" });
+            SetStatus("cloned");
         }
 
         private void filletToolStripMenuItem_Click(object sender, EventArgs e)
@@ -975,7 +983,7 @@ namespace CascadeDesktop
 
             var cs = proxy.MakeChamfer(so, r);
             Objs.Add(new OccSceneObject(cs, proxy));
-            occ.Remove();
+            Remove(occ);
         }
 
         private void chamferToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1197,14 +1205,25 @@ namespace CascadeDesktop
             fr.SwitchTransparency();
         }
 
-        internal void SetName()
+        public void RenameSelected()
         {
             var occ = GetSelectedOccObject();
+            RenameUI(occ);
+        }
+
+        public void RenameUI(OccSceneObject occ, Form owner = null)
+        {
             if (occ == null)
                 return;
 
             var d = DialogHelpers.StartDialog();
             d.AddStringField("name", "Name", occ.Name);
+            if (owner != null)
+            {
+                if (d.ShowDialog(owner) != DialogResult.OK)
+                    return;
+            }
+            else
             if (!d.ShowDialog())
                 return;
 
@@ -1214,6 +1233,7 @@ namespace CascadeDesktop
         internal void SaveAsProject()
         {
             SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Filter = "Projects file (*.zip)|*.zip";
             if (sfd.ShowDialog() != DialogResult.OK)
                 return;
 
@@ -1257,6 +1277,7 @@ namespace CascadeDesktop
         internal void OpenProject()
         {
             OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Projects file (*.zip)|*.zip";
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
 
@@ -1296,6 +1317,9 @@ namespace CascadeDesktop
                         }
                     }
                 }
+            ResetView();
+            ZoomAll();
+            proxy.UpdateCurrentViewer();
         }
 
         internal void NewProject()

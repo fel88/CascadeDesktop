@@ -68,7 +68,7 @@ namespace CascadeDesktop
 
         internal void Remove()
         {
-            Proxy.Erase(Handle);
+            Proxy.Remove(Handle);
         }
 
         string GetXml(string name, string path)
@@ -77,7 +77,7 @@ namespace CascadeDesktop
             sb.AppendLine("<root>");
             var tr = Proxy.GetObjectMatrixValues(Handle);
 
-            sb.Append($"<model name=\"{name}\" path=\"{path}\" color=\"{Color.R};{Color.G};{Color.G}\" transparency=\"{Transparency}\" ");
+            sb.Append($"<model name=\"{name}\" path=\"{path}\" color=\"{Color.R};{Color.G};{Color.B}\" transparency=\"{Transparency}\" ");
             sb.Append($"matrix=\"{string.Join(";", tr)}\"");
             sb.AppendLine("/>");
 

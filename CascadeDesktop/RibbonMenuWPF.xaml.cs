@@ -113,7 +113,7 @@ namespace CascadeDesktop
 
         private void Delete_Click(object sender, RoutedEventArgs e)
         {
-            Form.Delete();
+            Form.DeleteSelected();
         }
 
         private void Fuse_Click(object sender, RoutedEventArgs e)
@@ -275,7 +275,7 @@ namespace CascadeDesktop
 
         private void setName_Click(object sender, RoutedEventArgs e)
         {
-            Form.SetName();
+            Form.RenameSelected();
         }
 
 

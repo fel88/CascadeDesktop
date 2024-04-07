@@ -46,5 +46,25 @@ namespace CascadeDesktop
         {
             UpdateList();
         }
+
+        private void removeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count == 0)
+                return;
+
+            var occ = (listView1.SelectedItems[0].Tag as OccSceneObject);
+            Editor.DeleteUI(occ);
+            UpdateList();
+        }
+
+        private void setNameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count == 0)
+                return;
+
+            var occ = (listView1.SelectedItems[0].Tag as OccSceneObject);
+            Editor.RenameUI(occ, this);
+            UpdateList();
+        }
     }
 }
