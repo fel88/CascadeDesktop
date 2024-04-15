@@ -70,6 +70,7 @@
 #include <TopExp_Explorer.hxx>
 
 
+#include <Geom_SphericalSurface.hxx>
 #include <Geom_CylindricalSurface.hxx>
 #include <Geom_SurfaceOfRevolution.hxx>
 #include <Geom_ConicalSurface.hxx>
@@ -157,11 +158,17 @@ public enum class CurveType
 public ref class EdgeInfo {
 public:
 	CurveType CurveType;
+	Vector3^ COM;//center of mass
 	Vector3^ Start;
 	Vector3^ End;
 	double Length;
 	unsigned __int64 Handle;
 	unsigned __int64 THandle;
+};
+
+public ref class CircleEdgeInfo : EdgeInfo{
+public:
+	double Radius;
 };
 
 public ref class SurfInfo {
@@ -172,7 +179,7 @@ public:
 	unsigned __int64 THandle;
 };
 
-public ref class PlaneSurfInfo :SurfInfo {
+public ref class PlaneSurfInfo : SurfInfo {
 public:
 	Vector3^ Normal;
 };
@@ -181,13 +188,13 @@ public ref class SurfOfRevolutionInfo : SurfInfo {
 public:
 };
 
-public ref class TorusSurfInfo :SurfInfo {
+public ref class TorusSurfInfo : SurfInfo {
 public:
 	double MajorRadius;
 	double MinorRadius;
 };
 
-public ref class ConeSurfInfo :SurfInfo {
+public ref class ConeSurfInfo : SurfInfo {
 public:
 	double Radius1;
 	double Radius2;
@@ -200,6 +207,10 @@ public:
 	Vector3^ Axis;
 };
 
+public ref class SphereSurfInfo : SurfInfo {
+public:
+	double Radius;
+};
 
 public ref class ManagedObjHandle {
 public:
@@ -1179,7 +1190,7 @@ aView->Update();
 		o.reset((AIS_InteractiveObject*)h->Handle);
 		myAISContext()->SetTransparency(o, theTrans, AutoViewerUpdate);
 	}
-	
+
 	void SetAutoViewerUpdate(bool v)
 	{
 		AutoViewerUpdate = v;
@@ -2247,6 +2258,8 @@ public:
 				BRepGProp::LinearProperties(ttt, massProps);
 				auto len = massProps.Mass();
 
+				gp_Pnt gPt = massProps.CentreOfMass();
+
 				//Analysis of Edge
 				Standard_Real First, Last;
 				Handle(Geom_Curve) curve = BRep_Tool::Curve(edgee, First, Last); //Extract the curve from the edge
@@ -2260,11 +2273,29 @@ public:
 				if (curveType == GeomAbs_BezierCurve || curveType == GeomAbs_BSplineCurve)
 					nPoles = aAdaptedCurve.NbPoles();
 
-				EdgeInfo^ ret = gcnew EdgeInfo();
+
+				EdgeInfo^ ret = nullptr;
+				if (curveType == GeomAbs_Circle) {
+					auto ret2 = gcnew CircleEdgeInfo();
+					Handle(Geom_Circle) C2 = Handle(Geom_Circle)::DownCast(curve);
+					if (!C2.IsNull())
+					{
+						ret2->Radius = C2->Circ().Radius();
+					}
+					ret = ret2;
+				}
+				else
+					ret = gcnew EdgeInfo();
+
 				ret->Length = len;
 				ret->CurveType = (CurveType)curveType;
 				ret->Start = gcnew Vector3();
 				ret->End = gcnew Vector3();
+
+				ret->COM = gcnew Vector3();
+				ret->COM->X = gPt.X();
+				ret->COM->Y = gPt.Y();
+				ret->COM->Z = gPt.Z();
 
 				ret->Start->X = pnt1.X();
 				ret->Start->Y = pnt1.Y();
@@ -2326,6 +2357,43 @@ public:
 		return ret;
 	}
 
+	SphereSurfInfo^ ExtractSphereSurface(TopoDS_Shape ttt) {
+		auto loc = ttt.Location();
+
+		const auto& aFace = TopoDS::Face(ttt);
+		auto orient = aFace.Orientation();
+
+		TopLoc_Location aLocation;
+		Handle(Geom_Surface) aSurf = BRep_Tool::Surface(aFace, aLocation);
+		auto cyl = Handle(Geom_SphericalSurface)::DownCast(aSurf);
+		auto rad = (*cyl).Radius();
+
+		float aU = 0;
+		float aV = 0;
+
+		gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
+		Vector3^ pos = gcnew Vector3();
+
+		SphereSurfInfo^ ret = gcnew SphereSurfInfo();
+
+		GProp_GProps massProps;
+		BRepGProp::SurfaceProperties(ttt, massProps);
+		gp_Pnt gPt = massProps.CentreOfMass();
+
+
+		pos->X = aPnt.X();
+		pos->Y = aPnt.Y();
+		pos->Z = aPnt.Z();
+
+		ret->COM = gcnew Vector3();
+		ret->COM->X = gPt.X();
+		ret->COM->Y = gPt.Y();
+		ret->COM->Z = gPt.Z();
+		ret->Position = pos;
+		ret->Radius = rad;
+
+		return ret;
+	}
 	PlaneSurfInfo^ ExtractPlaneSurface(TopoDS_Shape ttt) {
 		auto loc = ttt.Location();
 
@@ -2410,6 +2478,10 @@ public:
 				{
 					return ExtractCylinderSurface(ttt);
 				}
+				case GeomAbs_Sphere:
+				{
+					return ExtractSphereSurface(ttt);
+				}
 				}
 			}
 		}
@@ -2454,6 +2526,11 @@ public:
 			case GeomAbs_Cylinder:
 			{
 				rett->Add(ExtractCylinderSurface(ttt));
+			}
+			break;
+			case GeomAbs_Sphere:
+			{
+				rett->Add(ExtractSphereSurface(ttt));
 			}
 			break;
 			}

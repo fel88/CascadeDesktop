@@ -92,7 +92,7 @@
                     <RibbonButton  Label="Extrude" KeyTip="B" Click="ExtrudeFace_Click"  SmallImageSource="Icons/fill-090.png"/>
 
                   
-                    <RibbonSplitButton Click="Adjoin_Click" Label="Adjoin" SmallImageSource="Icons/magnet.ico" >
+                    <RibbonSplitButton Click="Adjoin_Click" Label="Snap" SmallImageSource="Icons/magnet.ico" >
                         <RibbonButton Label="With distance" Click="AdjoinWithDistance_Click"></RibbonButton>
                         <RibbonButton Label="COMs only" Click="AdjoinCOMs_Click"></RibbonButton>    
                     </RibbonSplitButton>

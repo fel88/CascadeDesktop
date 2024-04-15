@@ -44,7 +44,6 @@ namespace CascadeDesktop.Tools
                 Editor.Proxy.MoveObject(objs[0], shift.X, shift.Y, shift.Z, true);
                 Editor.ResetTool();
             }
-
         }
 
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();

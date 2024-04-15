@@ -119,6 +119,11 @@ namespace CascadeDesktop
                 SetStatus3(string.Empty);
                 AppendStatusVector("edge", vect);
                 AppendStatusVector(" ", vect2);
+                if (edge is CircleEdgeInfo cei)
+                {
+                    AppendDouble("radius", cei.Radius);
+                }
+                AppendStatusVector("com", edge.COM.ToVector3d());                
                 AppendStatus3($" len: {edge.Length}");
             }
             else if (v != null)
@@ -143,6 +148,14 @@ namespace CascadeDesktop
                     AppendStatusVector("cylinder", vect);
                     AppendStatusVector("COM", c.COM.ToVector3d());
                     AppendDouble("radius", c.Radius);
+
+                }
+                else if (face is SphereSurfInfo s)
+                {
+                    ClearStatus3();
+                    AppendStatusVector("sphere", vect);
+                    AppendStatusVector("COM", s.COM.ToVector3d());
+                    AppendDouble("radius", s.Radius);
 
                 }
                 else
@@ -296,7 +309,6 @@ namespace CascadeDesktop
         {
             proxy.FrontView();
         }
-
         public void SetStatus(string text, InfoType type = InfoType.Info)
         {
             toolStripStatusLabel1.Text = text;
@@ -319,15 +331,18 @@ namespace CascadeDesktop
         {
             toolStripStatusLabel3.Text = text;
         }
+
         public void SetStatus2(string text)
         {
             toolStripStatusLabel2.Text = text;
         }
+
         bool shortStatusOutputFormat = false;
         public void AppendStatus3(string text)
         {
             toolStripStatusLabel3.Text += text;
         }
+                
         public void AppendStatusVector(string caption, Vector3d v)
         {
             if (shortStatusOutputFormat)
@@ -343,7 +358,6 @@ namespace CascadeDesktop
             else
                 AppendStatus3($"{caption}: {v:0.##} ");
         }
-
 
         private void boxToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -1150,6 +1164,8 @@ namespace CascadeDesktop
                     r.AppendText($"PLANE {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
                 else if (info is CylinderSurfInfo c)
                     r.AppendText($"CYLINDER {c.Position.X} {c.Position.Y} {c.Position.Z}   axis: {c.Axis.X} {c.Axis.Y} {c.Axis.Z}   radius: {c.Radius} {Environment.NewLine}");
+                else if (info is SphereSurfInfo s)
+                    r.AppendText($"SPHERE {s.Position.X} {s.Position.Y} {s.Position.Z}   radius: {s.Radius} {Environment.NewLine}");
                 else
                     r.AppendText($"{info.GetType().Name}{info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
             }
