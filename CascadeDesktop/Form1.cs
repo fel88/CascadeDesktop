@@ -399,6 +399,17 @@ namespace CascadeDesktop
 
         }
 
+        public void Clear()
+        {
+            foreach (var item in Objs)
+            {                
+                item.Remove();
+            }
+            Objs.Clear();
+            
+            Proxy.UpdateCurrentViewer();
+        }
+
         public void DeleteSelected()
         {
             var occ = GetSelectedOccObject();
@@ -1218,7 +1229,9 @@ namespace CascadeDesktop
             if (fr == null)
                 return;
 
+            
             fr.SwitchTransparency();
+            proxy.UpdateCurrentViewer();
         }
 
         public void RenameSelected()
@@ -1300,6 +1313,7 @@ namespace CascadeDesktop
             IOZipContext ctx = new IOZipContext();
             //read zip and restore all models            
 
+            Clear();
             using (ZipArchive zip = ZipFile.Open(ofd.FileName, ZipArchiveMode.Read))
                 foreach (ZipArchiveEntry entry in zip.Entries)
                 {

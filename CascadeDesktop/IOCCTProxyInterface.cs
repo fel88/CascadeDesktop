@@ -25,6 +25,7 @@ namespace CascadeDesktop
         void LeftView();
         void ActivateGrid(bool enabled);
         void AxoView();
+        void SetAutoViewerUpdate(bool v);
         ManagedObjHandle MakeFuse(ManagedObjHandle h1, ManagedObjHandle h2);
         ManagedObjHandle MakeDiff(ManagedObjHandle h1, ManagedObjHandle h2);
         ManagedObjHandle MakeCommon(ManagedObjHandle h1, ManagedObjHandle h2);
