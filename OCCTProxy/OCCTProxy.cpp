@@ -452,7 +452,30 @@ public:
 		}
 		return h;
 	}
+	ObjHandle getDetectedObject(AIS_InteractiveContext* ctx) {
+		ObjHandle h;
+		for (ctx->InitDetected(); ctx->MoreDetected(); ctx->NextDetected())
+		{
+			Handle(SelectMgr_EntityOwner) owner = ctx->DetectedOwner();
+			Handle(SelectMgr_SelectableObject) so = owner->Selectable();
+			Handle(StdSelect_BRepOwner) brepowner = Handle(StdSelect_BRepOwner)::DownCast(owner);
 
+			if (brepowner.IsNull())
+				break;
+
+			const TopoDS_Shape& shape = brepowner->Shape();
+
+			TopoDS_TShape* ptshape = shape.TShape().get();
+
+			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
+			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
+			h.handle = (unsigned __int64)(self.get());
+			h.handleT = (unsigned __int64)(ptshape);
+			h.handleF = (unsigned __int64)(&shape);
+			break;
+		}
+		return h;
+	}
 	AIS_InteractiveObject* getObject(const ObjHandle& handle) const {
 		return reinterpret_cast<AIS_InteractiveObject*> (handle.handle);
 	}
@@ -552,7 +575,23 @@ public:
 		myViewer() = new V3d_Viewer(myGraphicDriver());
 		myViewer()->SetDefaultLights();
 		myViewer()->SetLightOn();
+		//myViewer()->DefaultShadingModel();
 		myView() = myViewer()->CreateView();
+		/*Graphic3d_RenderingParams& aParams = myView()->ChangeRenderingParams();
+		aParams.Method = Graphic3d_RM_RASTERIZATION;
+		aParams.RaytracingDepth = 3;
+		aParams.IsShadowEnabled = true;
+		aParams.IsReflectionEnabled = true;
+		aParams.IsAntialiasingEnabled = true;
+		aParams.IsTransparentShadowEnabled = false;
+		aParams.ToReverseStereo = true;
+		aParams.StereoMode = Graphic3d_StereoMode::Graphic3d_StereoMode_QuadBuffer;
+		aParams.AnaglyphFilter = Graphic3d_RenderingParams::Anaglyph::Anaglyph_RedCyan_Optimized;
+		aParams.FrustumCullingState = Graphic3d_RenderingParams::FrustumCulling::FrustumCulling_On;
+		aParams.LineFeather = 1.0;
+		aParams.NbMsaaSamples = 4;
+		myView()->Redraw();
+		myViewer()->SetViewOn(myView());*/
 		myView()->SetBgGradientColors(Quantity_Color(0.5, 0.5, 0.5, Quantity_TOC_RGB),
 			Quantity_Color(0.3, 0.3, 0.3, Quantity_TOC_RGB),
 			Aspect_GFM_VER,
@@ -561,6 +600,8 @@ public:
 		//add8e6
 		//f0f8ff
 		SetDefaultGradient();
+		myView()->SetLightOn();
+		myView()->SetLightOff();
 
 		Handle(WNT_Window) aWNTWindow = new WNT_Window(reinterpret_cast<HWND> (theWnd.ToPointer()));
 		myView()->SetWindow(aWNTWindow);
@@ -590,12 +631,19 @@ public:
 		return hh;
 	}
 
+	ManagedObjHandle^ GetDetectedObject() {
+		auto ret = impl->getDetectedObject(myAISContext().get());
+		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
+		hh->FromObjHandle(ret);
+		return hh;
+	}
+
 	void SetDefaultDrawerParams() {
 		auto ais = myAISContext();
 		auto drawer = ais->DefaultDrawer();
 		drawer->SetFaceBoundaryDraw(true);
 		drawer->SetColor(Quantity_NOC_BLACK);
-		//myAISContext()->EnableDrawHiddenLine();
+		myAISContext()->EnableDrawHiddenLine();
 		//drawer->SetLineAspect()
 		/*
 		* raphic3d_RenderingParams& aParams = aView->ChangeRenderingParams();
@@ -616,7 +664,11 @@ aView->Update();
 		*/
 		Graphic3d_RenderingParams& rp = myView()->ChangeRenderingParams();
 		rp.RenderResolutionScale = 2;
-
+		rp.IsShadowEnabled = false;
+		// enable specular reflections
+		rp.IsReflectionEnabled = false;
+		// enable adaptive anti-aliasing
+		rp.IsAntialiasingEnabled = false;
 	}
 
 	/// <summary>
@@ -714,6 +766,23 @@ aView->Update();
 		}
 	}
 
+	
+	void ZoomAtPoint(int theX1, int theY1, int theX2, int theY2)
+	{
+		if (!myView().IsNull())
+		{
+			myView()->ZoomAtPoint(theX1, theY1, theX2, theY2);
+		}
+	}
+
+	void StartZoomAtPoint(int theX1, int theY1)
+	{
+		if (!myView().IsNull())
+		{
+			myView()->StartZoomAtPoint(theX1, theY1);
+		}
+	}
+
 	/// <summary>
 	///Set Pan
 	/// </summary>
@@ -742,11 +811,68 @@ aView->Update();
 	void StartRotation(int theX, int theY)
 	{
 		if (!myView().IsNull())
-		{
+		{			
 			myView()->StartRotation(theX, theY);
 		}
 	}
 
+	Vector3^ GetGravityPoint()
+	{
+		if (!myView().IsNull())
+		{	
+			auto ret = myView()->GravityPoint();
+			Vector3^ v = gcnew Vector3();
+			v->X = ret.X();
+			v->X = ret.Y();
+			v->X = ret.Z();
+			return v;
+		}
+		return nullptr;
+	}
+	Vector3^ GetEye()
+	{
+		if (!myView().IsNull())
+		{
+			
+			auto ret = myView()->Camera()->Eye();
+			Vector3^ v = gcnew Vector3();
+			v->X = ret.X();
+			v->X = ret.Y();
+			v->X = ret.Z();
+			return v;
+		}
+		return nullptr;
+	}
+	
+	Vector3^ GetCenter()
+	{
+		if (!myView().IsNull())
+		{
+
+			auto ret = myView()->Camera()->Center();
+			Vector3^ v = gcnew Vector3();
+			v->X = ret.X();
+			v->X = ret.Y();
+			v->X = ret.Z();
+			return v;
+		}
+		return nullptr;
+	}
+	
+	Vector3^ GetUp()
+	{
+		if (!myView().IsNull())
+		{
+
+			auto ret = myView()->Camera()->Up();
+			Vector3^ v = gcnew Vector3();
+			v->X = ret.X();
+			v->X = ret.Y();
+			v->X = ret.Z();
+			return v;
+		}
+		return nullptr;
+	}
 	/// <summary>
 	///Select by rectangle
 	/// </summary>
@@ -838,6 +964,7 @@ aView->Update();
 	/// </summary>
 	int GetBGColR(void)
 	{
+		
 		int aRed, aGreen, aBlue;
 		BackgroundColor(aRed, aGreen, aBlue);
 		return aRed;
@@ -992,13 +1119,14 @@ aView->Update();
 	void ShowCube() {
 		auto cube = new AIS_ViewCube();
 		cube->SetDrawAxes(true);
-		cube->SetSize(50);
+		cube->SetSize(40);
 		cube->SetBoxFacetExtension(100 * 0.1);
 
 		cube->SetResetCamera(true);
-		cube->SetFitSelected(true);
+		cube->SetFitSelected(false);
+		
 
-		//cube->SetViewAnimation(new AIS_AnimationCamera());
+		//cube->SetViewAnimation();
 		cube->SetDuration(0.5);
 
 		myAISContext()->Display(cube, false);
@@ -2444,7 +2572,11 @@ public:
 	SurfInfo^ GetFaceInfo(ManagedObjHandle^ h1) {
 		auto hh = h1->ToObjHandle();
 		const auto* object1 = impl->getObject(hh);
-		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		auto temp1 = Handle(AIS_Shape)::DownCast(object1);
+		if (temp1.IsNull()) {
+			return nullptr;
+		}
+		TopoDS_Shape shape0 = temp1->Shape();
 		shape0 = shape0.Located(object1->LocalTransformation());
 
 		for (TopExp_Explorer exp(shape0, TopAbs_FACE); exp.More(); exp.Next())

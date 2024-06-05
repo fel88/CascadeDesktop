@@ -1,17 +1,23 @@
 ﻿using Cascade.Common;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace CascadeDesktop
 {
     public interface IOCCTProxyInterface
     {
+        void StartZoomAtPoint(int theX1, int theY1);
+        void ZoomAtPoint(int theX1, int theY1, int theX2, int theY2);
+        Vector3 GetGravityPoint();
+        Vector3 GetCenter();
+        Vector3 GetEye();
+        Vector3 GetUp();
         void ResetSelectionMode();
         void SetSelectionMode(OCCTProxy.SelectionModeEnum f);
         void TopView();
         void FrontView();
         ManagedObjHandle GetSelectedObject();
+        ManagedObjHandle GetDetectedObject();
         bool IsObjectSelected();
         void SetDisplayMode(int m);
         void Display(ManagedObjHandle m, bool wireframe);

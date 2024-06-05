@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Reflection;
 using static CascadeDesktop.OccSceneObject;
 using System.Security.Cryptography;
+using OpenTK.Graphics.OpenGL;
 
 namespace CascadeDesktop
 {
@@ -123,7 +124,7 @@ namespace CascadeDesktop
                 {
                     AppendDouble("radius", cei.Radius);
                 }
-                AppendStatusVector("com", edge.COM.ToVector3d());                
+                AppendStatusVector("com", edge.COM.ToVector3d());
                 AppendStatus3($" len: {edge.Length}");
             }
             else if (v != null)
@@ -193,7 +194,15 @@ namespace CascadeDesktop
 
         private void Panel1_MouseWheel(object sender, MouseEventArgs e)
         {
-            proxy.Zoom(0, 0, e.Delta / 8, 0);
+            var p = e.Location;
+            proxy.StartZoomAtPoint(p.X, p.Y);
+            double delta = (double)(e.Delta) / (15 * 8);
+            int x = p.X;
+            int y = p.Y;
+            int x1 = (int)(p.X + panel1.Width * delta / 100);
+            int y1 = (int)(p.Y + panel1.Height * delta / 100);
+            proxy.ZoomAtPoint(x, y, x1, y1);
+            //proxy.Zoom(0, 0, e.Delta / 8, 0);
         }
 
         public void ResetTool()
@@ -252,11 +261,9 @@ namespace CascadeDesktop
         }
 
         public IOCCTProxyInterface Proxy => proxy;
-
         public List<OccSceneObject> Objs => Scene.Objs;
 
         IOCCTProxyInterface proxy;
-
         public void ZoomAll()
         {
             proxy.ZoomAllView();
@@ -342,7 +349,7 @@ namespace CascadeDesktop
         {
             toolStripStatusLabel3.Text += text;
         }
-                
+
         public void AppendStatusVector(string caption, Vector3d v)
         {
             if (shortStatusOutputFormat)
@@ -402,11 +409,11 @@ namespace CascadeDesktop
         public void Clear()
         {
             foreach (var item in Objs)
-            {                
+            {
                 item.Remove();
             }
             Objs.Clear();
-            
+
             Proxy.UpdateCurrentViewer();
         }
 
@@ -1219,7 +1226,12 @@ namespace CascadeDesktop
             var fr = Objs.FirstOrDefault(z => z.IsEquals(h));
             return fr;
         }
-
+        public OccSceneObject GetDetectedOccObject()
+        {
+            var h = proxy.GetDetectedObject();
+            var fr = Objs.FirstOrDefault(z => z.IsEquals(h));
+            return fr;
+        }
         internal void Transparency()
         {
             if (!CheckObjectSelectedUI())
@@ -1229,7 +1241,7 @@ namespace CascadeDesktop
             if (fr == null)
                 return;
 
-            
+
             fr.SwitchTransparency();
             proxy.UpdateCurrentViewer();
         }
@@ -1391,5 +1403,46 @@ namespace CascadeDesktop
 
             occ.SwitchWireframe();
         }
+
+        //private void timer1_Tick(object sender, EventArgs e)
+        //{
+        //    var gp = proxy.GetGravityPoint();
+        //    toolStripStatusLabel4.Text = $"{gp.X} {gp.Y} {gp.Z}";
+        //    gp = proxy.GetEye();
+        //    toolStripStatusLabel5.Text = $" eye {gp.X} {gp.Y} {gp.Z}";
+        //    gp = proxy.GetCenter();
+        //    toolStripStatusLabel6.Text = $" center {gp.X} {gp.Y} {gp.Z}";
+        //    gp = proxy.GetUp();
+        //    toolStripStatusLabel7.Text = $" up {gp.X} {gp.Y} {gp.Z}";
+
+        //    return;
+        //    var h = proxy.GetDetectedObject();
+        //    if (Objs.Any())
+        //    {
+        //        var ff = proxy.GetFacesInfo(Objs.First().Handle);
+
+        //        var f1 = ff.Where(z => z.Handle == h.Handle).ToArray();
+        //        var f2 = ff.Where(z => z.THandle == h.HandleT).ToArray();
+
+
+        //    }
+        //    var hs = GetDetectedOccObject();
+
+        //    //if (hs != null)
+        //    {
+        //        try
+        //        {
+        //            var face = proxy.GetFaceInfo(h);
+        //            if (face != null)
+        //                toolStripStatusLabel4.Text = face.COM.X.ToString();
+        //        }
+        //        catch (Exception ex) { }
+        //    }
+        //    /*OpenTK.Graphics.OpenGL.GL.Begin(OpenTK.Graphics.OpenGL.PrimitiveType.Triangles);
+        //    GL.Vertex3(0, 0, 0);
+        //    GL.Vertex3(110, 110, 0);
+        //    GL.Vertex3(0, 110, 0);
+        //    GL.End();*/
+        //}
     }
 }
