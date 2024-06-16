@@ -68,7 +68,7 @@
 
 #include <Graphic3d_RenderingParams.hxx>
 #include <TopExp_Explorer.hxx>
-
+#include <Font_BRepFont.hxx>
 
 #include <Geom_SphericalSurface.hxx>
 #include <Geom_CylindricalSurface.hxx>
@@ -76,7 +76,7 @@
 #include <Geom_ConicalSurface.hxx>
 #include <Geom_ToroidalSurface.hxx>
 #include <Geom_Line.hxx>
-
+#include <Font_BRepTextBuilder.hxx>
 
 #include <ShapeUpgrade_UnifySameDomain.hxx>
 // list of required OCCT libraries
@@ -247,9 +247,27 @@ static TCollection_AsciiString toAsciiString(String^ theString)
 	{
 		return TCollection_AsciiString();
 	}
+	
 	return TCollection_AsciiString(aWCharPtr);
 }
+//! Auxiliary tool for converting C# string into UTF-8 string.
+static NCollection_String toNString(String^ theString)
+{
+	if (theString == nullptr)
+	{
+		return NCollection_String();
+	}
 
+	pin_ptr<const wchar_t> aPinChars = PtrToStringChars(theString);
+	const wchar_t* aWCharPtr = aPinChars;
+	if (aWCharPtr == NULL
+		|| *aWCharPtr == L'\0')
+	{
+		return NCollection_String();
+	}
+
+	return NCollection_String(aWCharPtr);
+}
 class OCCImpl {
 public:
 	ObjHandle getSelectedEdge(AIS_InteractiveContext* ctx) {
@@ -1748,6 +1766,47 @@ public:
 			return nullptr;
 
 		return bts;
+	}
+	
+		
+
+	ManagedObjHandle^ Text2Brep(System::String ^ str, double aFontHeight, double anExtrusion) {
+		const auto aText = toNString(str);
+		// text2brep
+		//const double aFontHeight = 20.0;
+		Font_BRepFont aFont(Font_NOF_SANS_SERIF, Font_FontAspect_Bold, aFontHeight);
+		Font_BRepTextBuilder aBuilder;
+		TopoDS_Shape aTextShape2d = aBuilder.Perform(aFont, aText);
+
+		// prism
+		//const double anExtrusion = 5.0;
+		BRepPrimAPI_MakePrism aPrismTool(aTextShape2d, gp_Vec(0, 0, 1) * anExtrusion);
+		TopoDS_Shape aTextShape3d = aPrismTool.Shape();
+		//aTextShape3d.SetLocation(); // move where needed
+		
+		//BRepMesh_IncrementalMesh mesh(shape,0.00001);
+		/*bool fixShape = true;
+		if (fixShape) {
+			ShapeUpgrade_UnifySameDomain unif(shape, true, true, false);
+			unif.Build();
+			auto shape2 = unif.Shape();
+			shape = shape2;
+		}*/
+		auto ais = new AIS_Shape(aTextShape3d);
+		myAISContext()->Display(ais, true);
+
+
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
+
+		// bopcut
+		//TopoDS_Shape theMainShape; // defined elsewhere
+		//BRepAlgoAPI_Cut aCutTool(theMainShape, aTextShape3d);
+		//if (!aCutTool.IsDone()) { error }
+		//TopoDS_Shape aResult = aCutTool.Shape();
 	}
 
 	/// <summary>

@@ -276,5 +276,8 @@
   <ItemGroup>
     <Resource Include="Icons\grid-dot.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\layer-shape-text.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

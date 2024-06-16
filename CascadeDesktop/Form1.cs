@@ -1404,6 +1404,30 @@ namespace CascadeDesktop
             occ.SwitchWireframe();
         }
 
+        internal void CreateText()
+        {
+            var d = AutoDialog.DialogHelpers.StartDialog();
+            d.AddStringField("text", "Text");
+            d.AddNumericField("fontSize", "Font size", 20, 200, 0.1m, 1);
+            d.AddNumericField("height", "Height", 5, 2000, 0.01m, 2);
+
+            if (!d.ShowDialog())
+                return;
+
+            var text = d.GetStringField("text");
+            if (string.IsNullOrEmpty(text))
+            {
+                StaticHelpers.ShowError("Empty string", "Error");
+                return;
+            }
+
+            var fontSize = d.GetNumericField("fontSize");
+            var height = d.GetNumericField("height");
+
+            var cs = proxy.Text2Brep(text, fontSize, height);
+            Objs.Add(new OccSceneObject(cs, proxy));
+        }
+
         //private void timer1_Tick(object sender, EventArgs e)
         //{
         //    var gp = proxy.GetGravityPoint();

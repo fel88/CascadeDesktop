@@ -13,6 +13,7 @@ namespace CascadeDesktop
         Vector3 GetEye();
         Vector3 GetUp();
         void ResetSelectionMode();
+        ManagedObjHandle Text2Brep(string str, double fontSize, double bevelHeight);
         void SetSelectionMode(OCCTProxy.SelectionModeEnum f);
         void TopView();
         void FrontView();

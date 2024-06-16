@@ -309,5 +309,10 @@ namespace CascadeDesktop
         {
             Form.Wireframe();
         }
+
+        private void text_Click(object sender, RoutedEventArgs e)
+        {
+            Form.CreateText();
+        }
     }
 }
