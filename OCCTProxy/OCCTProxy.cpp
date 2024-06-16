@@ -592,10 +592,15 @@ public:
 
 		myViewer() = new V3d_Viewer(myGraphicDriver());
 		myViewer()->SetDefaultLights();
+		
 		myViewer()->SetLightOn();
 		//myViewer()->DefaultShadingModel();
 		myView() = myViewer()->CreateView();
-		/*Graphic3d_RenderingParams& aParams = myView()->ChangeRenderingParams();
+
+		
+	
+		/*
+		Graphic3d_RenderingParams& aParams = myView()->ChangeRenderingParams();
 		aParams.Method = Graphic3d_RM_RASTERIZATION;
 		aParams.RaytracingDepth = 3;
 		aParams.IsShadowEnabled = true;
@@ -627,7 +632,8 @@ public:
 		{
 			aWNTWindow->Map();
 		}
-		myAISContext() = new AIS_InteractiveContext(myViewer());
+		myAISContext() = new AIS_InteractiveContext(myViewer());	
+		
 		myAISContext()->UpdateCurrentViewer();
 		myView()->Redraw();
 		myView()->MustBeResized();
@@ -687,6 +693,12 @@ aView->Update();
 		rp.IsReflectionEnabled = false;
 		// enable adaptive anti-aliasing
 		rp.IsAntialiasingEnabled = false;
+		/*Graphic3d_RenderingParams& rayp = myView()->ChangeRenderingParams();
+		rayp.Method = Graphic3d_RM_RAYTRACING;
+		rayp.IsShadowEnabled = Standard_True;
+		rayp.IsReflectionEnabled = Standard_True;
+
+		myAISContext()->UpdateCurrentViewer();*/
 	}
 
 	/// <summary>

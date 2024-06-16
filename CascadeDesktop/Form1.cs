@@ -243,7 +243,7 @@ namespace CascadeDesktop
             proxy.SetDisplayMode(1);
             proxy.SetMaterial(1);
             //proxy.SetDegenerateModeOff();
-            proxy.RedrawView();
+            proxy.RedrawView();            
 
             Color clr1 = Color.DarkBlue;
             Color clr2 = Color.Olive;
