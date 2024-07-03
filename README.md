@@ -30,7 +30,7 @@ https://github.com/fel88/CascadeDesktop/assets/15663687/446fb389-447d-4e24-8220-
 
 
 ## How to build:
-- Install OpenCASCADE 7.7 (https://dev.opencascade.org/system/files/occt/OCC_7.7.0_release/opencascade-7.7.0-vc14-64.exe)
+- Install OpenCASCADE 7.7 (https://dev.opencascade.org/system/files/occt/OCC_7.7.0_release/opencascade-7.7.0-vc14-64.exe or https://github.com/Open-Cascade-SAS/OCCT/releases/download/V7_7_0/opencascade-7.7.0-vc14-64.exe)
    - Installation path should be : C:\OpenCASCADE-7.7.0-vc14-64
 - Install Visual Studio Community edition (https://visualstudio.microsoft.com/ru/vs/community/), with next modules:
   - Desktop development with C++
