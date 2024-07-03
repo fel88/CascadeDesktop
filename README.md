@@ -5,6 +5,8 @@ Simple debug tool based on OpenCASCADE for debugging purposes
 
 ![image](https://github.com/fel88/CascadeDesktop/assets/15663687/cc6f5aed-2425-485f-b9ee-647d78fd279e)
 
+![image](https://github.com/fel88/CascadeDesktop/assets/15663687/8bb3410f-2a6b-4073-853e-cea2172b46a4)
+
 
 
 # How to use:
