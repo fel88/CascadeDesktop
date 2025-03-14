@@ -21,6 +21,11 @@ namespace CascadeDesktop
             return null;
         }
 
+        public static Vector3d? GetAdjointEdgesShift(EdgeInfo edge1, EdgeInfo edge2, float eps = 1e-8f)
+        {
+            return edge2.COM.ToVector3d() - edge1.COM.ToVector3d();
+        }
+
         public static bool IsCollinear(Vector3d axis1, Vector3d axis2, float eps = 1e-8f)
         {
             var cross1 = Vector3d.Cross(axis1, axis2);

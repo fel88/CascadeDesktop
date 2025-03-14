@@ -40,7 +40,26 @@ namespace CascadeDesktop.Tools
             var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
 
             if (face == null)
-                return;
+            {
+                var edge = proxy.GetEdgeInfoPoition(proxy.GetSelectedObject());
+
+                if (edge == null)
+                    return;
+
+                objs.Add(proxy.GetSelectedObject());
+                edges.Add(edge);
+                if (edges.Count == 2)
+                {
+                    var shift = GeomHelpers.GetAdjointEdgesShift(edges[0], edges[1]);
+                    if (shift != null)
+                    {
+                        var dir = shift.Value.Normalized();
+                        Editor.Proxy.MoveObject(objs[0], shift.Value.X, shift.Value.Y, shift.Value.Z, true);
+                    }
+                    Editor.ResetTool();
+                    return;
+                }
+            }
 
             if (face is PlaneSurfInfo p)
             {
@@ -108,6 +127,7 @@ namespace CascadeDesktop.Tools
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
         List<PlaneSurfInfo> planes = new List<PlaneSurfInfo>();
         List<CylinderSurfInfo> cylinders = new List<CylinderSurfInfo>();
+        List<EdgeInfo> edges = new List<EdgeInfo>();
 
         public override void Select()
         {
