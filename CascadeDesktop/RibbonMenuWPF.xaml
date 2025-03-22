@@ -102,6 +102,7 @@
                     <RibbonButton  Label="Revolution" KeyTip="M"   />
                     <RibbonButton  Click="Fillet_Click" Label="Fillet"  SmallImageSource="Icons/layer-shape-round.png" KeyTip="M"   />
                     <RibbonButton  Label="Chamfer" Click="Chamfer_Click" KeyTip="M"   />
+                    <RibbonButton  Label="Pipe" Click="Pipe_Click"  KeyTip="P"  SmallImageSource="Icons/layer-shape-curve.png" />
                 </RibbonGroup>
                 <RibbonGroup x:Name="bool" Header="Bool">
                     <RibbonButton  Label="Fuse" Click="Fuse_Click" KeyTip="M"   />

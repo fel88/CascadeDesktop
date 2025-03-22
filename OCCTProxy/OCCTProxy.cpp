@@ -41,6 +41,7 @@
 #include <NCollection_Haft.h>
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepOffsetAPI_MakePipe.hxx>
 #include <BRepBuilderAPI_Copy.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
@@ -79,7 +80,10 @@
 #include <Font_BRepTextBuilder.hxx>
 
 #include <ShapeUpgrade_UnifySameDomain.hxx>
+#include <ChFi2d_AnaFilletAlgo.hxx>
+
 // list of required OCCT libraries
+
 
 using namespace Cascade::Common;
 
@@ -98,6 +102,8 @@ using namespace Cascade::Common;
 #pragma comment(lib, "TKPrim.lib")
 #pragma comment(lib, "TKBin.lib")
 #pragma comment(lib, "TKBool.lib")
+#pragma comment(lib, "TKFeat.lib")
+#pragma comment(lib, "TKOffset.lib")
 #pragma comment(lib, "TKDraw.lib")
 #pragma comment(lib, "TKGeomAlgo.lib")
 #pragma comment(lib, "TKGeomBase.lib")
@@ -109,6 +115,7 @@ using namespace Cascade::Common;
 #pragma comment(lib, "TKBO.lib")
 #pragma comment(lib, "TKShHealing.lib")
 #pragma comment(lib, "TKFillet.lib")
+
 class membuf : public std::basic_streambuf<char> {
 public:
 	membuf(const uint8_t* p, size_t l) {
@@ -166,7 +173,7 @@ public:
 	unsigned __int64 THandle;
 };
 
-public ref class CircleEdgeInfo : EdgeInfo{
+public ref class CircleEdgeInfo : EdgeInfo {
 public:
 	double Radius;
 };
@@ -247,7 +254,7 @@ static TCollection_AsciiString toAsciiString(String^ theString)
 	{
 		return TCollection_AsciiString();
 	}
-	
+
 	return TCollection_AsciiString(aWCharPtr);
 }
 //! Auxiliary tool for converting C# string into UTF-8 string.
@@ -592,13 +599,13 @@ public:
 
 		myViewer() = new V3d_Viewer(myGraphicDriver());
 		myViewer()->SetDefaultLights();
-		
+
 		myViewer()->SetLightOn();
 		//myViewer()->DefaultShadingModel();
 		myView() = myViewer()->CreateView();
 
-		
-	
+
+
 		/*
 		Graphic3d_RenderingParams& aParams = myView()->ChangeRenderingParams();
 		aParams.Method = Graphic3d_RM_RASTERIZATION;
@@ -632,8 +639,8 @@ public:
 		{
 			aWNTWindow->Map();
 		}
-		myAISContext() = new AIS_InteractiveContext(myViewer());	
-		
+		myAISContext() = new AIS_InteractiveContext(myViewer());
+
 		myAISContext()->UpdateCurrentViewer();
 		myView()->Redraw();
 		myView()->MustBeResized();
@@ -796,7 +803,7 @@ aView->Update();
 		}
 	}
 
-	
+
 	void ZoomAtPoint(int theX1, int theY1, int theX2, int theY2)
 	{
 		if (!myView().IsNull())
@@ -841,7 +848,7 @@ aView->Update();
 	void StartRotation(int theX, int theY)
 	{
 		if (!myView().IsNull())
-		{			
+		{
 			myView()->StartRotation(theX, theY);
 		}
 	}
@@ -849,7 +856,7 @@ aView->Update();
 	Vector3^ GetGravityPoint()
 	{
 		if (!myView().IsNull())
-		{	
+		{
 			auto ret = myView()->GravityPoint();
 			Vector3^ v = gcnew Vector3();
 			v->X = ret.X();
@@ -863,7 +870,7 @@ aView->Update();
 	{
 		if (!myView().IsNull())
 		{
-			
+
 			auto ret = myView()->Camera()->Eye();
 			Vector3^ v = gcnew Vector3();
 			v->X = ret.X();
@@ -873,7 +880,7 @@ aView->Update();
 		}
 		return nullptr;
 	}
-	
+
 	Vector3^ GetCenter()
 	{
 		if (!myView().IsNull())
@@ -888,7 +895,7 @@ aView->Update();
 		}
 		return nullptr;
 	}
-	
+
 	Vector3^ GetUp()
 	{
 		if (!myView().IsNull())
@@ -994,7 +1001,7 @@ aView->Update();
 	/// </summary>
 	int GetBGColR(void)
 	{
-		
+
 		int aRed, aGreen, aBlue;
 		BackgroundColor(aRed, aGreen, aBlue);
 		return aRed;
@@ -1154,7 +1161,7 @@ aView->Update();
 
 		cube->SetResetCamera(true);
 		cube->SetFitSelected(false);
-		
+
 
 		//cube->SetViewAnimation();
 		cube->SetDuration(0.5);
@@ -1779,10 +1786,10 @@ public:
 
 		return bts;
 	}
-	
-		
 
-	ManagedObjHandle^ Text2Brep(System::String ^ str, double aFontHeight, double anExtrusion) {
+
+
+	ManagedObjHandle^ Text2Brep(System::String^ str, double aFontHeight, double anExtrusion) {
 		const auto aText = toNString(str);
 		// text2brep
 		//const double aFontHeight = 20.0;
@@ -1795,7 +1802,7 @@ public:
 		BRepPrimAPI_MakePrism aPrismTool(aTextShape2d, gp_Vec(0, 0, 1) * anExtrusion);
 		TopoDS_Shape aTextShape3d = aPrismTool.Shape();
 		//aTextShape3d.SetLocation(); // move where needed
-		
+
 		//BRepMesh_IncrementalMesh mesh(shape,0.00001);
 		/*bool fixShape = true;
 		if (fixShape) {
@@ -2079,8 +2086,6 @@ public:
 		auto ais = new AIS_Shape(shape.Shape());
 		//myAISContext()->Display(new AIS_Shape(shape.Shape()), true);
 		myAISContext()->Display(ais, true);
-
-
 
 		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
 
@@ -2402,7 +2407,7 @@ public:
 		return hhh;
 	}
 
-	Vector3^ GetVertexPoition(ManagedObjHandle^ h1)
+	Vector3^ GetVertexPosition(ManagedObjHandle^ h1)
 	{
 		auto hh = h1->ToObjHandle();
 		const auto* object1 = impl->getObject(hh);
@@ -2433,7 +2438,7 @@ public:
 		return nullptr;
 	}
 
-	EdgeInfo^ GetEdgeInfoPoition(ManagedObjHandle^ h1)
+	EdgeInfo^ GetEdgeInfoPosition(ManagedObjHandle^ h1)
 	{
 		auto hh = h1->ToObjHandle();
 		const auto* object1 = impl->getObject(hh);
@@ -2787,6 +2792,114 @@ public:
 		auto hn = GetHandle(*ais);
 		hhh->FromObjHandle(hn);
 		return hhh;
+	}
+
+	ManagedObjHandle^ Sphere(double x1, double y1, double z1,double size) {
+		return Sphere(gp_Pnt(x1, y1, z1), size);
+	}
+
+	ManagedObjHandle^ Sphere(gp_Pnt center, double radius) {
+
+		auto	sphere = BRepPrimAPI_MakeSphere(center, radius).Shape();
+
+		auto ais = new AIS_Shape(sphere);
+		myAISContext()->Display(ais, true);
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
+	}
+
+	ManagedObjHandle^ Pipe(double x1, double y1, double z1, double x2, double y2, double z2, double size) {
+		return Pipe(gp_Pnt(x1, y1, z1), gp_Pnt(x2, y2, z2), size);
+	}
+
+	ManagedObjHandle^ Pipe(gp_Pnt point1, gp_Pnt point2, double size) {
+
+
+		auto	makeWire = BRepBuilderAPI_MakeWire();
+		auto edge = BRepBuilderAPI_MakeEdge(point1, point2).Edge();
+		makeWire.Add(edge);
+		makeWire.Build();
+		auto wire = makeWire.Wire();
+
+		auto dir = gp_Dir(point2.X() - point1.X(), point2.Y() - point1.Y(), point2.Z() - point1.Z());
+		auto circle = gp_Circ(gp_Ax2(point1, dir), size);
+		auto profile_edge = BRepBuilderAPI_MakeEdge(circle).Edge();
+		auto profile_wire = BRepBuilderAPI_MakeWire(profile_edge).Wire();
+		auto profile_face = BRepBuilderAPI_MakeFace(profile_wire).Face();
+		auto pipe = BRepOffsetAPI_MakePipe(wire, profile_face).Shape();
+
+		auto ais = new AIS_Shape(pipe);
+		myAISContext()->Display(ais, true);
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
+	}
+
+	ManagedObjHandle^ MakePipe(ManagedObjHandle^ h1, double s)
+	{
+		auto pipe1 = Pipe(gp_Pnt(0, 0, 0), gp_Pnt(0, 0, 1), s);
+		auto sphere1 = Sphere(gp_Pnt(0, 0, 1), s);
+		auto fuse1 = MakeFuse(pipe1, sphere1);
+		Erase(pipe1);
+		Erase(sphere1);
+
+		auto pipe2 = Pipe(gp_Pnt(0, 0, 1), gp_Pnt(0, 1, 2), s);
+
+		auto fuse2 = MakeFuse(pipe2, fuse1);
+		Erase(pipe2);
+		Erase(fuse1);
+
+		auto sphere2 = Sphere(gp_Pnt(0, 1, 2), s);
+
+		auto fuse3 = MakeFuse(sphere2, fuse2);
+		Erase(sphere2);
+		Erase(fuse2);
+
+		auto pipe3 = Pipe(gp_Pnt(0, 1, 2), gp_Pnt(0, 2, 2), s);
+
+		auto fuse4 = MakeFuse(pipe3, fuse3);
+		Erase(pipe3);
+		Erase(fuse3);
+
+		return fuse4;
+
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		std::vector<ObjHandle> edges;
+		impl->GetSelectedEdges(myAISContext().get(), edges);
+		//auto edge = impl->getSelectedEdge(myAISContext().get());
+
+		gp_Pnt p1(0, 0, 0),
+			p2(0, 1, 0),
+			p3(1, 2, 0),
+			p4(2, 2, 0);
+		//# the edges
+		auto ed1 = BRepBuilderAPI_MakeEdge(p1, p2).Edge();
+		auto	ed2 = BRepBuilderAPI_MakeEdge(p2, p3).Edge();
+		auto	ed3 = BRepBuilderAPI_MakeEdge(p3, p4).Edge();
+
+
+		ChFi2d_AnaFilletAlgo f;
+		double radius = 0.3;
+		f.Init(ed1, ed2, gp_Pln());
+		f.Perform(radius);
+		auto res = f.Result(ed1, ed2);
+
+
+		/*
+	auto ais = new AIS_Shape(shape);
+	myAISContext()->Display(ais, false);
+	ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+	auto hn = GetHandle(*ais);
+	hhh->FromObjHandle(hn);
+	return hhh;*/
+		return nullptr;
 	}
 
 	ManagedObjHandle^ MakeFillet(ManagedObjHandle^ h1, double s)

@@ -41,7 +41,7 @@ namespace CascadeDesktop.Tools
 
             if (face == null)
             {
-                var edge = proxy.GetEdgeInfoPoition(proxy.GetSelectedObject());
+                var edge = proxy.GetEdgeInfoPosition(proxy.GetSelectedObject());
 
                 if (edge == null)
                     return;

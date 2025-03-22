@@ -109,9 +109,9 @@ namespace CascadeDesktop
 
         private void UpdateStatus(ManagedObjHandle obj)
         {
-            var v = proxy.GetVertexPoition(obj);
+            var v = proxy.GetVertexPosition(obj);
             var face = proxy.GetFaceInfo(obj);
-            var edge = proxy.GetEdgeInfoPoition(obj);
+            var edge = proxy.GetEdgeInfoPosition(obj);
 
             if (edge != null)
             {
@@ -243,7 +243,7 @@ namespace CascadeDesktop
             proxy.SetDisplayMode(1);
             proxy.SetMaterial(1);
             //proxy.SetDegenerateModeOff();
-            proxy.RedrawView();            
+            proxy.RedrawView();
 
             Color clr1 = Color.DarkBlue;
             Color clr2 = Color.Olive;
@@ -743,6 +743,37 @@ namespace CascadeDesktop
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
 
+        public void Pipe()
+        {
+            if (!CheckObjectSelectedUI())
+                return;
+
+            var d = DialogHelpers.StartDialog();
+            d.Text = "Fillet";
+            d.AddNumericField("r", "Radius", 15);
+
+            if (!d.ShowDialog())
+                return;
+
+            var r = d.GetNumericField("r");
+            var so = proxy.GetSelectedObject();
+            var occ = GetSelectedOccObject();
+            if (occ == null)
+                return;
+
+            var cs = proxy.Pipe(0, 0, 0, 100, 0, 20, r);
+            var cs2 = proxy.Pipe(100, 0, 20, 100, 100, 20, r);
+            var cs3 = proxy.Sphere(100, 0, 20, r);
+            var f1 = proxy.MakeFuse(cs, cs3);
+            var f2 = proxy.MakeFuse(f1, cs2);
+            proxy.Erase(cs);
+            proxy.Erase(cs2);
+            proxy.Erase(cs3);
+            proxy.Erase(f1);
+            //var cs = proxy.MakePipe(so, r);
+            Objs.Add(new OccSceneObject(f2, proxy));
+            Remove(occ);
+        }
 
         public void Fillet()
         {
@@ -878,7 +909,6 @@ namespace CascadeDesktop
         private void draftToolStripMenuItem_Click(object sender, EventArgs e)
         {
             obj1 = proxy.AddWireDraft(40);
-
         }
 
         public void DrawDraft()
@@ -886,11 +916,13 @@ namespace CascadeDesktop
             DraftEditor dd = new DraftEditor();
             dd.StartPosition = FormStartPosition.CenterScreen;
             dd.ShowDialog();
-            if (dd.Blueprint != null && dd.Blueprint.Contours.Any())
-            {
-                var handler = proxy.ImportBlueprint(dd.Blueprint);
-            }
+            if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
+                return;
+
+            var handler = proxy.ImportBlueprint(dd.Blueprint);
+            Objs.Add(new OccSceneObject(handler, proxy));
         }
+
         private void draftToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             DrawDraft();

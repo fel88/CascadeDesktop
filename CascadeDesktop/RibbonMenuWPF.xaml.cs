@@ -314,5 +314,10 @@ namespace CascadeDesktop
         {
             Form.CreateText();
         }
+
+        private void Pipe_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Pipe();
+        }
     }
 }

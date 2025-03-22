@@ -57,6 +57,9 @@ namespace CascadeDesktop
         ManagedObjHandle MakePrism(ManagedObjHandle managedObjHandle, double h);
         ManagedObjHandle Clone(ManagedObjHandle so);
         ManagedObjHandle MakeFillet(ManagedObjHandle so, double r);
+        ManagedObjHandle MakePipe(ManagedObjHandle so, double r);
+        ManagedObjHandle Pipe(double x1, double y1, double z1, double x2, double y2, double z2, double size);
+        ManagedObjHandle Sphere(double x1, double y1, double z1, double size);
         ManagedObjHandle MirrorObject(ManagedObjHandle managedObjHandle, Vector3 dir, Vector3 pnt, bool axis2, bool rel);
         ManagedObjHandle MakeSphere(double r);
         ManagedObjHandle MakeCylinder(double r, double h);
@@ -70,9 +73,9 @@ namespace CascadeDesktop
         bool InitViewer(IntPtr handle);
         void SetMaterial(int v);
         void Zoom(int v1, int v2, int v3, int v4);
-        EdgeInfo GetEdgeInfoPoition(ManagedObjHandle obj);
+        EdgeInfo GetEdgeInfoPosition(ManagedObjHandle obj);
         SurfInfo GetFaceInfo(ManagedObjHandle obj);
-        Vector3 GetVertexPoition(ManagedObjHandle obj);
+        Vector3 GetVertexPosition(ManagedObjHandle obj);
         void StartRotation(int x, int y);
         void Select(bool v);
         List<Vector3> IteratePoly(ManagedObjHandle managedObjHandle);

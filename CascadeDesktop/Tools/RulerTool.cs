@@ -32,9 +32,9 @@ namespace CascadeDesktop.Tools
                 return;
 
             var proxy = Editor.Proxy;
-            var v = proxy.GetVertexPoition(proxy.GetSelectedObject());
+            var v = proxy.GetVertexPosition(proxy.GetSelectedObject());
             var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
-            var edge = proxy.GetEdgeInfoPoition(proxy.GetSelectedObject());
+            var edge = proxy.GetEdgeInfoPosition(proxy.GetSelectedObject());
             if (v != null || face != null || edge != null)
             {
                 objs.Add(proxy.GetSelectedObject());
