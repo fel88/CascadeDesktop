@@ -2866,6 +2866,7 @@ public:
 		}
 		return rett;
 	}
+
 	ManagedObjHandle^ MakeChamfer(ManagedObjHandle^ h1, double s)
 	{
 		auto hh = h1->ToObjHandle();

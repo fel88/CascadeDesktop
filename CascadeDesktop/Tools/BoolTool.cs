@@ -45,7 +45,7 @@ namespace CascadeDesktop.Tools
 
             objs.Add(obj);
             if (objs.Count == 2)
-            {              
+            {
                 switch (Operation)
                 {
                     case FuseOperation.Fuse:
@@ -66,15 +66,19 @@ namespace CascadeDesktop.Tools
                             Editor.Objs.Add(new OccSceneObject(cs, Editor.Proxy) { Name = $"{objs[0].Name}_{objs[1].Name}_common" });
                         }
                         break;
-                }                
+                }
+
+              
                 if (MessageBox.Show("Remove source objects?", "OCC", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     foreach (var item in objs)
-                    {   
+                    {
                         Editor.Remove(item);
-                    }                    
+                    }
                 }
-                Editor.ResetTool();
+                Editor.ResetTool(); 
+                
+                Editor.Proxy.UpdateCurrentViewer();                
             }
         }
 

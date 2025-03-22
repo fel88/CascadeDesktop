@@ -20,6 +20,7 @@ using static CascadeDesktop.OccSceneObject;
 using System.Security.Cryptography;
 using OpenTK.Graphics.OpenGL;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.InteropServices;
 
 namespace CascadeDesktop
 {
@@ -509,6 +510,9 @@ namespace CascadeDesktop
             proxy.MakeDiff(obj1, obj2);
             proxy.Erase(obj1);
             proxy.Erase(obj2);
+            proxy.UpdateCurrentViewer();
+            proxy.UpdateView();
+            proxy.RedrawView();
         }
 
         public void Fuse()
@@ -517,7 +521,6 @@ namespace CascadeDesktop
             proxy.MakeFuse(obj1, obj2);
             proxy.Erase(obj1, false);
             proxy.Erase(obj2);
-
         }
 
         private void unionToolStripMenuItem_Click(object sender, EventArgs e)
@@ -821,6 +824,8 @@ namespace CascadeDesktop
             var cs = proxy.MakeFillet(so, r);
             Objs.Add(new OccSceneObject(cs, proxy));
             Remove(occ);
+
+            proxy.UpdateCurrentViewer();
         }
 
         public void Clone()
@@ -905,11 +910,11 @@ namespace CascadeDesktop
             File.WriteAllText(sfd.FileName, sb.ToString());
             SetStatus($"saved to {sfd.FileName} successfully");
         }
+
         private void exportMeshToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ExportSelectedToObj();
         }
-
 
         public void Extrude()
         {
@@ -924,8 +929,10 @@ namespace CascadeDesktop
                 return;
 
             var h = d.GetNumericField("h");
-            proxy.MakePrism(proxy.GetSelectedObject(), h);
+            var handler = proxy.MakePrism(proxy.GetSelectedObject(), h);
+            Objs.Add(new OccSceneObject(handler, proxy));
         }
+
         private void extrudeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Extrude();
@@ -1088,6 +1095,7 @@ namespace CascadeDesktop
             var cs = proxy.MakeChamfer(so, r);
             Objs.Add(new OccSceneObject(cs, proxy));
             Remove(occ);
+            proxy.UpdateCurrentViewer();
         }
 
         private void chamferToolStripMenuItem_Click(object sender, EventArgs e)
