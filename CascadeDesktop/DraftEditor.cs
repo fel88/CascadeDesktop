@@ -1,5 +1,6 @@
 ﻿using AutoDialog;
 using Cascade.Common;
+using IxMilia.Dxf;
 using OpenTK;
 using System;
 using System.Collections.Generic;
@@ -137,6 +138,7 @@ namespace CascadeDesktop
 
         private void PictureBox1_Paint(object sender, PaintEventArgs e)
         {
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             var pos = pictureBox1.PointToClient(Cursor.Position);
             var bpos = ctx.BackTransform(pos);
             var gr = e.Graphics;
@@ -230,7 +232,27 @@ namespace CascadeDesktop
 
         private void lineToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            blueprint.Items.Add(new Line2D() { Start = new Vertex2D(0, 0), End = new Vertex2D(100, 100) });
+            var d = AutoDialog.DialogHelpers.StartDialog();
+            d.AddNumericField("x1", "X1", min: -10000, max: 10000);
+            d.AddNumericField("y1", "Y1", min: -10000, max: 10000);
+
+            d.AddNumericField("x2", "X2", min: -10000, max: 10000);
+            d.AddNumericField("y2", "Y2", min: -10000, max: 10000);            
+
+            if (!d.ShowDialog())
+                return;
+
+            var x1 = d.GetNumericField("x1");
+            var y1 = d.GetNumericField("y1");            
+
+            var x2 = d.GetNumericField("x2");
+            var y2 = d.GetNumericField("y2");            
+
+            blueprint.Items.Add(new Line2D()
+            {
+                Start = new Vertex2D(x1, y1),
+                End = new Vertex2D(x2, y2)
+            });
         }
 
         private void arcToolStripMenuItem_Click(object sender, EventArgs e)

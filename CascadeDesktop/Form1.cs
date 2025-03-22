@@ -19,6 +19,7 @@ using System.Reflection;
 using static CascadeDesktop.OccSceneObject;
 using System.Security.Cryptography;
 using OpenTK.Graphics.OpenGL;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace CascadeDesktop
 {
@@ -514,8 +515,9 @@ namespace CascadeDesktop
         {
             //todo: refactor to separate tool
             proxy.MakeFuse(obj1, obj2);
-            proxy.Erase(obj1);
+            proxy.Erase(obj1, false);
             proxy.Erase(obj2);
+
         }
 
         private void unionToolStripMenuItem_Click(object sender, EventArgs e)
@@ -749,8 +751,8 @@ namespace CascadeDesktop
                 return;
 
             var d = DialogHelpers.StartDialog();
-            d.Text = "Fillet";
-            d.AddNumericField("r", "Radius", 15);
+            d.Text = "Pipe";
+            d.AddNumericField("r", "Radius", 1);
 
             if (!d.ShowDialog())
                 return;
@@ -761,17 +763,40 @@ namespace CascadeDesktop
             if (occ == null)
                 return;
 
-            var cs = proxy.Pipe(0, 0, 0, 100, 0, 20, r);
-            var cs2 = proxy.Pipe(100, 0, 20, 100, 100, 20, r);
-            var cs3 = proxy.Sphere(100, 0, 20, r);
-            var f1 = proxy.MakeFuse(cs, cs3);
-            var f2 = proxy.MakeFuse(f1, cs2);
-            proxy.Erase(cs);
-            proxy.Erase(cs2);
-            proxy.Erase(cs3);
-            proxy.Erase(f1);
-            //var cs = proxy.MakePipe(so, r);
-            Objs.Add(new OccSceneObject(f2, proxy));
+            var edges = proxy.GetEdgesInfo(occ.Handle);
+            ManagedObjHandle current = null;
+            //order and convert to polyline
+            for (int i = 0; i < edges.Count; i++)
+            {
+                var start = edges[i].Start;
+                var end = edges[i].End;
+                if (i > 0)
+                {
+                    var prev = edges[i - 1];
+                    var sphere = proxy.Sphere(prev.End.X, prev.End.Y, prev.End.Z, r);
+                    var temp = current;
+                    current = proxy.MakeFuse(current, sphere);
+                    proxy.Erase(sphere, false);
+                    proxy.Erase(temp, false);
+                }
+
+                var cs = proxy.Pipe(start.X, start.Y, start.Z, end.X, end.Y, end.Z, r);
+                if (current == null)
+                {
+                    current = cs;
+                }
+                else
+                {
+                    var temp1 = current;
+                    current = proxy.MakeFuse(current, cs);
+                    proxy.Erase(temp1, false);
+                    proxy.Erase(cs, false);
+                }
+
+            }
+
+            proxy.UpdateCurrentViewer();
+            Objs.Add(new OccSceneObject(current, proxy));
             Remove(occ);
         }
 
@@ -913,14 +938,29 @@ namespace CascadeDesktop
 
         public void DrawDraft()
         {
-            DraftEditor dd = new DraftEditor();
-            dd.StartPosition = FormStartPosition.CenterScreen;
-            dd.ShowDialog();
-            if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
+            var d = AutoDialog.DialogHelpers.StartDialog();
+            d.AddOptionsField("mode", "Mode", new[] { "2D", "3D" }, 0);
+
+            if (!d.ShowDialog())
                 return;
 
-            var handler = proxy.ImportBlueprint(dd.Blueprint);
-            Objs.Add(new OccSceneObject(handler, proxy));
+            var modeIdx = d.GetOptionsFieldIdx("mode");
+
+            if (modeIdx == 0)
+            {
+                DraftEditor dd = new DraftEditor();
+                dd.StartPosition = FormStartPosition.CenterScreen;
+                dd.ShowDialog();
+                if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
+                    return;
+
+                var handler = proxy.ImportBlueprint(dd.Blueprint);
+                Objs.Add(new OccSceneObject(handler, proxy));
+            }
+            else //3d
+            {
+
+            }
         }
 
         private void draftToolStripMenuItem1_Click(object sender, EventArgs e)

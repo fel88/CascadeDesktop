@@ -38,13 +38,14 @@ namespace CascadeDesktop
         ManagedObjHandle MakeCommon(ManagedObjHandle h1, ManagedObjHandle h2);
         void MoveObject(ManagedObjHandle h1, double x, double y, double z, bool rel);
         void RotateObject(ManagedObjHandle h1, double x, double y, double z, double rot, bool rel);
-        void Erase(ManagedObjHandle h1);
+        void Erase(ManagedObjHandle h1, bool updateViewer = true);
         void Remove(ManagedObjHandle h1);
         void UpdateView();
         void UpdateCurrentViewer();
         void SetTransparency(ManagedObjHandle managedObjHandle, double v);
         ManagedObjHandle MakePrismFromFace(ManagedObjHandle managedObjHandle, double height);
         List<SurfInfo> GetFacesInfo(ManagedObjHandle managedObjHandle);
+        List<EdgeInfo> GetEdgesInfo(ManagedObjHandle managedObjHandle);
         void SetDefaultGradient();
         void BackView();
         void BottomView();

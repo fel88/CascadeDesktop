@@ -73,7 +73,10 @@
 
 #include <Geom_SphericalSurface.hxx>
 #include <Geom_CylindricalSurface.hxx>
+#include <Geom_BoundedSurface.hxx>
+#include <Geom_SweptSurface.hxx>
 #include <Geom_SurfaceOfRevolution.hxx>
+#include <Geom_RectangularTrimmedSurface.hxx>
 #include <Geom_ConicalSurface.hxx>
 #include <Geom_ToroidalSurface.hxx>
 #include <Geom_Line.hxx>
@@ -1955,10 +1958,14 @@ public:
 		//currentMode=t;
 	}
 
-	void Erase(ManagedObjHandle^ h) {
+	void Erase(ManagedObjHandle^ h, bool updateViewer) {
 		Handle(AIS_InteractiveObject) o;
 		o.reset((AIS_InteractiveObject*)h->Handle);
-		myAISContext()->Erase(o, true);
+		myAISContext()->Erase(o, updateViewer);
+	}
+
+	void Erase(ManagedObjHandle^ h) {
+		Erase(h, true);
 	}
 
 	void Remove(ManagedObjHandle^ h) {
@@ -2135,11 +2142,8 @@ public:
 		ObjHandle h2 = mh2->ToObjHandle();
 		const auto ret = impl->MakeBoolFuse(h1, h2);
 
-
 		auto ais = new AIS_Shape(ret);
-		myAISContext()->Display(ais, true);
-
-
+		myAISContext()->Display(ais, false);
 
 		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
 
@@ -2522,8 +2526,34 @@ public:
 
 		TopLoc_Location aLocation;
 		Handle(Geom_Surface) aSurf = BRep_Tool::Surface(aFace, aLocation);
+
+		auto bsurf = Handle(Geom_BoundedSurface)::DownCast(aSurf);
+		auto swept = Handle(Geom_SweptSurface)::DownCast(aSurf);
 		auto cyl = Handle(Geom_CylindricalSurface)::DownCast(aSurf);
-		auto rad = (*cyl).Radius();
+		auto rev = Handle(Geom_SurfaceOfRevolution)::DownCast(aSurf);
+		auto rtrimmed = Handle(Geom_RectangularTrimmedSurface)::DownCast(aSurf);
+		if (rtrimmed) {
+			auto basis = (*rtrimmed).BasisSurface();
+			auto cyl1 = Handle(Geom_CylindricalSurface)::DownCast(basis);
+			if (cyl1) {
+				cyl = cyl1;
+			}
+		}
+
+		double rad = 0;
+		if (cyl) {
+			rad = (*cyl).Radius();
+		}
+		else if (rev) {
+			rad = (*cyl).Radius();
+		}
+		else if (swept) {
+			rad = (*cyl).Radius();
+		}
+		else if (bsurf) {
+			rad = (*cyl).Radius();
+		}
+
 
 		auto dir = cyl->Axis().Direction().Transformed(aLocation.Transformation());
 		if (orient == TopAbs_REVERSED) {
@@ -2570,7 +2600,21 @@ public:
 		TopLoc_Location aLocation;
 		Handle(Geom_Surface) aSurf = BRep_Tool::Surface(aFace, aLocation);
 		auto cyl = Handle(Geom_SphericalSurface)::DownCast(aSurf);
-		auto rad = (*cyl).Radius();
+
+		auto rtrimmed = Handle(Geom_RectangularTrimmedSurface)::DownCast(aSurf);
+		if (rtrimmed) {
+			auto basis = (*rtrimmed).BasisSurface();
+			auto cyl1 = Handle(Geom_SphericalSurface)::DownCast(basis);
+			if (cyl1) {
+				cyl = cyl1;
+			}
+
+		}
+
+		double rad = 0;
+		if (cyl) {
+			rad = (*cyl).Radius();
+		}
 
 		float aU = 0;
 		float aV = 0;
@@ -2746,6 +2790,82 @@ public:
 		return rett;
 	}
 
+	System::Collections::Generic::List<EdgeInfo^>^ GetEdgesInfo(ManagedObjHandle^ h1) {
+		System::Collections::Generic::List<EdgeInfo^>^ rett = gcnew System::Collections::Generic::List<EdgeInfo^>();
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+
+		for (TopExp_Explorer exp(shape0, TopAbs_EDGE); exp.More(); exp.Next()) {
+			const auto ttt = exp.Current();
+			const auto& edgee = TopoDS::Edge(ttt);
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+			auto ttt4 = (unsigned __int64)(&ttt);
+
+			if (edgee.IsNull()) {
+				continue;
+			}
+
+
+			GProp_GProps massProps;
+			BRepGProp::LinearProperties(ttt, massProps);
+			auto len = massProps.Mass();
+
+			gp_Pnt gPt = massProps.CentreOfMass();
+
+			//Analysis of Edge
+			Standard_Real First, Last;
+			Handle(Geom_Curve) curve = BRep_Tool::Curve(edgee, First, Last); //Extract the curve from the edge
+			GeomAdaptor_Curve aAdaptedCurve(curve);
+			GeomAbs_CurveType curveType = aAdaptedCurve.GetType();
+
+			gp_Pnt pnt1, pnt2;
+			aAdaptedCurve.D0(First, pnt1);
+			aAdaptedCurve.D0(Last, pnt2);
+			int nPoles = 2;
+			if (curveType == GeomAbs_BezierCurve || curveType == GeomAbs_BSplineCurve)
+				nPoles = aAdaptedCurve.NbPoles();
+
+
+			EdgeInfo^ ret = nullptr;
+			if (curveType == GeomAbs_Circle) {
+				auto ret2 = gcnew CircleEdgeInfo();
+				Handle(Geom_Circle) C2 = Handle(Geom_Circle)::DownCast(curve);
+				if (!C2.IsNull())
+				{
+					ret2->Radius = C2->Circ().Radius();
+				}
+				ret = ret2;
+			}
+			else
+				ret = gcnew EdgeInfo();
+
+			ret->Length = len;
+			ret->CurveType = (CurveType)curveType;
+			ret->Start = gcnew Vector3();
+			ret->End = gcnew Vector3();
+
+			ret->COM = gcnew Vector3();
+			ret->COM->X = gPt.X();
+			ret->COM->Y = gPt.Y();
+			ret->COM->Z = gPt.Z();
+
+			ret->Start->X = pnt1.X();
+			ret->Start->Y = pnt1.Y();
+			ret->Start->Z = pnt1.Z();
+
+			ret->End->X = pnt2.X();
+			ret->End->Y = pnt2.Y();
+			ret->End->Z = pnt2.Z();
+
+			rett->Add(ret);
+
+		}
+		return rett;
+	}
 	ManagedObjHandle^ MakeChamfer(ManagedObjHandle^ h1, double s)
 	{
 		auto hh = h1->ToObjHandle();
@@ -2794,7 +2914,7 @@ public:
 		return hhh;
 	}
 
-	ManagedObjHandle^ Sphere(double x1, double y1, double z1,double size) {
+	ManagedObjHandle^ Sphere(double x1, double y1, double z1, double size) {
 		return Sphere(gp_Pnt(x1, y1, z1), size);
 	}
 
@@ -2803,7 +2923,7 @@ public:
 		auto	sphere = BRepPrimAPI_MakeSphere(center, radius).Shape();
 
 		auto ais = new AIS_Shape(sphere);
-		myAISContext()->Display(ais, true);
+		myAISContext()->Display(ais, false);
 		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
 
 		auto hn = GetHandle(*ais);
@@ -2832,7 +2952,7 @@ public:
 		auto pipe = BRepOffsetAPI_MakePipe(wire, profile_face).Shape();
 
 		auto ais = new AIS_Shape(pipe);
-		myAISContext()->Display(ais, true);
+		myAISContext()->Display(ais, false);
 		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
 
 		auto hn = GetHandle(*ais);
