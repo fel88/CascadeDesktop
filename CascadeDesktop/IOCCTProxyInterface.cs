@@ -83,5 +83,7 @@ namespace CascadeDesktop
         List<Vector3> IteratePoly(ManagedObjHandle managedObjHandle);
         ManagedObjHandle AddWireDraft(double height);
         ManagedObjHandle ImportBlueprint(Blueprint blueprint);
+        ManagedObjHandle ImportBlueprint(Blueprint3d blueprint);
+
     }
 }

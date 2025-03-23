@@ -62,10 +62,32 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
+    <Compile Include="AbstractHelperItem.cs" />
     <Compile Include="AbstractTool.cs" />
+    <Compile Include="Camera.cs" />
+    <Compile Include="CameraViewManager.cs" />
+    <Compile Include="DefaultCameraViewManager.cs" />
+    <Compile Include="DraftEditor3d.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DraftEditor3d.Designer.cs">
+      <DependentUpon>DraftEditor3d.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DrawHelpers.cs" />
+    <Compile Include="EventWrapperGlControl.cs" />
+    <Compile Include="GeometryUtils.cs" />
+    <Compile Include="HelperItem.cs" />
+    <Compile Include="IHelperItem.cs" />
     <Compile Include="ImportedOccSceneObject.cs" />
+    <Compile Include="IntersectInfo.cs" />
+    <Compile Include="Intersection.cs" />
     <Compile Include="IOCCTProxyInterface.cs" />
+    <Compile Include="IPointsProvider.cs" />
+    <Compile Include="ITrianglesProvider.cs" />
+    <Compile Include="LineHelper.cs" />
     <Compile Include="MessageFilter.cs" />
+    <Compile Include="Model.cs" />
+    <Compile Include="MouseRay.cs" />
     <Compile Include="ObjectsList.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -123,11 +145,16 @@
     <Compile Include="Tools\SelectionTool.cs" />
     <Compile Include="StaticHelpers.cs" />
     <Compile Include="SvgPoint.cs" />
+    <Compile Include="TriangleInfo.cs" />
+    <Compile Include="VertexInfo.cs" />
     <EmbeddedResource Include="AboutBox1.resx">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="DraftEditor.resx">
       <DependentUpon>DraftEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DraftEditor3d.resx">
+      <DependentUpon>DraftEditor3d.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
@@ -261,7 +288,10 @@
       <Version>0.8.3</Version>
     </PackageReference>
     <PackageReference Include="OpenTK">
-      <Version>3.3.0</Version>
+      <Version>3.3.3</Version>
+    </PackageReference>
+    <PackageReference Include="OpenTK.GLControl">
+      <Version>3.3.3</Version>
     </PackageReference>
     <PackageReference Include="System.Text.Encoding.CodePages">
       <Version>7.0.0</Version>

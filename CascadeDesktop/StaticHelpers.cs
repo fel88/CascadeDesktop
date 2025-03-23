@@ -106,6 +106,10 @@ namespace CascadeDesktop
         {
             return new Vector3d(v.X, v.Y, v.Z);
         }
+        public static Vector3d ToVector3d(this Vertex v)
+        {
+            return new Vector3d(v.X, v.Y, v.Z);
+        }
         public static Vector2d ToVector2d(this PointF v)
         {
             return new Vector2d(v.X, v.Y);

@@ -3302,6 +3302,7 @@ public:
 		ret->FromObjHandle(h);
 		return ret;
 	}
+
 	ManagedObjHandle^ ImportBlueprint(Blueprint3d^ blueprint) {
 		TopoDS_Compound compound;
 		BRep_Builder builder;
@@ -3319,7 +3320,7 @@ public:
 
 				if (line != nullptr) {
 					gp_Pnt pnt1(line->Start->X, line->Start->Y, line->Start->Z);
-					gp_Pnt pnt2(line->Start->X, line->Start->Y, line->Start->Z);
+					gp_Pnt pnt2(line->End->X, line->End->Y, line->End->Z);
 					Handle(Geom_TrimmedCurve) seg1 = GC_MakeSegment(pnt1, pnt2);
 					auto edge = BRepBuilderAPI_MakeEdge(seg1);
 					wire.Add(edge);

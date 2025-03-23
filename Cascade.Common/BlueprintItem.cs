@@ -9,9 +9,7 @@ namespace Cascade.Common
 
         public virtual void Reverse()
         {
-            var temp = End;
-            End = Start;
-            Start = temp;
+            (Start, End) = (End, Start);
         }
     }
 }

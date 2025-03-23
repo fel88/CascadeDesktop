@@ -1007,7 +1007,14 @@ namespace CascadeDesktop
             }
             else //3d
             {
+                DraftEditor3d dd = new DraftEditor3d();
+                dd.StartPosition = FormStartPosition.CenterScreen;
+                dd.ShowDialog();
+                if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
+                    return;
 
+                var handler = proxy.ImportBlueprint(dd.Blueprint);
+                Objs.Add(new OccSceneObject(handler, proxy));
             }
         }
 
