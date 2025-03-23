@@ -598,6 +598,7 @@ namespace CascadeDesktop
             }
 
             var d = DialogHelpers.StartDialog();
+            d.AddOptionsField("mode", "Mode", new string[] { "Relative", "Abs", "Abs COM of selected face" }, 0);
             d.AddNumericField("x", "x", 0, 10000, -10000);
             d.AddNumericField("y", "y", 0, 10000, -10000);
             d.AddNumericField("z", "z", 0, 10000, -10000);
@@ -608,7 +609,21 @@ namespace CascadeDesktop
             var x = d.GetNumericField("x");
             var y = d.GetNumericField("y");
             var z = d.GetNumericField("z");
-            proxy.MoveObject(proxy.GetSelectedObject(), x, y, z, true);
+
+            switch (d.GetOptionsFieldIdx("mode"))
+            {
+                case 0:
+                    proxy.MoveObject(proxy.GetSelectedObject(), x, y, z, true);
+                    break;
+                case 1:                    
+                    proxy.MoveObject(proxy.GetSelectedObject(), x, y, z, false);
+                    break;
+                case 2:
+                    var com = proxy.GetFaceInfo(proxy.GetSelectedObject()).COM;
+                    var shift = new Vector3d(x, y, z) - com.ToVector3d();
+                    proxy.MoveObject(proxy.GetSelectedObject(), shift.X, shift.Y, shift.Z, true);
+                    break;
+            }
         }
 
         private void intersectToolStripMenuItem_Click(object sender, EventArgs e)
