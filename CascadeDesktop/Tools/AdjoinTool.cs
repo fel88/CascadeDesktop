@@ -1,9 +1,6 @@
 ﻿using AutoDialog;
-using System;
 using System.Collections.Generic;
-using System.Security.AccessControl;
 using System.Windows.Forms;
-using System.Windows.Media.Media3D;
 
 namespace CascadeDesktop.Tools
 {
@@ -38,14 +35,27 @@ namespace CascadeDesktop.Tools
 
             var proxy = Editor.Proxy;
             var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
+            var vertex = proxy.GetVertexPosition(proxy.GetSelectedObject());
+            var edge = proxy.GetEdgeInfoPosition(proxy.GetSelectedObject());
 
-            if (face == null)
+            if (vertex != null)
             {
-                var edge = proxy.GetEdgeInfoPosition(proxy.GetSelectedObject());
-
-                if (edge == null)
+                objs.Add(proxy.GetSelectedObject());
+                vertices.Add(vertex);
+                if (vertices.Count == 2)
+                {
+                    var shift = vertices[1].ToVector3d() - vertices[0].ToVector3d();
+                    if (shift != null)
+                    {
+                        var dir = shift.Normalized();
+                        Editor.Proxy.MoveObject(objs[0], shift.X, shift.Y, shift.Z, true);
+                    }
+                    Editor.ResetTool();
                     return;
-
+                }
+            }
+            else if (edge != null)
+            {
                 objs.Add(proxy.GetSelectedObject());
                 edges.Add(edge);
                 if (edges.Count == 2)
@@ -60,8 +70,7 @@ namespace CascadeDesktop.Tools
                     return;
                 }
             }
-
-            if (face is PlaneSurfInfo p)
+            else if (face is PlaneSurfInfo p)
             {
                 planes.Add(p);
                 objs.Add(proxy.GetSelectedObject());
@@ -128,6 +137,7 @@ namespace CascadeDesktop.Tools
         List<PlaneSurfInfo> planes = new List<PlaneSurfInfo>();
         List<CylinderSurfInfo> cylinders = new List<CylinderSurfInfo>();
         List<EdgeInfo> edges = new List<EdgeInfo>();
+        List<Vector3> vertices = new List<Vector3>();
 
         public override void Select()
         {

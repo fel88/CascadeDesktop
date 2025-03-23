@@ -58,6 +58,7 @@ namespace CascadeDesktop
         ManagedObjHandle MakePrism(ManagedObjHandle managedObjHandle, double h);
         ManagedObjHandle Clone(ManagedObjHandle so);
         ManagedObjHandle MakeFillet(ManagedObjHandle so, double r);
+        ManagedObjHandle MakeFillet2d(ManagedObjHandle so, double r);
         ManagedObjHandle MakePipe(ManagedObjHandle so, double r);
         ManagedObjHandle Pipe(double x1, double y1, double z1, double x2, double y2, double z2, double size);
         ManagedObjHandle Sphere(double x1, double y1, double z1, double size);

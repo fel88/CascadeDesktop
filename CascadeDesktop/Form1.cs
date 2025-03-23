@@ -748,24 +748,16 @@ namespace CascadeDesktop
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
 
-        public void Pipe()
+        public void PipeAlongWire(OccSceneObject occ, double r)
         {
-            if (!CheckObjectSelectedUI())
-                return;
+            var cs = proxy.MakePipe(occ.Handle, r);
+            proxy.UpdateCurrentViewer();
+            Objs.Add(new OccSceneObject(cs, proxy));
+            Remove(occ);
+        }
 
-            var d = DialogHelpers.StartDialog();
-            d.Text = "Pipe";
-            d.AddNumericField("r", "Radius", 1);
-
-            if (!d.ShowDialog())
-                return;
-
-            var r = d.GetNumericField("r");
-            var so = proxy.GetSelectedObject();
-            var occ = GetSelectedOccObject();
-            if (occ == null)
-                return;
-
+        public void PipeWithSplitting(OccSceneObject occ, double r)
+        {
             var edges = proxy.GetEdgesInfo(occ.Handle);
             ManagedObjHandle current = null;
             //order and convert to polyline
@@ -795,12 +787,39 @@ namespace CascadeDesktop
                     proxy.Erase(temp1, false);
                     proxy.Erase(cs, false);
                 }
-
             }
 
             proxy.UpdateCurrentViewer();
             Objs.Add(new OccSceneObject(current, proxy));
             Remove(occ);
+        }
+
+        public void Pipe()
+        {
+            if (!CheckObjectSelectedUI())
+                return;
+
+            var d = DialogHelpers.StartDialog();
+            d.Text = "Pipe";
+            d.AddNumericField("r", "Radius", 1);
+            d.AddOptionsField("mode", "Mode", new[] { "Along wire", "Split" }, 0);
+
+            if (!d.ShowDialog())
+                return;
+
+            var modeIdx = d.GetOptionsFieldIdx("mode");
+
+            var r = d.GetNumericField("r");
+            var so = proxy.GetSelectedObject();
+            var occ = GetSelectedOccObject();
+
+            if (occ == null)
+                return;
+
+            if (modeIdx == 1)
+                PipeWithSplitting(occ, r);
+            else
+                PipeAlongWire(occ, r);
         }
 
         public void Fillet()
@@ -821,7 +840,14 @@ namespace CascadeDesktop
             if (occ == null)
                 return;
 
-            var cs = proxy.MakeFillet(so, r);
+            var faces = proxy.GetFacesInfo(so);
+            ManagedObjHandle cs = null;
+
+            if (faces.Count == 0)//2d fillet             
+                cs = proxy.MakeFillet2d(so, r);
+            else
+                cs = proxy.MakeFillet(so, r);
+
             Objs.Add(new OccSceneObject(cs, proxy));
             Remove(occ);
 

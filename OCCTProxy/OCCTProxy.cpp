@@ -65,6 +65,7 @@
 
 #include <AIS_ViewCube.hxx>
 #include <BRepFilletAPI_MakeFillet.hxx>
+#include <BRepFilletAPI_MakeFillet2d.hxx>
 #include <BRepFilletAPI_MakeChamfer.hxx>
 
 #include <Graphic3d_RenderingParams.hxx>
@@ -291,12 +292,24 @@ public:
 		}
 		return ObjHandle();
 	}
+
 	void  GetSelectedEdges(AIS_InteractiveContext* ctx, std::vector<ObjHandle>& list) {
 		auto objs = getSelectedObjectsList(ctx);
 		for (auto item : objs) {
 			TopoDS_TShape* ptshape = (TopoDS_TShape*)item.handleT;
 			TopoDS_TEdge* edge = dynamic_cast<TopoDS_TEdge*>(ptshape);
 			if (edge != nullptr) {
+				list.push_back(item);
+			}
+		}
+	}
+
+	void  GetSelectedVertices(AIS_InteractiveContext* ctx, std::vector<ObjHandle>& list) {
+		auto objs = getSelectedObjectsList(ctx);
+		for (auto item : objs) {
+			TopoDS_TShape* ptshape = (TopoDS_TShape*)item.handleT;
+			TopoDS_TVertex* vertex = dynamic_cast<TopoDS_TVertex*>(ptshape);
+			if (vertex != nullptr) {
 				list.push_back(item);
 			}
 		}
@@ -2963,64 +2976,134 @@ public:
 
 	ManagedObjHandle^ MakePipe(ManagedObjHandle^ h1, double s)
 	{
-		auto pipe1 = Pipe(gp_Pnt(0, 0, 0), gp_Pnt(0, 0, 1), s);
-		auto sphere1 = Sphere(gp_Pnt(0, 0, 1), s);
-		auto fuse1 = MakeFuse(pipe1, sphere1);
-		Erase(pipe1);
-		Erase(sphere1);
-
-		auto pipe2 = Pipe(gp_Pnt(0, 0, 1), gp_Pnt(0, 1, 2), s);
-
-		auto fuse2 = MakeFuse(pipe2, fuse1);
-		Erase(pipe2);
-		Erase(fuse1);
-
-		auto sphere2 = Sphere(gp_Pnt(0, 1, 2), s);
-
-		auto fuse3 = MakeFuse(sphere2, fuse2);
-		Erase(sphere2);
-		Erase(fuse2);
-
-		auto pipe3 = Pipe(gp_Pnt(0, 1, 2), gp_Pnt(0, 2, 2), s);
-
-		auto fuse4 = MakeFuse(pipe3, fuse3);
-		Erase(pipe3);
-		Erase(fuse3);
-
-		return fuse4;
 
 		auto hh = h1->ToObjHandle();
 		const auto* object1 = impl->getObject(hh);
-		std::vector<ObjHandle> edges;
-		impl->GetSelectedEdges(myAISContext().get(), edges);
+
+
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
 
-		gp_Pnt p1(0, 0, 0),
-			p2(0, 1, 0),
-			p3(1, 2, 0),
-			p4(2, 2, 0);
-		//# the edges
-		auto ed1 = BRepBuilderAPI_MakeEdge(p1, p2).Edge();
-		auto	ed2 = BRepBuilderAPI_MakeEdge(p2, p3).Edge();
-		auto	ed3 = BRepBuilderAPI_MakeEdge(p3, p4).Edge();
+		//const auto* object2 = impl->getObject(edge);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+		gp_Pnt p1(0, 0, 0);
+		auto dir = gp_Dir(0, 1, 0);
+
+		//get first point of wire
+		for (TopExp_Explorer exp(shape0, TopAbs_EDGE); exp.More(); exp.Next())
+		{
+			const auto ttt = exp.Current();
+			auto loc = ttt.Location();
+
+			const auto& edge = TopoDS::Edge(ttt);
+			//Analysis of Edge
+			Standard_Real First, Last;
+			Handle(Geom_Curve) curve = BRep_Tool::Curve(edge, First, Last); //Extract the curve from the edge
+			GeomAdaptor_Curve aAdaptedCurve(curve);
+			GeomAbs_CurveType curveType = aAdaptedCurve.GetType();
+
+			gp_Pnt pnt1, pnt2;
+			aAdaptedCurve.D0(First, pnt1);
+			aAdaptedCurve.D0(Last, pnt2);
+			p1 = pnt1;
+			dir = gp_Dir(pnt2.X() - pnt1.X(), pnt2.Y() - pnt1.Y(), pnt2.Z() - pnt1.Z());
+		}
 
 
-		ChFi2d_AnaFilletAlgo f;
-		double radius = 0.3;
-		f.Init(ed1, ed2, gp_Pln());
-		f.Perform(radius);
-		auto res = f.Result(ed1, ed2);
+		auto circle = gp_Circ(gp_Ax2(p1, dir), s);
+		auto profile_edge = BRepBuilderAPI_MakeEdge(circle).Edge();
+		auto profile_wire = BRepBuilderAPI_MakeWire(profile_edge).Wire();
+		auto profile_face = BRepBuilderAPI_MakeFace(profile_wire).Face();
+		for (TopExp_Explorer exp(shape0, TopAbs_WIRE); exp.More(); exp.Next())
+		{
+			const auto ttt = exp.Current();
+			auto loc = ttt.Location();
+
+			const auto& baseWire = TopoDS::Wire(ttt);
+
+			BRepOffsetAPI_MakePipe makePipe(baseWire, profile_face);
+
+			auto ais = new AIS_Shape(makePipe.Shape());
+			myAISContext()->Display(ais, false);
+			ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+			auto hn = GetHandle(*ais);
+			hhh->FromObjHandle(hn);
+			return hhh;
+		}
 
 
-		/*
-	auto ais = new AIS_Shape(shape);
-	myAISContext()->Display(ais, false);
-	ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+		
+		return nullptr;		
+	}
 
-	auto hn = GetHandle(*ais);
-	hhh->FromObjHandle(hn);
-	return hhh;*/
-		return nullptr;
+	ManagedObjHandle^ MakeFillet2d(ManagedObjHandle^ h1, double s)
+	{
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		std::vector<ObjHandle> vertices;
+		impl->GetSelectedVertices(myAISContext().get(), vertices);
+		//auto edge = impl->getSelectedEdge(myAISContext().get());
+
+		//const auto* object2 = impl->getObject(edge);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+
+		BRepFilletAPI_MakeFillet2d filletOp;
+		for (TopExp_Explorer exp(shape0, TopAbs_WIRE); exp.More(); exp.Next())
+		{
+			const auto ttt = exp.Current();
+			auto loc = ttt.Location();
+
+			const auto& baseWire = TopoDS::Wire(ttt);
+			bool isPlannar = true;
+			TopoDS_Face baseFace = BRepBuilderAPI_MakeFace(baseWire, isPlannar);
+			filletOp.Init(baseFace);
+		}
+
+
+
+		bool b = false;
+		for (TopExp_Explorer edgeExplorer(shape0, TopAbs_VERTEX); edgeExplorer.More(); edgeExplorer.Next()) {
+			const auto ttt = edgeExplorer.Current();
+			const auto& _vertex = TopoDS::Vertex(ttt);
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+
+			if (_vertex.IsNull()) {
+				continue;
+			}
+
+			for (int i = 0;i < vertices.size();i++)
+			{
+				auto& vertex = vertices[i];
+				if (ttt3 == vertex.handleT) {
+					filletOp.AddFillet(_vertex, s);
+					b = true;
+					vertices.erase(vertices.begin() + i);
+					break;
+				}
+			}
+		}
+
+		if (!b)
+			return nullptr;
+
+		filletOp.Build();
+
+
+		//Extract new face bound wire
+		TopExp_Explorer explorer(filletOp.Shape(), TopAbs_WIRE);
+		//Normally ony one wire exists
+		TopoDS_Wire filletWire = TopoDS::Wire(explorer.Current());
+		auto ais = new AIS_Shape(filletWire);
+		myAISContext()->Display(ais, false);
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
 	}
 
 	ManagedObjHandle^ MakeFillet(ManagedObjHandle^ h1, double s)
@@ -3055,8 +3138,6 @@ public:
 					break;
 				}
 			}
-
-
 		}
 
 		if (!b)
