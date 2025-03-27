@@ -319,5 +319,11 @@ namespace CascadeDesktop
         {
             Form.Pipe();
         }
+
+        private void helix_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Helix();
+
+        }
     }
 }

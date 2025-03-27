@@ -42,6 +42,7 @@
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepOffsetAPI_MakePipe.hxx>
+#include <BRepOffsetAPI_MakePipeShell.hxx>
 #include <BRepBuilderAPI_Copy.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
@@ -85,7 +86,13 @@
 
 #include <ShapeUpgrade_UnifySameDomain.hxx>
 #include <ChFi2d_AnaFilletAlgo.hxx>
+#include <GCE2d_MakeSegment.hxx>
+#include <Geom2d_Ellipse.hxx>
+#include <Geom2d_Line.hxx>
+#include <Geom_BSplineCurve.hxx>
+#include <GeomAPI_PointsToBSpline.hxx>
 
+#include <BRepLib.hxx>
 // list of required OCCT libraries
 
 
@@ -112,6 +119,7 @@ using namespace Cascade::Common;
 #pragma comment(lib, "TKGeomAlgo.lib")
 #pragma comment(lib, "TKGeomBase.lib")
 #pragma comment(lib, "TKG3d.lib")
+#pragma comment(lib, "TKG2d.lib")
 #pragma comment(lib, "TKMesh.lib")
 #pragma comment(lib, "TKService.lib")
 #pragma comment(lib, "TKTopAlgo.lib")
@@ -3004,7 +3012,7 @@ public:
 
 			gp_Pnt pnt1, pnt2;
 			aAdaptedCurve.D0(First, pnt1);
-			aAdaptedCurve.D0(Last, pnt2);
+			aAdaptedCurve.D0(First + 0.01, pnt2);
 			p1 = pnt1;
 			dir = gp_Dir(pnt2.X() - pnt1.X(), pnt2.Y() - pnt1.Y(), pnt2.Z() - pnt1.Z());
 		}
@@ -3021,8 +3029,14 @@ public:
 
 			const auto& baseWire = TopoDS::Wire(ttt);
 
-			BRepOffsetAPI_MakePipe makePipe(baseWire, profile_face);
+			//BRepOffsetAPI_MakePipeShell makePipe(baseWire, profile_face);
+			BRepOffsetAPI_MakePipeShell makePipe(baseWire);
+			makePipe.SetMode(true);
+			makePipe.Add(profile_wire, true, true);
+			makePipe.SetTransitionMode(BRepBuilderAPI_RightCorner);
+			makePipe.Build();
 
+			//makePipe.MakeSolid();
 			auto ais = new AIS_Shape(makePipe.Shape());
 			myAISContext()->Display(ais, false);
 			ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
@@ -3033,8 +3047,58 @@ public:
 		}
 
 
-		
-		return nullptr;		
+
+		return nullptr;
+	}
+
+	ManagedObjHandle^ HelixWire(double radius, double radius2, double height, double turns) {
+
+		std::vector<gp_Pnt> vec;
+		auto ang = turns * M_PI * 2;
+		double step = 0.1;
+		auto radDelta = radius2 - radius;
+		for (double i = 0; i <= ang; i += step)
+		{
+			auto t = (i / ang);
+			auto xx = (radius+t*radDelta)*cos(i);
+			auto yy = (radius + t * radDelta)*sin(i);
+			//	auto xx = i;
+			//	auto yy = 0;
+			vec.push_back(gp_Pnt(xx, yy, height * t));
+
+		}
+
+		TColgp_Array1OfPnt aPoints(0,
+			vec.size() - 1);
+		for (size_t i = 0; i < vec.size(); i++)
+		{
+			aPoints(i) = vec[i];
+		}
+
+
+		gp_Pnt center = gp::Origin();
+		gp_Dir axis = gp::DZ();
+
+		Handle(Geom_CylindricalSurface)
+			cyl = new Geom_CylindricalSurface(gp_Ax2(center, axis), radius);
+		GeomAPI_PointsToBSpline approx(aPoints);
+		Handle(Geom_BSplineCurve)  c = approx.Curve();
+
+		/*TopoDS_Edge                 edge1 = BRepBuilderAPI_MakeEdge(c, cyl,
+			0.0,
+			10.0);*/
+		TopoDS_Edge ts2 = BRepBuilderAPI_MakeEdge(c);
+		auto profile_wire = BRepBuilderAPI_MakeWire(ts2).Wire();
+
+		//BRepLib::BuildCurves3d(ts2);
+		auto ais2 = new AIS_Shape(profile_wire);
+		myAISContext()->Display(ais2, false);
+
+		ManagedObjHandle^ hhh2 = gcnew ManagedObjHandle();
+
+		auto hn2 = GetHandle(*ais2);
+		hhh2->FromObjHandle(hn2);
+		return hhh2;//	myContext->Display(new AIS_Shape(ts)
 	}
 
 	ManagedObjHandle^ MakeFillet2d(ManagedObjHandle^ h1, double s)
@@ -3106,6 +3170,116 @@ public:
 		return hhh;
 	}
 
+	ManagedObjHandle^ MakeFillet2d_new(ManagedObjHandle^ h1, double s)
+	{
+		//not tested
+		auto hh = h1->ToObjHandle();
+		const auto* object1 = impl->getObject(hh);
+		std::vector<ObjHandle> vertices;
+		impl->GetSelectedVertices(myAISContext().get(), vertices);
+		//auto edge = impl->getSelectedEdge(myAISContext().get());
+
+		//const auto* object2 = impl->getObject(edge);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		shape0 = shape0.Located(object1->LocalTransformation());
+
+		BRepFilletAPI_MakeFillet2d filletOp;
+		for (TopExp_Explorer exp(shape0, TopAbs_WIRE); exp.More(); exp.Next())
+		{
+			const auto ttt = exp.Current();
+			auto loc = ttt.Location();
+			const auto& _wire = TopoDS::Wire(ttt);
+
+			if (_wire.IsNull())
+				continue;
+
+			std::vector<  std::reference_wrapper<const TopoDS_Edge>> edges;
+
+			for (TopExp_Explorer edgeExplorer(_wire, TopAbs_EDGE); edgeExplorer.More(); edgeExplorer.Next()) {
+				const auto ttt = edgeExplorer.Current();
+				auto& _edge = TopoDS::Edge(ttt);
+
+				if (_edge.IsNull())
+					continue;
+
+				for (TopExp_Explorer edgeExplorer(_edge, TopAbs_VERTEX); edgeExplorer.More(); edgeExplorer.Next()) {
+					const auto ttt = edgeExplorer.Current();
+					const auto& _vertex = TopoDS::Vertex(ttt);
+					auto tt = ttt.TShape();
+					TopoDS_TShape* ptshape = tt.get();
+					auto ttt3 = (unsigned __int64)(ptshape);
+
+					if (_vertex.IsNull())
+						continue;
+
+					for (int i = 0;i < vertices.size();i++)
+					{
+						auto& vertex = vertices[i];
+						if (ttt3 == vertex.handleT) {
+							edges.push_back(std::reference_wrapper<const TopoDS_Edge>(_edge));
+
+							break;
+						}
+					}
+					if (edges.size() == 2)
+						break;
+				}
+
+				if (edges.size() == 2)
+					break;
+			}
+			BRepBuilderAPI_MakeWire wire(edges[0], edges[1]);
+
+			bool isPlannar = true;
+			TopoDS_Face baseFace = BRepBuilderAPI_MakeFace(wire, isPlannar);
+			filletOp.Init(baseFace);
+
+		}
+
+
+
+		bool b = false;
+		for (TopExp_Explorer edgeExplorer(shape0, TopAbs_VERTEX); edgeExplorer.More(); edgeExplorer.Next()) {
+			const auto ttt = edgeExplorer.Current();
+			const auto& _vertex = TopoDS::Vertex(ttt);
+			auto tt = ttt.TShape();
+			TopoDS_TShape* ptshape = tt.get();
+			auto ttt3 = (unsigned __int64)(ptshape);
+
+			if (_vertex.IsNull()) {
+				continue;
+			}
+
+			for (int i = 0;i < vertices.size();i++)
+			{
+				auto& vertex = vertices[i];
+				if (ttt3 == vertex.handleT) {
+					filletOp.AddFillet(_vertex, s);
+					b = true;
+					vertices.erase(vertices.begin() + i);
+					break;
+				}
+			}
+		}
+
+		if (!b)
+			return nullptr;
+
+		filletOp.Build();
+
+
+		//Extract new face bound wire
+		TopExp_Explorer explorer(filletOp.Shape(), TopAbs_WIRE);
+		//Normally ony one wire exists
+		TopoDS_Wire filletWire = TopoDS::Wire(explorer.Current());
+		auto ais = new AIS_Shape(filletWire);
+		myAISContext()->Display(ais, false);
+		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
+
+		auto hn = GetHandle(*ais);
+		hhh->FromObjHandle(hn);
+		return hhh;
+	}
 	ManagedObjHandle^ MakeFillet(ManagedObjHandle^ h1, double s)
 	{
 		auto hh = h1->ToObjHandle();

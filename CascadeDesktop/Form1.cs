@@ -120,7 +120,7 @@ namespace CascadeDesktop
                 var vect = edge.Start.ToVector3d();
                 var vect2 = edge.End.ToVector3d();
                 SetStatus3(string.Empty);
-                AppendStatusVector("edge", vect);
+                AppendStatusVector("edge " + edge.CurveType.ToString(), vect);
                 AppendStatusVector(" ", vect2);
                 if (edge is CircleEdgeInfo cei)
                 {
@@ -615,7 +615,7 @@ namespace CascadeDesktop
                 case 0:
                     proxy.MoveObject(proxy.GetSelectedObject(), x, y, z, true);
                     break;
-                case 1:                    
+                case 1:
                     proxy.MoveObject(proxy.GetSelectedObject(), x, y, z, false);
                     break;
                 case 2:
@@ -835,6 +835,31 @@ namespace CascadeDesktop
                 PipeWithSplitting(occ, r);
             else
                 PipeAlongWire(occ, r);
+        }
+
+        public void Helix()
+        {
+            var d = DialogHelpers.StartDialog();
+            d.Text = "helix";
+
+            d.AddNumericField("r", "Radius", 15);
+            d.AddNumericField("r2", "Radius 2", 15);
+            d.AddNumericField("p", "Height", 20);
+            d.AddNumericField("turns", "Turns", 1);
+
+            if (!d.ShowDialog())
+                return;
+
+            var r = d.GetNumericField("r");
+            var r2 = d.GetNumericField("r2");
+            var p = d.GetNumericField("p");
+            var turns = d.GetNumericField("turns");
+
+            var so = proxy.HelixWire(r, r2, p, turns);
+            Objs.Add(new OccSceneObject(so, proxy));
+
+
+            proxy.UpdateCurrentViewer();
         }
 
         public void Fillet()

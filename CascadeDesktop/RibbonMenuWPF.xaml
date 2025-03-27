@@ -71,6 +71,7 @@
                     <RibbonButton x:Name="cylinder" Click="Cylinder_Click"   Label="Cylinder"  KeyTip="X"  />
                     <RibbonButton x:Name="cone" Click="Cone_CLick"  Label="Cone"   KeyTip="X"  />
                     <RibbonButton x:Name="text" Click="text_Click"  Label="Text" SmallImageSource="Icons/layer-shape-text.png"   KeyTip="T"  />
+                    <RibbonButton x:Name="helix" Click="helix_Click"  Label="Helix"  KeyTip="T"  />
 
                 </RibbonGroup>
                 <RibbonGroup x:Name="draft" Header="Draft">
