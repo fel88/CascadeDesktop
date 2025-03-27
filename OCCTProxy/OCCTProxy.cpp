@@ -3036,7 +3036,7 @@ public:
 			makePipe.SetTransitionMode(BRepBuilderAPI_RightCorner);
 			makePipe.Build();
 
-			//makePipe.MakeSolid();
+			makePipe.MakeSolid();
 			auto ais = new AIS_Shape(makePipe.Shape());
 			myAISContext()->Display(ais, false);
 			ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
@@ -3045,8 +3045,6 @@ public:
 			hhh->FromObjHandle(hn);
 			return hhh;
 		}
-
-
 
 		return nullptr;
 	}
