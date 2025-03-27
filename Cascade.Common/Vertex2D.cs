@@ -1,4 +1,6 @@
-﻿namespace Cascade.Common
+﻿using System.Reflection;
+
+namespace Cascade.Common
 {
     public class Vertex2D
     {
@@ -13,4 +15,5 @@
         public double Y { get; set; }
         
     }
+    
 }

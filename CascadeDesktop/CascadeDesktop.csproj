@@ -73,6 +73,12 @@
     <Compile Include="DraftEditor3d.Designer.cs">
       <DependentUpon>DraftEditor3d.cs</DependentUpon>
     </Compile>
+    <Compile Include="DraftEditorCSP.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DraftEditorCSP.Designer.cs">
+      <DependentUpon>DraftEditorCSP.cs</DependentUpon>
+    </Compile>
     <Compile Include="DrawHelpers.cs" />
     <Compile Include="EventWrapperGlControl.cs" />
     <Compile Include="GeometryUtils.cs" />
@@ -191,6 +197,10 @@
     <ProjectReference Include="..\Cascade.Common\Cascade.Common.csproj">
       <Project>{95890BA4-C636-4145-AC66-8EFDB6F3D977}</Project>
       <Name>Cascade.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CSPLib\CSPLib.csproj">
+      <Project>{0a90146f-3390-4e0e-b192-155fd7b8323a}</Project>
+      <Name>CSPLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\OCCTProxy\OCCTProxy.vcxproj">
       <Project>{969912d9-78e7-4ab8-b4ff-6b52b4f03991}</Project>

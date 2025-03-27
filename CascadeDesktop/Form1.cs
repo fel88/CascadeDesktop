@@ -1012,7 +1012,7 @@ namespace CascadeDesktop
         public void DrawDraft()
         {
             var d = AutoDialog.DialogHelpers.StartDialog();
-            d.AddOptionsField("mode", "Mode", new[] { "2D", "3D" }, 0);
+            d.AddOptionsField("mode", "Mode", new[] { "2D", "3D", "2D CSP" }, 0);
 
             if (!d.ShowDialog())
                 return;
@@ -1030,7 +1030,7 @@ namespace CascadeDesktop
                 var handler = proxy.ImportBlueprint(dd.Blueprint);
                 Objs.Add(new OccSceneObject(handler, proxy));
             }
-            else //3d
+            else if (modeIdx == 1) //3d
             {
                 DraftEditor3d dd = new DraftEditor3d();
                 dd.StartPosition = FormStartPosition.CenterScreen;
@@ -1040,6 +1040,17 @@ namespace CascadeDesktop
 
                 var handler = proxy.ImportBlueprint(dd.Blueprint);
                 Objs.Add(new OccSceneObject(handler, proxy));
+            }
+            else if (modeIdx == 2) //2d csp
+            {
+                DraftEditorCSP dd = new DraftEditorCSP();
+                dd.StartPosition = FormStartPosition.CenterScreen;
+                dd.ShowDialog();
+                //if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
+                //    return;
+
+                //var handler = proxy.ImportBlueprint(dd.Blueprint);
+                //Objs.Add(new OccSceneObject(handler, proxy));
             }
         }
 
