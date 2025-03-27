@@ -101,7 +101,7 @@ namespace CSPLib
 
                 var dlns = _draft.DraftLines.ToArray();
                 for (int i = 0; i < dlns.Length; i++)
-                {   
+                {
                     var el = dlns[i];
 
                     Vector2d item0 = dlns[i].V0.Location;
@@ -324,7 +324,7 @@ namespace CSPLib
             var ms = sw.ElapsedMilliseconds;
             LastRenderTime = ms;
 
-            //ctx.DrawString("current tool: " + Form1.Form.CurrentTool.GetType().Name, SystemFonts.DefaultFont, Brushes.Black, 5, 5);
+            ctx.DrawString("current tool: " + editor.CurrentTool.GetType().Name, SystemFonts.DefaultFont, Brushes.Black, 5, 5);
 
         }
 
@@ -446,10 +446,7 @@ namespace CSPLib
             }
         }
 
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
-        {
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
+
         List<DraftElement> queue = new List<DraftElement>();
         private void PictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
@@ -787,12 +784,21 @@ namespace CSPLib
             _draft.Clear();
         }
 
-        internal void CloseLine()
+        public void CloseLine()
         {
             if (_draft.DraftPoints.Any())
                 _draft.Elements.Add(new DraftLine(_draft.DraftPoints.First(), _draft.DraftPoints.Last(), _draft));
         }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Delete)
+            {
+                deleteToolStripMenuItem_Click(null, null);
+
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (selected == null || selected.Length == 0) return;
@@ -1095,7 +1101,7 @@ namespace CSPLib
             return;
         }
     }
-  
+
     public interface IDraftConstraintHelper : IDraftHelper
     {
         DraftConstraint Constraint { get; }
@@ -1149,7 +1155,7 @@ namespace CSPLib
         public List<DraftPoint> FreezedPoints = new List<DraftPoint>();
         public List<TopologyDraftLineInfo> FreezedLinesDirs = new List<TopologyDraftLineInfo>();
     }
-    
+
     public class DraftEllipse : DraftElement
     {
         public readonly DraftPoint Center;
@@ -1458,7 +1464,7 @@ namespace CSPLib
         public override void Draw()
         {
             if (!Visible) return;
-            
+
         }
 
         public IName[] GetObjects()
@@ -1484,7 +1490,7 @@ namespace CSPLib
             return ret.ToArray();
         }
     }
-    
+
     public class LiteCadException : Exception
     {
         public LiteCadException(string str) : base(str) { }
@@ -1498,7 +1504,7 @@ namespace CSPLib
     {
         public string XmlName { get; set; }
     }
-    
+
     public class ChangeCand
     {
         public DraftPoint Point;

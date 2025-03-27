@@ -66,6 +66,7 @@
     <Compile Include="AbstractTool.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="CameraViewManager.cs" />
+    <Compile Include="CutEdgeTool.cs" />
     <Compile Include="DefaultCameraViewManager.cs" />
     <Compile Include="DraftEditor3d.cs">
       <SubType>Form</SubType>
@@ -79,10 +80,12 @@
     <Compile Include="DraftEditorCSP.Designer.cs">
       <DependentUpon>DraftEditorCSP.cs</DependentUpon>
     </Compile>
+    <Compile Include="DraftLineTool.cs" />
     <Compile Include="DrawHelpers.cs" />
     <Compile Include="EventWrapperGlControl.cs" />
     <Compile Include="GeometryUtils.cs" />
     <Compile Include="HelperItem.cs" />
+    <Compile Include="HorizontalConstraintTool.cs" />
     <Compile Include="IHelperItem.cs" />
     <Compile Include="ImportedOccSceneObject.cs" />
     <Compile Include="IntersectInfo.cs" />
@@ -90,6 +93,7 @@
     <Compile Include="IOCCTProxyInterface.cs" />
     <Compile Include="IPointsProvider.cs" />
     <Compile Include="ITrianglesProvider.cs" />
+    <Compile Include="LinearConstraintTool.cs" />
     <Compile Include="LineHelper.cs" />
     <Compile Include="MessageFilter.cs" />
     <Compile Include="Model.cs" />
@@ -153,6 +157,7 @@
     <Compile Include="SvgPoint.cs" />
     <Compile Include="TriangleInfo.cs" />
     <Compile Include="VertexInfo.cs" />
+    <Compile Include="VerticalConstraintTool.cs" />
     <EmbeddedResource Include="AboutBox1.resx">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </EmbeddedResource>
@@ -161,6 +166,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="DraftEditor3d.resx">
       <DependentUpon>DraftEditor3d.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DraftEditorCSP.resx">
+      <DependentUpon>DraftEditorCSP.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

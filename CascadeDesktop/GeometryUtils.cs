@@ -7,6 +7,15 @@ namespace CascadeDesktop
 {
     public class GeometryUtils
     {
+        public static Vector2d GetProjPoint(Vector2d point, Vector2d loc, Vector2d norm)
+        {
+            var v = point - loc;
+            var dist = Vector2d.Dot(v, norm);
+            //var proj = point - dist * norm;
+            //return proj;
+            return dist * norm + loc;
+
+        }
         public static Vector2d point_on_line(Vector2d a, Vector2d b, Vector2d p)
         {
             var ap = p - a;

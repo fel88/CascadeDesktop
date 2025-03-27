@@ -1046,11 +1046,11 @@ namespace CascadeDesktop
                 DraftEditorCSP dd = new DraftEditorCSP();
                 dd.StartPosition = FormStartPosition.CenterScreen;
                 dd.ShowDialog();
-                //if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
-                //    return;
+                if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
+                    return;
 
-                //var handler = proxy.ImportBlueprint(dd.Blueprint);
-                //Objs.Add(new OccSceneObject(handler, proxy));
+                var handler = proxy.ImportBlueprint(dd.Blueprint);
+                Objs.Add(new OccSceneObject(handler, proxy));
             }
         }
 

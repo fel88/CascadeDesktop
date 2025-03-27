@@ -6,25 +6,28 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using Cascade.Common;
+using System.Linq;
+using AutoDialog.Extensions;
+using System.Windows.Controls.Primitives;
 
 namespace CascadeDesktop
 {
-    public partial class DraftEditorCSP : Form, CSPLib. IEditor
+    public partial class DraftEditorCSP : Form, CSPLib.IEditor
     {
         public DraftEditorCSP()
         {
-            InitializeComponent(); 
-            
+            InitializeComponent();
+
             Form = this;
             de = new DraftEditorControl();
             de.UndosChanged += De_UndosChanged;
             de.Init(this);
-            Controls.Add(de);
+          panel1. Controls.Add(de);
 
             Load += Form1_Load;
 
@@ -38,13 +41,13 @@ namespace CascadeDesktop
             de.Dock = DockStyle.Fill;
         }
 
-        
+
 
         public DraftEditorControl de;
         MessageFilter mf = null;
         public event Action<CSPLib.ITool> ToolChanged;
 
-        
+
         CSPLib.ITool _currentTool;
         public static DraftEditorCSP Form;
 
@@ -69,7 +72,7 @@ namespace CascadeDesktop
             //toolStripButton3.Checked = true;
         }
 
-        
+
         private void De_UndosChanged()
         {
             //toolStripButton16.Enabled = de.CanUndo;
@@ -80,7 +83,7 @@ namespace CascadeDesktop
 
         }
 
-        
+
         public void SetTool(CSPLib.ITool tool)
         {
             _currentTool.Deselect();
@@ -224,131 +227,141 @@ namespace CascadeDesktop
         {
             exportDxf(de.Draft);
         }
-    }
-    public class LinearConstraintTool : AbstractDraftTool
-    {
-        public LinearConstraintTool(IDraftEditor ee) : base(ee)
+
+        private void rectangleToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            RectangleStart();
+        }
+
+        private void circleToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            CircleStart();
 
         }
 
-
-        public override void Deselect()
+        private void randolmSolveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            queue.Clear();
+            de.Draft.RandomSolve();
         }
 
-        public override void Draw()
+        private void linearToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            SetTool(new LinearConstraintTool(de));
         }
-        List<DraftElement> queue = new List<DraftElement>();
-
-        public override void MouseDown(MouseEventArgs e)
+        BlueprintContour[] ConnectContour(BlueprintItem[] items)
         {
-            if (e.Button == MouseButtons.Left)
+            List<BlueprintContour> rets = new List<BlueprintContour>();
+            List<BlueprintItem> remains = new List<BlueprintItem>();
+
+            BlueprintContour ret = new BlueprintContour();
+            rets.Add(ret);
+            ret.Items.Add(items[0]);
+            remains.AddRange(items.Skip(1));
+            float eps = 1e-5f;
+            while (remains.Any())
             {
-                var _draft = Editor.Draft;
-                var nearest = Editor.nearest;
-                if (nearest is DraftPoint)
+                var p2 = ret.Items.Last().End;
+                var p1 = ret.Items.First().Start;
+                BlueprintItem todel = null;
+                foreach (var item in remains)
                 {
-                    if (!queue.Contains(nearest))
-                        queue.Add(nearest as DraftPoint);
+
+                    var dist1 = (item.Start.ToVector2d() - p2.ToVector2d()).Length;
+                    if (dist1 < eps)
+                    {
+                        ret.Items.Add(item);
+                        todel = item;
+                        break;
+                    }
+                    var dist2 = (item.End.ToVector2d() - p2.ToVector2d()).Length;
+                    if (dist2 < eps)
+                    {
+                        item.Reverse();
+                        ret.Items.Add(item);
+
+                        todel = item;
+                        break;
+                    }
                 }
-                if (nearest is DraftLine dl)
+
+                if (todel == null)
                 {
-                    if (queue.Count > 0 && queue[0] is DraftPoint dp1)
-                    {
-                        var lcd = AutoDialog.DialogHelpers.StartDialog();
-                        lcd.AddNumericField("len", "Length", dl.Length, 1000000, 0.00001m);
-                        lcd.ShowDialog();
-                        var len = (decimal)lcd.GetNumericField("len");
-                        var cc = new LinearConstraint(dl, dp1, len, _draft);
-                        if (!_draft.Constraints.OfType<LinearConstraint>().Any(z => z.IsSame(cc)))
-                        {
-                            Editor.Backup();
-                            _draft.AddConstraint(cc);
-                            _draft.AddHelper(new LinearConstraintHelper(_draft, cc));
-                            _draft.Childs.Add(_draft.Helpers.Last());
-                        }
-                        else
-                        {
-                            GUIHelpers.Warning("such constraint already exist");
-                        }
-                        queue.Clear();
-                        //editor.ResetTool();
-                    }
-                    else
-                    {
-
-                        if (_draft.Constraints.OfType<EqualsConstraint>().Any(uu => uu.TargetLine == dl))
-                        {
-                            GUIHelpers.Warning("overconstrained");
-                        }
-                        else
-                        {
-                            var lcd = AutoDialog.DialogHelpers.StartDialog();
-                            lcd.AddNumericField("len", "Length", dl.Length, 1000000, 0.00001m);
-                            lcd.ShowDialog();
-                            var len = (decimal)lcd.GetNumericField("len");
-                            var cc = new LinearConstraint(dl.V0, dl.V1, len, _draft);
-                            if (!_draft.Constraints.OfType<LinearConstraint>().Any(z => z.IsSame(cc)))
-                            {
-                                Editor.Backup();
-
-                                _draft.AddConstraint(cc);
-                                _draft.AddHelper(new LinearConstraintHelper(_draft, cc));
-                                _draft.Childs.Add(_draft.Helpers.Last());
-                            }
-                            else
-                            {
-                                GUIHelpers.Warning("such constraint already exist");
-                            }
-                            queue.Clear();
-                            //editor.ResetTool();
-                        }
-                    }
-                    return;
-
+                    //new contour
+                    ret = new BlueprintContour();
+                    rets.Add(ret);
+                    todel = remains[0];
+                    ret.Items.Add(remains[0]);
                 }
-                if (queue.Count > 1)
+
+                remains.Remove(todel);
+            }
+
+            return rets.ToArray();
+        }
+        public Blueprint Blueprint => blueprint;
+
+        Blueprint blueprint = new Blueprint();
+        private void toolStripButton2_Click(object sender, EventArgs e)
+        {
+            foreach (var item in de.Draft.Elements)
+            {
+                if (item is DraftLine dl)
                 {
-                    var lcd = AutoDialog.DialogHelpers.StartDialog();
-                    lcd.AddNumericField("len", "Length", ((queue[0] as DraftPoint).Location - (queue[1] as DraftPoint).Location).Length, 1000000, 0.00001m);
-                    lcd.ShowDialog();
-                    var len = (decimal)lcd.GetNumericField("len");
+                    var blueprintItem = new Line2D();
+                    blueprintItem.Start = new Vertex2D(dl.V0.X, dl.V0.Y);
+                    blueprintItem.End = new Vertex2D(dl.V1.X, dl.V1.Y);
+                    blueprint.Items.Add(blueprintItem);
 
-                    var cc = new LinearConstraint(queue[0], queue[1], len, _draft);
-                    if (!_draft.Constraints.OfType<LinearConstraint>().Any(z => z.IsSame(cc)))
-                    {
-                        Editor.Backup();
-
-                        _draft.AddConstraint(cc);
-                        _draft.AddHelper(new LinearConstraintHelper(_draft, cc));
-                        _draft.Childs.Add(_draft.Helpers.Last());
-                    }
-                    else
-                    {
-                        GUIHelpers.Warning("such constraint already exist");
-                    }
-                    queue.Clear();
-                    //editor.ResetTool();
                 }
             }
+            var contours = ConnectContour(blueprint.Items.ToArray());
+
+            blueprint.Items.Clear();
+            blueprint.Contours.AddRange(contours);
+            Close();
+
+        }
+       
+        public void CutEdgeStart()
+        {
+            SetTool(new CutEdgeTool(de));
+        }
+     
+        private void toolStripButton1_Click_1(object sender, EventArgs e)
+        {
+            CutEdgeStart();
+        }
+        public void LineStart()
+        {
+            SetTool(new DraftLineTool(de));
+            //uncheckedAllToolButtons();
+            toolStripButton2.Checked = true;
+        }
+        private void polylineToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            LineStart();
+
+        }
+        public void selectorUI()
+        {
+            SetTool(new SelectionTool(this));
+           // uncheckedAllToolButtons();
+           //toolStripButton18.Checked = true;
+        }
+        private void sekectionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            selectorUI();
         }
 
-        public override void MouseUp(MouseEventArgs e)
+        private void verticalToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Form.SetTool(new VerticalConstraintTool(Form.de));
 
         }
 
-        public override void Select()
+        private void horizontalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            queue.Clear();
-        }
-
-        public override void Update()
-        {
+            Form.SetTool(new HorizontalConstraintTool(Form.de));
 
         }
     }
