@@ -25,6 +25,7 @@ namespace CSPLib
         {
             InitializeComponent();
 
+          
             ctx = Activator.CreateInstance(DrawerType) as IDrawingContext;
             ctx.DragButton = MouseButtons.Right;
             //new SkiaGLDrawingContext() { DragButton = MouseButtons.Right };
@@ -38,9 +39,16 @@ namespace CSPLib
             ctx.MouseDown += Ctx_MouseDown;
             RenderControl.MouseUp += PictureBox1_MouseUp;
             RenderControl.MouseDown += PictureBox1_MouseDown;
+            RenderControl.MouseDoubleClick += RenderControl_MouseDoubleClick; 
             ctx.Tag = this;
             InitPaints();
         }
+
+        private void RenderControl_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
         Control RenderControl;
 
         SKPaint PointPaint;

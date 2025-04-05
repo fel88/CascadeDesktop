@@ -17,11 +17,20 @@ namespace CascadeDesktop
         {
             InitializeComponent();
 
+
+            pg.Visible = false;
+
+
             Form = this;
             de = new DraftEditorControl();
             de.UndosChanged += De_UndosChanged;
             de.Init(this);
             panel1.Controls.Add(de);
+            panel1.Controls.Add(pg);
+            pg.Width = 200;
+            pg.Height = 200;
+            pg.Top = panel1.Height - pg.Height;
+            pg.BringToFront();
 
             Load += Form1_Load;
 
@@ -38,6 +47,7 @@ namespace CascadeDesktop
         public DraftEditorControl de;
         MessageFilter mf = null;
         public event Action<ITool> ToolChanged;
+        PropertyGrid pg = new PropertyGrid();
 
 
         public static DraftEditorCSP Form;
@@ -89,8 +99,9 @@ namespace CascadeDesktop
         }
 
         public void ObjectSelect(object nearest)
-        {
-            //throw new NotImplementedException();
+        {            
+            pg.SelectedObject = nearest;
+            pg.Visible = nearest!=null;
         }
 
         public void ResetTool()
