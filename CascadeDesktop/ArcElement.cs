@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using CascadeDesktop.Interfaces;
+using OpenTK;
 using OpenTK.Graphics.ES10;
 using System;
 using System.Collections.Generic;

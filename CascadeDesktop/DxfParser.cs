@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using OpenTK;
+using CascadeDesktop.Interfaces;
 
 namespace CascadeDesktop
 {

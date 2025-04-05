@@ -1,13 +1,13 @@
 ﻿using CSPLib;
 using System.Windows.Forms;
 using System.Linq;
-using DxfPad;
+using System.Collections.Generic;
 
-namespace CascadeDesktop
+namespace CascadeDesktop.ToolsCSP
 {
-    public class VerticalConstraintTool : AbstractDraftTool
+    public class EqualsConstraintTool : AbstractDraftTool
     {
-        public VerticalConstraintTool(IDraftEditor editor) : base(editor)
+        public EqualsConstraintTool(IDraftEditor editor) : base(editor)
         {
         }
 
@@ -20,20 +20,27 @@ namespace CascadeDesktop
         {
 
         }
-
+        List<DraftElement> queue = new List<DraftElement>();
         public override void MouseDown(MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                var _draft = Editor.Draft;
-                if (Editor.nearest is DraftLine dl)
+                var nearest = Editor.nearest;
+                if (Editor.nearest is DraftLine)
                 {
-                    var cc = new VerticalConstraint(dl, _draft);
+                    if (!queue.Contains(nearest))
+                        queue.Add(nearest as DraftLine);
+                }
+                var _draft = Editor.Draft;
+                if (Editor.nearest is DraftLine dl && queue.Count > 1)
+                {
+                    var cc = new EqualsConstraint(queue[0] as DraftLine, dl, _draft);
 
-                    if (!_draft.Constraints.OfType<VerticalConstraint>().Any(z => z.IsSame(cc)))
+                    if (!_draft.Constraints.OfType<EqualsConstraint>().Any(z => z.IsSame(cc)))
                     {
+                        Editor.Backup();
                         _draft.AddConstraint(cc);
-                        _draft.AddHelper(new VerticalConstraintHelper(cc));
+                        _draft.AddHelper(new EqualsConstraintHelper(_draft, cc));
                         _draft.Childs.Add(_draft.Helpers.Last());
                     }
                     else
@@ -49,7 +56,7 @@ namespace CascadeDesktop
 
         public override void MouseUp(MouseEventArgs e)
         {
-
+            queue.Clear();
         }
 
         public override void Select()

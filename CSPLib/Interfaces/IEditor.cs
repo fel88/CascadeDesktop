@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CSPLib
+namespace CSPLib.Interfaces
 {
     public interface IEditor
     {

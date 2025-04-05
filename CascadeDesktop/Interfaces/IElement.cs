@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace CascadeDesktop
+namespace CascadeDesktop.Interfaces
 {
     public interface IElement
     {
@@ -10,8 +10,8 @@ namespace CascadeDesktop
         void Reverse();
         IEnumerable<Vector2d> GetPoints(double eps = 0.00001);
 
-        Vector2d Start { get;  }
-        Vector2d End { get;  }
+        Vector2d Start { get; }
+        Vector2d End { get; }
         double Length { get; }
     }
 }

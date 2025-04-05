@@ -4,7 +4,7 @@ using SkiaSharp;
 using System.Drawing;
 using OpenTK;
 
-namespace CSPLib
+namespace CSPLib.Interfaces
 {
     public interface IDrawingContext
     {
@@ -17,14 +17,14 @@ namespace CSPLib
 
         MouseButtons DragButton { get; set; }
         PointF GetCursor();
-        void Init(System.Windows.Forms.Control pb);
+        void Init(Control pb);
 
         PointF Transform(PointF p1);
         PointF Transform(float x, float y);
         PointF Transform(double x, double y);
         PointF Transform(Vector2d p1);
         void UpdateDrag();
-        System.Windows.Forms.Control GenerateRenderControl();
+        Control GenerateRenderControl();
         void ResetView();
         void ResetMatrix();
         void RotateDegress(float deg);

@@ -14,10 +14,12 @@ using Cascade.Common;
 using System.Linq;
 using AutoDialog.Extensions;
 using System.Windows.Controls.Primitives;
+using CascadeDesktop.ToolsCSP;
+using CSPLib.Interfaces;
 
 namespace CascadeDesktop
 {
-    public partial class DraftEditorCSP : Form, CSPLib.IEditor
+    public partial class DraftEditorCSP : Form, IEditor
     {
         public DraftEditorCSP()
         {
@@ -45,10 +47,10 @@ namespace CascadeDesktop
 
         public DraftEditorControl de;
         MessageFilter mf = null;
-        public event Action<CSPLib.ITool> ToolChanged;
+        public event Action<ITool> ToolChanged;
 
 
-        CSPLib.ITool _currentTool;
+        ITool _currentTool;
         public static DraftEditorCSP Form;
 
         private void Form1_Load(object sender, EventArgs e)
@@ -84,7 +86,7 @@ namespace CascadeDesktop
         }
 
 
-        public void SetTool(CSPLib.ITool tool)
+        public void SetTool(ITool tool)
         {
             _currentTool.Deselect();
             _currentTool = tool;
@@ -129,13 +131,13 @@ namespace CascadeDesktop
             //UndosChanged?.Invoke();*/
         }
 
-        public CSPLib.ITool CurrentTool { get => _currentTool; }
+        public ITool CurrentTool { get => _currentTool; }
 
         public IDrawable[] Parts => throw new NotImplementedException();
 
         public IntersectInfo Pick => throw new NotImplementedException();
 
-        CSPLib.IntersectInfo CSPLib.IEditor.Pick => throw new NotImplementedException();
+        CSPLib.IntersectInfo IEditor.Pick => throw new NotImplementedException();
 
         private void erctangleToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -362,6 +364,21 @@ namespace CascadeDesktop
         private void horizontalToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Form.SetTool(new HorizontalConstraintTool(Form.de));
+
+        }
+
+        private void equalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Form.SetTool(new EqualsConstraintTool(Form.de));
+        }
+
+        private void toolStripButton3_Click(object sender, EventArgs e)
+        {
+            selectorUI();
+        }
+
+        private void toolStripButton4_Click(object sender, EventArgs e)
+        {
 
         }
     }

@@ -21,6 +21,7 @@ using System.Security.Cryptography;
 using OpenTK.Graphics.OpenGL;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Runtime.InteropServices;
+using CascadeDesktop.Interfaces;
 
 namespace CascadeDesktop
 {

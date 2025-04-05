@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using CascadeDesktop.Interfaces;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace CascadeDesktop.Tools

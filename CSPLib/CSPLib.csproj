@@ -44,24 +44,73 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbstractDraftTool.cs" />
+    <Compile Include="AbstractDrawable.cs" />
+    <Compile Include="AbstractDrawingContext.cs" />
     <Compile Include="AbstractTool.cs" />
-    <Compile Include="Class1.cs" />
+    <Compile Include="CSPVarContext.cs" />
+    <Compile Include="ClipperHelper.cs" />
+    <Compile Include="ConstraintSolverContext.cs" />
+    <Compile Include="Contour.cs" />
+    <Compile Include="CSPConstr.cs" />
+    <Compile Include="CSPConstrEqualExpression.cs" />
+    <Compile Include="CSPConstrEqualTwoVars.cs" />
+    <Compile Include="CSPConstrEqualVarValue.cs" />
+    <Compile Include="CSPTask.cs" />
+    <Compile Include="CSPVar.cs" />
+    <Compile Include="CSPVarInfo.cs" />
+    <Compile Include="DebugHelpers.cs" />
+    <Compile Include="Draft.cs" />
+    <Compile Include="DraftConstraint.cs" />
     <Compile Include="DraftEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="DraftEditor.Designer.cs">
       <DependentUpon>DraftEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="DraftElement.cs" />
+    <Compile Include="DraftEllipse.cs" />
+    <Compile Include="DraftPoint.cs" />
+    <Compile Include="EqualsConstraint.cs" />
+    <Compile Include="EventWrapperPictureBox.cs" />
+    <Compile Include="FactoryHelper.cs" />
+    <Compile Include="GeometryUtils.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="HorizontalConstraint.cs" />
-    <Compile Include="IDrawingContext.cs" />
-    <Compile Include="IEditor.cs" />
+    <Compile Include="Interfaces\IDraftHelper.cs" />
+    <Compile Include="Interfaces\IDrawable.cs" />
+    <Compile Include="Interfaces\IDrawingContext.cs" />
+    <Compile Include="Interfaces\IEditFieldsContainer.cs" />
+    <Compile Include="Interfaces\IEditor.cs" />
+    <Compile Include="Interfaces\ITool.cs" />
+    <Compile Include="IntersectInfo.cs" />
+    <Compile Include="IntFieldEditor.cs" />
+    <Compile Include="Line3D.cs" />
+    <Compile Include="LinearConstraintHelper.cs" />
+    <Compile Include="MeshNode.cs" />
+    <Compile Include="NFP.cs" />
     <Compile Include="ParallelConstraint.cs" />
+    <Compile Include="ParallelConstraintHelper.cs" />
+    <Compile Include="PerpendicularConstraint.cs" />
+    <Compile Include="PerpendicularConstraintHelper.cs" />
+    <Compile Include="PerpendicularConstraintTool.cs" />
+    <Compile Include="Plane.cs" />
+    <Compile Include="PlaneHelper.cs" />
+    <Compile Include="PointPositionConstraint.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RectDraftTool.cs" />
+    <Compile Include="RotationTransformChainItem.cs" />
+    <Compile Include="ScaleTransformChainItem.cs" />
+    <Compile Include="Segment.cs" />
     <Compile Include="SelectionTool.cs" />
+    <Compile Include="SkiaGLDrawingContext.cs" />
+    <Compile Include="Token.cs" />
     <Compile Include="TopologyConstraint.cs" />
+    <Compile Include="TopologyDraftLineInfo.cs" />
+    <Compile Include="TransformationChain.cs" />
+    <Compile Include="TranslateTransformChainItem.cs" />
     <Compile Include="VerticalConstraint.cs" />
+    <Compile Include="VerticalConstraintHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics">

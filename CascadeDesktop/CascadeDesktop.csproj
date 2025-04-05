@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>cube.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -85,14 +88,17 @@
     <Compile Include="EventWrapperGlControl.cs" />
     <Compile Include="GeometryUtils.cs" />
     <Compile Include="HelperItem.cs" />
-    <Compile Include="HorizontalConstraintTool.cs" />
-    <Compile Include="IHelperItem.cs" />
     <Compile Include="ImportedOccSceneObject.cs" />
+    <Compile Include="Interfaces\IDrawingContext.cs" />
+    <Compile Include="Interfaces\IEditor.cs" />
+    <Compile Include="Interfaces\IElement.cs" />
+    <Compile Include="Interfaces\IHelperItem.cs" />
+    <Compile Include="Interfaces\IPointsProvider.cs" />
+    <Compile Include="Interfaces\ITool.cs" />
+    <Compile Include="Interfaces\ITrianglesProvider.cs" />
     <Compile Include="IntersectInfo.cs" />
     <Compile Include="Intersection.cs" />
     <Compile Include="IOCCTProxyInterface.cs" />
-    <Compile Include="IPointsProvider.cs" />
-    <Compile Include="ITrianglesProvider.cs" />
     <Compile Include="LinearConstraintTool.cs" />
     <Compile Include="LineHelper.cs" />
     <Compile Include="MessageFilter.cs" />
@@ -118,6 +124,9 @@
     </Compile>
     <Compile Include="SceneObject.cs" />
     <Compile Include="IOZipContext.cs" />
+    <Compile Include="ToolsCSP\EqualsConstraintTool.cs" />
+    <Compile Include="ToolsCSP\HorizontalConstraintTool.cs" />
+    <Compile Include="ToolsCSP\VerticalConstraintTool.cs" />
     <Compile Include="Tools\AdjoinCOMsTool.cs" />
     <Compile Include="Tools\AdjoinTool.cs" />
     <Compile Include="ArcElement.cs" />
@@ -138,11 +147,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="GeomHelpers.cs" />
-    <Compile Include="IDrawingContext.cs" />
-    <Compile Include="IEditor.cs" />
-    <Compile Include="IElement.cs" />
     <Compile Include="InfoType.cs" />
-    <Compile Include="ITool.cs" />
     <Compile Include="LineElement.cs" />
     <Compile Include="LocalContour.cs" />
     <Compile Include="NFP.cs" />
@@ -157,7 +162,6 @@
     <Compile Include="SvgPoint.cs" />
     <Compile Include="TriangleInfo.cs" />
     <Compile Include="VertexInfo.cs" />
-    <Compile Include="VerticalConstraintTool.cs" />
     <EmbeddedResource Include="AboutBox1.resx">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </EmbeddedResource>
@@ -317,6 +321,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\layer-shape-curve.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="cube.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

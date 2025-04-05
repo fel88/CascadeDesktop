@@ -1,4 +1,6 @@
-﻿namespace CascadeDesktop.Tools
+﻿using CascadeDesktop.Interfaces;
+
+namespace CascadeDesktop.Tools
 {
     public class SelectionTool : AbstractTool
     {

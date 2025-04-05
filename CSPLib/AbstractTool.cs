@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using CSPLib.Interfaces;
+using System.Windows.Forms;
 
 namespace CSPLib
 {

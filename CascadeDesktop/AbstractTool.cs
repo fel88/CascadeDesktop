@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using CascadeDesktop.Interfaces;
+using System.Windows.Forms;
 
 namespace CascadeDesktop
 {

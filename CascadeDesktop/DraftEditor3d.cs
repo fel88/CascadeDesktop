@@ -1,4 +1,5 @@
 ﻿using Cascade.Common;
+using CascadeDesktop.Interfaces;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System;

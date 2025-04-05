@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using CascadeDesktop.Interfaces;
+using OpenTK;
 using System;
 using System.Drawing;
 using System.Linq;

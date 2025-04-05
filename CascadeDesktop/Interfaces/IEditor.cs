@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Windows.Forms;
 
-namespace CascadeDesktop
+namespace CascadeDesktop.Interfaces
 {
     public interface IEditor
     {

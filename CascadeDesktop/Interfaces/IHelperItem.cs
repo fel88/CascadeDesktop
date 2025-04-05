@@ -1,9 +1,10 @@
-﻿using OpenTK;
+﻿using CascadeDesktop.Interfaces;
+using OpenTK;
 using System;
 using System.Drawing;
 using System.Text;
 
-namespace CascadeDesktop
+namespace CascadeDesktop.Interfaces
 {
     public interface IHelperItem
     {

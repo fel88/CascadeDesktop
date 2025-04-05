@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CascadeDesktop
+namespace CascadeDesktop.Interfaces
 {
     public interface ITrianglesProvider
     {

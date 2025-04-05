@@ -1,4 +1,5 @@
 ﻿using AutoDialog;
+using CascadeDesktop.Interfaces;
 using System.Collections.Generic;
 using System.Windows.Forms;
 

@@ -1,4 +1,4 @@
-﻿namespace CascadeDesktop
+﻿namespace CascadeDesktop.Interfaces
 {
     public interface IDrawingContext
     {

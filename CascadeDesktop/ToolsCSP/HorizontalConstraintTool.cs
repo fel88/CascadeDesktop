@@ -3,7 +3,7 @@ using System.Windows.Forms;
 using System.Linq;
 using DxfPad;
 
-namespace CascadeDesktop
+namespace CascadeDesktop.ToolsCSP
 {
     public class HorizontalConstraintTool : AbstractDraftTool
     {
