@@ -130,11 +130,11 @@ namespace CSPLib
 
                 paint.IsAntialias = true;
                 //paint.StrokeWidth = pen.Width;
-                paint.Style = SKPaintStyle.Fill;
-                paint.TextSize = font.GetHeight();
+                paint.Style = SKPaintStyle.Fill;                
                 using (var font1 = new SKFont(SKTypeface.FromFamilyName(font.FontFamily.Name)))
                 {
-                    return new SizeF(paint.MeasureText(text), paint.TextSize);
+                    font1.Size= font.GetHeight();
+                    return new SizeF(font1.MeasureText(text), font1.Size);
                 }
             }
         }
@@ -218,8 +218,8 @@ namespace CSPLib
                 paint.TextSize = font.GetHeight();
 
                 using (var font1 = new SKFont(SKTypeface.FromFamilyName(font.FontFamily.Name)))
-                {
-                    canvas.DrawText(text, x, y + paint.TextSize, font1, paint);
+                {                    
+                    canvas.DrawText(text, x, y + font1.Size, font1, paint);
                 }
             }
         }
@@ -293,9 +293,8 @@ namespace CSPLib
             var s = image.ToSKImage();
             var temp = CurrentPaint.FilterQuality;
             CurrentPaint.FilterQuality = SKFilterQuality.High;
-            Canvas.DrawImage(s, new SKRect(x1, y1, x2, y2), CurrentPaint);
+            Canvas.DrawImage(s, new SKRect(x1, y1, x2, y2), CurrentPaint);            
             CurrentPaint.FilterQuality = temp;
-
         }
 
         public override void ResetMatrix()

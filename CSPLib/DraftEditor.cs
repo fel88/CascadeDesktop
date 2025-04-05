@@ -24,6 +24,7 @@ namespace CSPLib
         public DraftEditorControl()
         {
             InitializeComponent();
+           
             ctx = Activator.CreateInstance(DrawerType) as IDrawingContext;
             ctx.DragButton = MouseButtons.Right;
             //new SkiaGLDrawingContext() { DragButton = MouseButtons.Right };
@@ -318,9 +319,15 @@ namespace CSPLib
             sw.Stop();
             var ms = sw.ElapsedMilliseconds;
             LastRenderTime = ms;
+            {
+                var pos = PointToClient(Cursor.Position);
 
-            ctx.DrawString("current tool: " + editor.CurrentTool.GetType().Name, SystemFonts.DefaultFont, Brushes.Black, 5, 5);
+                var pp = ctx.BackTransform(pos);
+                Vector2 v1 = new Vector2(pp.X, pp.Y);
 
+                ctx.DrawString($"current tool: {editor.CurrentTool.GetType().Name}", SystemFonts.DefaultFont, Brushes.Black, 5, 5);
+                ctx.DrawString($"position {pp.X} {pp.Y}", SystemFonts.DefaultFont, Brushes.Black, 5, 25);
+            }
         }
 
         internal void AddImage()
@@ -621,7 +628,8 @@ namespace CSPLib
 
         public void FitAll()
         {
-            if (_draft == null || _draft.Elements.Count() == 0) return;
+            if (_draft == null || _draft.Elements.Count() == 0)
+                return;
 
             var t = _draft.DraftPoints.Select(z => z.Location).ToArray();
             var t2 = _draft.DraftEllipses.SelectMany(z => new[] {
@@ -704,13 +712,6 @@ namespace CSPLib
         }
 
         SubSnapTypeEnum subSnapType;
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            if (!Visible) return;
-            RenderControl.Refresh();
-            return;
-
-        }
 
         public void ResetTool()
         {
@@ -773,14 +774,16 @@ namespace CSPLib
             _draft.EndEdit();
         }
 
-        internal void Clear()
+        public void Clear()
         {
             Backup();
             _draft.Clear();
         }
 
+        ITool _currentTool;
+        public ITool CurrentTool => _currentTool;
         public void CloseLine()
-        {
+        {          
             if (_draft.DraftPoints.Any())
                 _draft.Elements.Add(new DraftLine(_draft.DraftPoints.First(), _draft.DraftPoints.Last(), _draft));
         }
@@ -1091,131 +1094,26 @@ namespace CSPLib
 
         private void timer1_Tick_1(object sender, EventArgs e)
         {
-            if (!Visible) return;
+            if (!Visible)
+                return;
+
             RenderControl.Refresh();
             return;
         }
-    }
 
-    public interface IDraftConstraintHelper : IDraftHelper
-    {
-        DraftConstraint Constraint { get; }
-        Vector2d SnapPoint { get; set; }
-
-
-    }
-    public class DraftLine : DraftElement
-    {
-        public readonly DraftPoint V0;
-        public readonly DraftPoint V1;
-
-        public DraftLine(XElement el, Draft parent) : base(el, parent)
+        public void SetTool(ITool tool)
         {
-            var v0Id = int.Parse(el.Attribute("v0").Value);
-            var v1Id = int.Parse(el.Attribute("v1").Value);
-            Dummy = bool.Parse(el.Attribute("dummy").Value);
-            V0 = parent.DraftPoints.First(z => z.Id == v0Id);
-            V1 = parent.DraftPoints.First(z => z.Id == v1Id);
+            _currentTool = tool;
         }
-
-        public DraftLine(DraftPoint v0, DraftPoint v1, Draft parent) : base(parent)
-        {
-            this.V0 = v0;
-            this.V1 = v1;
-        }
-
-        public Vector2d Center => (V0.Location + V1.Location) / 2;
-        public Vector2d Dir => (V1.Location - V0.Location).Normalized();
-        public Vector2d Normal => new Vector2d(-Dir.Y, Dir.X);
-        public double Length => (V1.Location - V0.Location).Length;
-        public override void Store(TextWriter writer)
-        {
-            writer.WriteLine($"<line id=\"{Id}\" dummy=\"{Dummy}\" v0=\"{V0.Id}\" v1=\"{V1.Id}\" />");
-        }
-
-        public bool ContainsPoint(Vector2d proj)
-        {
-            return Math.Abs(((V0.Location - proj).Length + (V1.Location - proj).Length) - Length) < 1e-8f;
-        }
-    }
-
-    public class LiteCadException : Exception
-    {
-        public LiteCadException(string str) : base(str) { }
-    }
-
-    public class ConstraintsException : Exception
-    {
-        public ConstraintsException(string msg) : base(msg) { }
-    }
-    public class XmlNameAttribute : Attribute
-    {
-        public string XmlName { get; set; }
-    }
-
-    public class ChangeCand
-    {
-        public DraftPoint Point;
-        public Vector2d Position;
-        public void Apply()
-        {
-            Point.SetLocation(Position);
-        }
-
     }
     public interface IPropEditor
     {
         void Init(object o);
         object ReturnValue { get; }
     }
-    public class VertexInfo
-    {
-        public Vector3d Position;
-        public Vector3d Normal;
-    }
-    public abstract class TransformationChainItem : IXmlStorable
-    {
-        public abstract Matrix4d Matrix();
-
-        void IXmlStorable.RestoreXml(XElement elem)
-        {
-            RestoreXml(elem);
-        }
-
-        internal abstract void StoreXml(TextWriter writer);
-        internal abstract void RestoreXml(XElement elem);
-
-        void IXmlStorable.StoreXml(TextWriter writer)
-        {
-            StoreXml(writer);
-        }
-
-        internal abstract TransformationChainItem Clone();
-    }
-    public interface IXmlStorable
-    {
-        void StoreXml(TextWriter writer);
-        void RestoreXml(XElement elem);
-
-    }
-    public interface IMessageReporter
-    {
-        void Warning(string text);
-        void Error(string text);
-        void Info(string text);
-    }
     public class EditFieldAttribute : Attribute
     {
 
-    }
-    public interface ICommand
-    {
-        string Name { get; }
-        Action<IDrawable, object> Process { get; }
-    }
-    public interface ICommandsContainer
-    {
-        ICommand[] Commands { get; }
     }
     public interface IName
     {
@@ -1224,476 +1122,5 @@ namespace CSPLib
     public interface IMeshNodesContainer
     {
         MeshNode[] Nodes { get; }
-    }
-    public interface IDraftEditor
-    {
-        object nearest { get; }
-        Draft Draft { get; }
-        IDrawingContext DrawingContext { get; }
-        void Backup();
-        void ResetTool();
-
-    }
-    public class TriangleInfo
-    {
-        public VertexInfo[] Vertices;
-
-        public double Area()
-        {
-            var v0 = Vertices[1].Position - Vertices[0].Position;
-            var v1 = Vertices[2].Position - Vertices[0].Position;
-            var crs = Vector3d.Cross(v0, v1);
-            return crs.Length / 2;
-        }
-
-        internal bool IsSame(TriangleInfo tr)
-        {
-            float eps = 1e-8f;
-            return tr.Vertices.All(uu =>
-            {
-                return Vertices.Any(zz => (zz.Position - uu.Position).Length < eps);
-            });
-        }
-
-        public Vector3d Normal()
-        {
-            var v0 = Vertices[1].Position - Vertices[0].Position;
-            var v1 = Vertices[2].Position - Vertices[0].Position;
-            var crs = Vector3d.Cross(v0, v1);
-            return crs.Normalized();
-        }
-
-        public Vector3d Center()
-        {
-            Vector3d z1 = Vector3d.Zero;
-            foreach (var item in Vertices)
-            {
-                z1 += item.Position;
-            }
-            z1 /= 3;
-            return z1;
-        }
-        public Vector3d V0 => Vertices[0].Position;
-
-        public TriangleInfo Multiply(Matrix4d matrix)
-        {
-            TriangleInfo ret = new TriangleInfo();
-            ret.Vertices = new VertexInfo[Vertices.Length];
-            for (int i = 0; i < Vertices.Length; i++)
-            {
-                ret.Vertices[i] = new VertexInfo();
-                ret.Vertices[i].Position = Vector3d.Transform(Vertices[i].Position, matrix);
-            }
-
-            return ret;
-        }
-
-        public Vector3d V1 => Vertices[1].Position;
-        public Vector3d V2 => Vertices[2].Position;
-        internal Line3D[] GetLines()
-        {
-            List<Line3D> ret = new List<Line3D>();
-            ret.Add(new Line3D() { Start = V0, End = V1 });
-            ret.Add(new Line3D() { Start = V1, End = V2 });
-            ret.Add(new Line3D() { Start = V2, End = V0 });
-            return ret.ToArray();
-        }
-        public Plane GetPlane()
-        {
-            var n0 = V2 - V0;
-            var n1 = V1 - V0;
-            var normal = Vector3d.Cross(n0, n1).Normalized();
-            return (new Plane() { Position = V0, Normal = normal });
-        }
-        public Line3D[] SplitByPlane(Plane pl)
-        {
-
-            List<Vector3d> ret = new List<Vector3d>();
-            var pl0 = GetPlane();
-            var crs = Vector3d.Cross(pl0.Normal, pl.Normal);
-            if (crs.Length < 1e-5f) return new Line3D[] { };
-
-            var ln = pl0.Intersect(pl);
-            if (ln == null) return null;
-            var lns = GetLines();
-            List<Vector3d> pp = new List<Vector3d>();
-            foreach (var item in lns)
-            {
-                var l3 = item;
-                var inter = GeometryUtils.Intersect3dCrossedLines(ln, l3);
-                if (inter != null && l3.IsPointInsideSegment(inter.Value)) pp.Add(inter.Value);
-            }
-
-            var pnts = pp.ToArray();
-            List<Vector3d> pnts3 = new List<Vector3d>();
-            foreach (var item in pnts)
-            {
-                bool good = true;
-                for (int i = 0; i < pnts3.Count; i++)
-                {
-                    if ((pnts[i] - item).Length < 1e-6)
-                    {
-                        good = false;
-                        break;
-                    }
-                }
-                if (good) pnts3.Add(item);
-            }
-            pnts = pnts3.ToArray();
-            if (pnts.Length == 2)
-                return new[] { new Line3D() { Start = pnts[0], End = pnts[1] } };
-
-            return new Line3D[] { };
-            //return pnts;
-
-        }
-
-        internal void StoreXml(TextWriter writer)
-        {
-            writer.WriteLine("<triangle>");
-            foreach (var item in Vertices)
-            {
-                writer.WriteLine($"<vertex pos=\"{item.Position.X};{item.Position.Y};{item.Position.Z}\" normal=\"{item.Normal.X};{item.Normal.Y};{item.Normal.Z}\"/>");
-            }
-            writer.WriteLine("</triangle>");
-        }
-
-        internal void RestoreXml(XElement t)
-        {
-            int cnt = 0;
-            Vertices = new VertexInfo[t.Elements("vertex").Count()];
-
-            foreach (var tt in t.Elements("vertex"))
-            {
-                Vertices[cnt] = new VertexInfo();
-                Vertices[cnt].Position = Helpers.ParseVector(tt.Attribute("pos").Value);
-                Vertices[cnt].Normal = Helpers.ParseVector(tt.Attribute("normal").Value);
-                cnt++;
-            }
-        }
-
-        public bool Contains(Vector3d v, double eps = 1e-8)
-        {
-            foreach (var item in Vertices)
-            {
-                if ((item.Position - v).Length < eps) { return true; }
-            }
-            return false;
-        }
-    }
-    [XmlName(XmlName = "linearConstraint")]
-    public class LinearConstraint : DraftConstraint
-    {
-        public DraftElement Element1;
-        public DraftElement Element2;
-
-        decimal _length;
-        public decimal Length
-        {
-            get => _length; set
-            {
-                BeforeChanged?.Invoke();
-                _length = value;
-                Element1.Parent.RecalcConstraints();
-            }
-        }
-        public LinearConstraint(XElement el, Draft parent) : base(parent)
-        {
-            if (el.Attribute("id") != null)
-                Id = int.Parse(el.Attribute("id").Value);
-
-            Element1 = parent.Elements.First(z => z.Id == int.Parse(el.Attribute("p0").Value));
-            Element2 = parent.Elements.First(z => z.Id == int.Parse(el.Attribute("p1").Value));
-            Length = Helpers.ParseDecimal(el.Attribute("length").Value);
-        }
-
-        public LinearConstraint(DraftElement draftPoint1, DraftElement draftPoint2, decimal len, Draft parent) : base(parent)
-        {
-            this.Element1 = draftPoint1;
-            this.Element2 = draftPoint2;
-            Length = len;
-        }
-
-        public override bool IsSatisfied(float eps = 1e-6f)
-        {
-            var elems = new[] { Element1, Element2 };
-            if (Element1 is DraftPoint dp0 && Element2 is DraftPoint dp1)
-            {
-                var diff = (dp1.Location - dp0.Location).Length;
-                return Math.Abs(diff - (double)Length) < eps;
-            }
-            if (elems.Any(z => z is DraftLine) && elems.Any(z => z is DraftPoint))
-            {
-                var dp = elems.OfType<DraftPoint>().First();
-                var dl = elems.OfType<DraftLine>().First();
-
-                //get proj of point to line
-                var pp = GeometryUtils.GetProjPoint(dp.Location, dl.V0.Location, dl.Dir);
-                var diff = (pp - dp.Location).Length;
-                return Math.Abs(diff - (double)Length) < eps;
-            }
-            throw new NotImplementedException();
-        }
-
-        internal void Update()
-        {
-            var dp0 = Element1 as DraftPoint;
-            var dp1 = Element2 as DraftPoint;
-            var diff = (dp1.Location - dp0.Location).Normalized();
-            dp1.SetLocation(dp0.Location + diff * (double)Length);
-        }
-
-        public override void RandomUpdate(ConstraintSolverContext ctx)
-        {
-            var elems = new[] { Element1, Element2 };
-
-            if (Element1 is DraftPoint dp0 && Element2 is DraftPoint dp1)
-            {
-                if ((dp0.Frozen && dp1.Frozen) || (ctx.FreezedPoints.Contains(dp1) && ctx.FreezedPoints.Contains(dp0)))
-                {
-                    throw new ConstraintsException("double frozen");
-                }
-                var ar = new[] { dp0, dp1 }.OrderBy(z => GeometryUtils.Random.Next(100)).ToArray();
-                dp0 = ar[0];
-                dp1 = ar[1];
-                if (dp1.Frozen || ctx.FreezedPoints.Contains(dp1))
-                {
-                    var temp = dp1;
-                    dp1 = dp0;
-                    dp0 = temp;
-                }
-                var diff = (dp1.Location - dp0.Location).Normalized();
-                //preserve location
-                bool good = false;
-                var fr = ctx.FreezedLinesDirs.FirstOrDefault(z => (z.Line.V0 == dp0 && z.Line.V1 == dp1) || (z.Line.V0 == dp1 && z.Line.V1 == dp0));
-                if (fr != null)
-                {
-                    var lns1 = dp0.Parent.DraftLines.FirstOrDefault(uu => (uu.V0 == dp0 && uu.V1 == dp1) || (uu.V0 == dp1 && uu.V1 == dp0));
-                    if (lns1 != null)
-                    {
-                        var fr2 = ctx.FreezedLinesDirs.FirstOrDefault(zz => zz.Line == lns1);
-                        if (fr2 != null)
-                        {
-                            diff = fr2.Dir;
-                            dp0 = Element1 as DraftPoint;
-                            dp1 = Element2 as DraftPoint;
-                            if (ctx.FreezedPoints.Contains(dp1) && !ctx.FreezedPoints.Contains(dp0))
-                            {
-                                dp0.SetLocation(dp1.Location - diff * (double)Length);
-                                good = true;
-                            }
-                            if (ctx.FreezedPoints.Contains(dp0) && !ctx.FreezedPoints.Contains(dp1))
-                            {
-                                dp1.SetLocation(dp0.Location + diff * (double)Length);
-                                good = true;
-                            }
-                        }
-                    }
-                }
-                if (!good)
-                    dp1.SetLocation(dp0.Location + diff * (double)Length);
-            }
-            if (elems.Any(z => z is DraftLine) && elems.Any(z => z is DraftPoint))
-            {
-                var dp = elems.OfType<DraftPoint>().First();
-                var dl = elems.OfType<DraftLine>().First();
-                var pp = GeometryUtils.GetProjPoint(dp.Location, dl.V0.Location, dl.Dir);
-
-                var cand1 = pp + dl.Normal * (double)Length;
-                var cand2 = pp - dl.Normal * (double)Length;
-                if (GeometryUtils.Random.Next(100) < 50)
-                {
-                    dp.SetLocation(cand1);
-                }
-                else
-                {
-                    dp.SetLocation(cand2);
-                }
-            }
-        }
-        public bool IsSame(LinearConstraint cc)
-        {
-            return new[] { Element2, Element1 }.Except(new[] { cc.Element1, cc.Element2 }).Count() == 0;
-        }
-        public bool IsLineConstraint(DraftLine line)
-        {
-            if (!(Element1 is DraftPoint dp0 && Element2 is DraftPoint dp1)) return false;
-            return new[] { line.V0, line.V1 }.Intersect(new[] { dp0, dp1 }).Count() == 2;
-        }
-        public override bool ContainsElement(DraftElement de)
-        {
-            return Element1 == de || Element2 == de;
-        }
-
-        internal override void Store(TextWriter writer)
-        {
-            writer.WriteLine($"<linearConstraint id=\"{Id}\" length=\"{Length}\" p0=\"{Element1.Id}\" p1=\"{Element2.Id}\"/>");
-        }
-    }
-    public static class GUIHelpers
-    {
-        public static DialogResult ShowQuestion(string text, string caption = null, MessageBoxButtons btns = MessageBoxButtons.YesNo)
-        {
-            if (caption == null) { /*caption = Form1.Form.Text;*/ }
-            return MessageBox.Show(text, caption, btns, MessageBoxIcon.Question);
-        }
-        public static DialogResult Warning(string text, string caption = null, MessageBoxButtons btns = MessageBoxButtons.OK)
-        {
-            if (caption == null) {/* caption = Form1.Form.Text; */}
-            return MessageBox.Show(text, caption, btns, MessageBoxIcon.Warning);
-        }
-        public static object EditorStart(object init, string nm, Type control, bool dialog = true)
-        {
-            Form f = new Form() { Text = nm };
-            f.FormBorderStyle = FormBorderStyle.FixedToolWindow;
-            f.MaximizeBox = false;
-            f.MinimizeBox = false;
-            f.StartPosition = FormStartPosition.CenterScreen;
-            var cc = Activator.CreateInstance(control) as UserControl;
-            (cc as IPropEditor).Init(init);
-            f.Controls.Add(cc);
-            f.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            f.AutoSize = true;
-            if (dialog)
-            {
-                f.ShowDialog();
-            }
-            else
-            {
-                f.TopMost = true;
-                f.Show();
-            }
-            return (cc as IPropEditor).ReturnValue;
-        }
-    }
-    public class ParallelConstraintTool : AbstractTool
-    {
-        public ParallelConstraintTool(IEditor editor) : base(editor) { }
-
-        public override void Deselect()
-        {
-
-        }
-
-        public override void Draw()
-        {
-
-        }
-
-        public override void MouseDown(MouseEventArgs e)
-        {
-
-        }
-
-        public override void MouseUp(MouseEventArgs e)
-        {
-
-        }
-
-        public override void Select()
-        {
-
-
-        }
-
-        public override void Update()
-        {
-
-        }
-    }
-    public class HorizontalConstraintHelper : AbstractDrawable, IDraftConstraintHelper
-    {
-        public readonly HorizontalConstraint constraint;
-        public HorizontalConstraintHelper(HorizontalConstraint c)
-        {
-            constraint = c;
-        }
-
-        public Vector2d SnapPoint { get; set; }
-        public DraftConstraint Constraint => constraint;
-
-        public bool Enabled { get => constraint.Enabled; set => constraint.Enabled = value; }
-
-        public Draft DraftParent { get; private set; }
-
-        public void Draw(IDrawingContext ctx)
-        {
-            var dp0 = constraint.Line.Center;
-            var perp = new Vector2d(-constraint.Line.Dir.Y, constraint.Line.Dir.X);
-
-            SnapPoint = (dp0);
-            var tr0 = ctx.Transform(dp0 + perp * 15 / ctx.zoom);
-
-            var gap = 10;
-            //create bezier here
-            ctx.FillCircle(Brushes.Green, tr0.X, tr0.Y, gap);
-            ctx.SetPen(new Pen(Brushes.Orange, 3));
-            ctx.DrawLine(tr0.X - 5, tr0.Y, tr0.X + 5, tr0.Y);
-        }
-
-        public override void Draw()
-        {
-
-        }
-    }
-    public class EqualsConstraintHelper : AbstractDrawable, IDraftConstraintHelper
-    {
-        public readonly EqualsConstraint constraint;
-
-        public Draft DraftParent { get; private set; }
-        public EqualsConstraintHelper(Draft parent, EqualsConstraint c)
-        {
-            DraftParent = parent;
-            constraint = c;
-        }
-
-        public Vector2d SnapPoint { get; set; }
-        public DraftConstraint Constraint => constraint;
-
-        public bool Enabled { get => constraint.Enabled; set => constraint.Enabled = value; }
-
-        public void Draw(IDrawingContext ctx)
-        {
-            var editor = ctx.Tag as IDraftEditor;
-
-
-            var hovered = editor.nearest == this;
-
-            var dp0 = constraint.TargetLine.Center;
-            var perp = new Vector2d(-constraint.TargetLine.Dir.Y, constraint.TargetLine.Dir.X);
-
-            SnapPoint = (dp0) + constraint.TargetLine.Dir * 10 / ctx.zoom;
-            var tr0 = ctx.Transform(dp0 + perp * 15 / ctx.zoom);
-
-            var gap = 10;
-            var gap2 = 6;
-            var offset = 25;
-            //create bezier here
-            var shiftX = (int)(constraint.TargetLine.Dir.X * offset);
-            var shiftY = (int)(constraint.TargetLine.Dir.Y * offset);
-
-            ctx.FillCircle(hovered ? Brushes.Blue : Brushes.Green, tr0.X + shiftX, tr0.Y + shiftY, gap);
-            ctx.SetPen(new Pen(Brushes.Violet, 3));
-            ctx.DrawLine(tr0.X - gap2 + shiftX, tr0.Y - 4 + shiftY, tr0.X + gap2 + shiftX, tr0.Y - 4 + shiftY);
-            ctx.DrawLine(tr0.X - gap2 + shiftX, tr0.Y + 4 + shiftY, tr0.X + gap2 + shiftX, tr0.Y + 4 + shiftY);
-
-            if (hovered)
-            {
-                var tr00 = ctx.Transform(constraint.SourceLine.V0.Location);
-                var tr1 = ctx.Transform(constraint.SourceLine.V1.Location);
-                var tr2 = ctx.Transform(constraint.TargetLine.V0.Location);
-                var tr3 = ctx.Transform(constraint.TargetLine.V1.Location);
-                ctx.FillCircle(Brushes.Red, tr2.X, tr2.Y, 5);
-                ctx.FillCircle(Brushes.Red, tr3.X, tr3.Y, 5);
-
-                ctx.FillCircle(Brushes.Red, tr00.X, tr00.Y, 5);
-                ctx.FillCircle(Brushes.Red, tr1.X, tr1.Y, 5);
-            }
-        }
-
-        public override void Draw()
-        {
-
-        }
     }
 }

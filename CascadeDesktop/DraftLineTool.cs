@@ -1,4 +1,5 @@
 ﻿using CSPLib;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace CascadeDesktop
@@ -22,6 +23,7 @@ namespace CascadeDesktop
         }
         DraftPoint lastDraftPoint = null;
 
+        public List<DraftPoint> AddedPoints = new List<DraftPoint>();
         public override void MouseDown(MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -37,6 +39,7 @@ namespace CascadeDesktop
                 else
                 {
                     target = new DraftPoint(_draft, p.X, p.Y);
+                    AddedPoints.Add(target);
                     _draft.Elements.Add(target);
                 }
 

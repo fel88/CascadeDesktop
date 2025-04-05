@@ -3,17 +3,9 @@ using IxMilia.Dxf.Entities;
 using IxMilia.Dxf;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Linq;
 using Cascade.Common;
 using System.Linq;
-using AutoDialog.Extensions;
-using System.Windows.Controls.Primitives;
 using CascadeDesktop.ToolsCSP;
 using CSPLib.Interfaces;
 
@@ -29,14 +21,12 @@ namespace CascadeDesktop
             de = new DraftEditorControl();
             de.UndosChanged += De_UndosChanged;
             de.Init(this);
-          panel1. Controls.Add(de);
+            panel1.Controls.Add(de);
 
-            Load += Form1_Load;
-
-            _currentTool = new SelectionTool(this);
+            Load += Form1_Load;          
 
             de.Visible = true;
-
+            de.SetTool( new SelectionTool(this));
             de.SetDraft(new Draft());
             de.FitAll();
 
@@ -50,7 +40,6 @@ namespace CascadeDesktop
         public event Action<ITool> ToolChanged;
 
 
-        ITool _currentTool;
         public static DraftEditorCSP Form;
 
         private void Form1_Load(object sender, EventArgs e)
@@ -82,17 +71,16 @@ namespace CascadeDesktop
         internal void SetStatus(string v)
         {
             //toolStripStatusLabel1.Text = v;
-
         }
-
 
         public void SetTool(ITool tool)
         {
-            _currentTool.Deselect();
-            _currentTool = tool;
-            _currentTool.Select();
-            ToolChanged?.Invoke(_currentTool);
+            CurrentTool.Deselect();
+            de.SetTool(tool);
+            CurrentTool.Select();
+            ToolChanged?.Invoke(CurrentTool);
         }
+
         public void CircleStart()
         {
             //SetTool(new DraftEllipseTool(de));
@@ -131,7 +119,7 @@ namespace CascadeDesktop
             //UndosChanged?.Invoke();*/
         }
 
-        public ITool CurrentTool { get => _currentTool; }
+        public ITool CurrentTool { get => de.CurrentTool; }
 
         public IDrawable[] Parts => throw new NotImplementedException();
 
@@ -323,12 +311,12 @@ namespace CascadeDesktop
             Close();
 
         }
-       
+
         public void CutEdgeStart()
         {
             SetTool(new CutEdgeTool(de));
         }
-     
+
         private void toolStripButton1_Click_1(object sender, EventArgs e)
         {
             CutEdgeStart();
@@ -347,8 +335,8 @@ namespace CascadeDesktop
         public void selectorUI()
         {
             SetTool(new SelectionTool(this));
-           // uncheckedAllToolButtons();
-           //toolStripButton18.Checked = true;
+            // uncheckedAllToolButtons();
+            //toolStripButton18.Checked = true;
         }
         private void sekectionToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -379,7 +367,33 @@ namespace CascadeDesktop
 
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
+            de.Undo();
+        }
 
+        private void toolStripButton5_Click(object sender, EventArgs e)
+        {
+            de.ShowHelpers = !de.ShowHelpers;
+        }
+
+        private void toolStripButton6_Click(object sender, EventArgs e)
+        {
+            de.FitAll();
+        }
+
+        private void toolStripButton7_Click(object sender, EventArgs e)
+        {
+            de.Clear();
+        }
+
+        private void closeLineToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!(de.CurrentTool is DraftLineTool dlt) || !dlt.AddedPoints.Any())            
+                return;
+            
+            var f = dlt.AddedPoints.First();
+            var l = dlt.AddedPoints.Last();
+            de.Draft.Elements.Add(new DraftLine(l, f, de.Draft));
+            SetTool(new SelectionTool(this));
         }
     }
 }

@@ -48,6 +48,8 @@
     <Compile Include="AbstractDrawable.cs" />
     <Compile Include="AbstractDrawingContext.cs" />
     <Compile Include="AbstractTool.cs" />
+    <Compile Include="ChangeCand.cs" />
+    <Compile Include="ConstraintsException.cs" />
     <Compile Include="CSPVarContext.cs" />
     <Compile Include="ClipperHelper.cs" />
     <Compile Include="ConstraintSolverContext.cs" />
@@ -70,13 +72,22 @@
     </Compile>
     <Compile Include="DraftElement.cs" />
     <Compile Include="DraftEllipse.cs" />
+    <Compile Include="DraftLine.cs" />
     <Compile Include="DraftPoint.cs" />
     <Compile Include="EqualsConstraint.cs" />
+    <Compile Include="EqualsConstraintHelper.cs" />
     <Compile Include="EventWrapperPictureBox.cs" />
     <Compile Include="FactoryHelper.cs" />
     <Compile Include="GeometryUtils.cs" />
+    <Compile Include="GUIHelpers.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="HorizontalConstraint.cs" />
+    <Compile Include="HorizontalConstraintHelper.cs" />
+    <Compile Include="ICommand.cs" />
+    <Compile Include="ICommandsContainer.cs" />
+    <Compile Include="IDraftConstraintHelper.cs" />
+    <Compile Include="IDraftEditor.cs" />
+    <Compile Include="IMessageReporter.cs" />
     <Compile Include="Interfaces\IDraftHelper.cs" />
     <Compile Include="Interfaces\IDrawable.cs" />
     <Compile Include="Interfaces\IDrawingContext.cs" />
@@ -85,12 +96,16 @@
     <Compile Include="Interfaces\ITool.cs" />
     <Compile Include="IntersectInfo.cs" />
     <Compile Include="IntFieldEditor.cs" />
+    <Compile Include="IXmlStorable.cs" />
     <Compile Include="Line3D.cs" />
+    <Compile Include="LinearConstraint.cs" />
     <Compile Include="LinearConstraintHelper.cs" />
+    <Compile Include="LiteCadException.cs" />
     <Compile Include="MeshNode.cs" />
     <Compile Include="NFP.cs" />
     <Compile Include="ParallelConstraint.cs" />
     <Compile Include="ParallelConstraintHelper.cs" />
+    <Compile Include="ParallelConstraintTool.cs" />
     <Compile Include="PerpendicularConstraint.cs" />
     <Compile Include="PerpendicularConstraintHelper.cs" />
     <Compile Include="PerpendicularConstraintTool.cs" />
@@ -108,9 +123,13 @@
     <Compile Include="TopologyConstraint.cs" />
     <Compile Include="TopologyDraftLineInfo.cs" />
     <Compile Include="TransformationChain.cs" />
+    <Compile Include="TransformationChainItem.cs" />
     <Compile Include="TranslateTransformChainItem.cs" />
+    <Compile Include="TriangleInfo.cs" />
+    <Compile Include="VertexInfo.cs" />
     <Compile Include="VerticalConstraint.cs" />
     <Compile Include="VerticalConstraintHelper.cs" />
+    <Compile Include="XmlNameAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics">

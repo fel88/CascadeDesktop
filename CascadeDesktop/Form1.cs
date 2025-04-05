@@ -1013,45 +1013,53 @@ namespace CascadeDesktop
         public void DrawDraft()
         {
             var d = AutoDialog.DialogHelpers.StartDialog();
-            d.AddOptionsField("mode", "Mode", new[] { "2D", "3D", "2D CSP" }, 0);
+            d.AddOptionsField("mode", "Mode", new[] { "2D CSP", "2D", "3D", }, 0);
 
             if (!d.ShowDialog())
                 return;
 
             var modeIdx = d.GetOptionsFieldIdx("mode");
 
-            if (modeIdx == 0)
+            switch (modeIdx)
             {
-                DraftEditor dd = new DraftEditor();
-                dd.StartPosition = FormStartPosition.CenterScreen;
-                dd.ShowDialog();
-                if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
-                    return;
+                case 0:
+                    {
+                        DraftEditorCSP dd = new DraftEditorCSP();
+                        dd.StartPosition = FormStartPosition.CenterScreen;
+                        dd.ShowDialog();
+                        if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
+                            return;
 
-                var handler = proxy.ImportBlueprint(dd.Blueprint);
-                Objs.Add(new OccSceneObject(handler, proxy));
-            }
-            else if (modeIdx == 1) //3d
-            {
-                DraftEditor3d dd = new DraftEditor3d();
-                dd.StartPosition = FormStartPosition.CenterScreen;
-                dd.ShowDialog();
-                if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
-                    return;
+                        var handler = proxy.ImportBlueprint(dd.Blueprint);
+                        Objs.Add(new OccSceneObject(handler, proxy));
+                        break;
+                    }
+                case 1:
+                    {
+                        DraftEditor dd = new DraftEditor();
+                        dd.StartPosition = FormStartPosition.CenterScreen;
+                        dd.ShowDialog();
+                        if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
+                            return;
 
-                var handler = proxy.ImportBlueprint(dd.Blueprint);
-                Objs.Add(new OccSceneObject(handler, proxy));
-            }
-            else if (modeIdx == 2) //2d csp
-            {
-                DraftEditorCSP dd = new DraftEditorCSP();
-                dd.StartPosition = FormStartPosition.CenterScreen;
-                dd.ShowDialog();
-                if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
-                    return;
+                        var handler = proxy.ImportBlueprint(dd.Blueprint);
+                        Objs.Add(new OccSceneObject(handler, proxy));
+                        break;
+                    }
 
-                var handler = proxy.ImportBlueprint(dd.Blueprint);
-                Objs.Add(new OccSceneObject(handler, proxy));
+                case 2:
+                    {
+                        DraftEditor3d dd = new DraftEditor3d();
+                        dd.StartPosition = FormStartPosition.CenterScreen;
+                        dd.ShowDialog();
+                        if (dd.Blueprint == null || !dd.Blueprint.Contours.Any())
+                            return;
+
+                        var handler = proxy.ImportBlueprint(dd.Blueprint);
+                        Objs.Add(new OccSceneObject(handler, proxy));
+                        break;
+                    }
+
             }
         }
 
