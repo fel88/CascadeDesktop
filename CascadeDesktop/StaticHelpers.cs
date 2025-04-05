@@ -143,9 +143,15 @@ namespace CascadeDesktop
         {
             return MessageBox.Show(v, title, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes;
         }
+
         public static void ShowError(string v, string title)
         {
             MessageBox.Show(v, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        public static void ShowError(IWin32Window window, string v, string title)
+        {
+            MessageBox.Show(window, v, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

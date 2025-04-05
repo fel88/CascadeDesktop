@@ -38,42 +38,49 @@ namespace CSPLib
                 else
                 {
                     Editor.Backup();
-                    var p0 = new DraftPoint(_draft, p.X, p.Y);
-                    var p1 = new DraftPoint(_draft, firstClick.Value.X, p.Y);
-                    var p2 = new DraftPoint(_draft, firstClick.Value.X, firstClick.Value.Y);
-                    var p3 = new DraftPoint(_draft, p.X, firstClick.Value.Y);
+                 
+                    AddRectangletToDraft(_draft, firstClick.Value, p);
                     firstClick = null;
                     Editor.ResetTool();
-                    _draft.AddElement(p0);
-                    _draft.AddElement(p1);
-                    _draft.AddElement(p2);
-                    _draft.AddElement(p3);
-
-                    var line1 = new DraftLine(p0, p1, _draft);
-                    var line2 = new DraftLine(p1, p2, _draft);
-                    var line3 = new DraftLine(p2, p3, _draft);
-                    var line4 = new DraftLine(p3, p0, _draft);
-                    _draft.AddElement(line1);
-                    _draft.AddElement(line2);
-                    _draft.AddElement(line3);
-                    _draft.AddElement(line4);
-
-                    _draft.AddConstraint(new HorizontalConstraint(line1, _draft));
-                    _draft.AddConstraint(new VerticalConstraint(line2, _draft));
-                    _draft.AddConstraint(new HorizontalConstraint(line3, _draft));
-                    _draft.AddConstraint(new VerticalConstraint(line4, _draft));
-
-                    foreach (var item in _draft.Constraints.OfType<VerticalConstraint>())
-                    {
-                        if (_draft.ConstraintHelpers.Any(z => z.Constraint == item)) continue;
-                        _draft.AddHelper(new VerticalConstraintHelper(item));
-                    }
-                    foreach (var item in _draft.Constraints.OfType<HorizontalConstraint>())
-                    {
-                        if (_draft.ConstraintHelpers.Any(z => z.Constraint == item)) continue;
-                        _draft.AddHelper(new HorizontalConstraintHelper(item));
-                    }
                 }
+            }
+        }
+
+        public static void AddRectangletToDraft(Draft _draft, PointF start, PointF end)
+        {
+            var p0 = new DraftPoint(_draft, end.X, end.Y);
+            var p1 = new DraftPoint(_draft, start.X, end.Y);
+            var p2 = new DraftPoint(_draft, start.X, start.Y);
+            var p3 = new DraftPoint(_draft, end.X, start.Y);
+
+            _draft.AddElement(p0);
+            _draft.AddElement(p1);
+            _draft.AddElement(p2);
+            _draft.AddElement(p3);
+
+            var line1 = new DraftLine(p0, p1, _draft);
+            var line2 = new DraftLine(p1, p2, _draft);
+            var line3 = new DraftLine(p2, p3, _draft);
+            var line4 = new DraftLine(p3, p0, _draft);
+            _draft.AddElement(line1);
+            _draft.AddElement(line2);
+            _draft.AddElement(line3);
+            _draft.AddElement(line4);
+
+            _draft.AddConstraint(new HorizontalConstraint(line1, _draft));
+            _draft.AddConstraint(new VerticalConstraint(line2, _draft));
+            _draft.AddConstraint(new HorizontalConstraint(line3, _draft));
+            _draft.AddConstraint(new VerticalConstraint(line4, _draft));
+
+            foreach (var item in _draft.Constraints.OfType<VerticalConstraint>())
+            {
+                if (_draft.ConstraintHelpers.Any(z => z.Constraint == item)) continue;
+                _draft.AddHelper(new VerticalConstraintHelper(item));
+            }
+            foreach (var item in _draft.Constraints.OfType<HorizontalConstraint>())
+            {
+                if (_draft.ConstraintHelpers.Any(z => z.Constraint == item)) continue;
+                _draft.AddHelper(new HorizontalConstraintHelper(item));
             }
         }
 

@@ -385,6 +385,7 @@ namespace CSPLib
             }
             return task;
         }
+
         public bool Solve()
         {
             var task = ExtractCSPTask();

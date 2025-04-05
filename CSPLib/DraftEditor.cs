@@ -24,7 +24,7 @@ namespace CSPLib
         public DraftEditorControl()
         {
             InitializeComponent();
-           
+
             ctx = Activator.CreateInstance(DrawerType) as IDrawingContext;
             ctx.DragButton = MouseButtons.Right;
             //new SkiaGLDrawingContext() { DragButton = MouseButtons.Right };
@@ -645,7 +645,7 @@ namespace CSPLib
         IDrawingContext ctx;
         public object nearest { get; private set; }
         public object startMiddleDragNearest;
-        object[] selected = new object[] { };
+        public object[] selected = new object[] { };
         void updateNearest()
         {
             var pos = ctx.GetCursor();
@@ -783,7 +783,7 @@ namespace CSPLib
         ITool _currentTool;
         public ITool CurrentTool => _currentTool;
         public void CloseLine()
-        {          
+        {
             if (_draft.DraftPoints.Any())
                 _draft.Elements.Add(new DraftLine(_draft.DraftPoints.First(), _draft.DraftPoints.Last(), _draft));
         }
@@ -1105,22 +1105,13 @@ namespace CSPLib
         {
             _currentTool = tool;
         }
-    }
-    public interface IPropEditor
-    {
-        void Init(object o);
-        object ReturnValue { get; }
-    }
-    public class EditFieldAttribute : Attribute
-    {
 
-    }
-    public interface IName
-    {
-        string Name { get; set; }
-    }
-    public interface IMeshNodesContainer
-    {
-        MeshNode[] Nodes { get; }
+        public void SolveCSP()
+        {
+            if (!Draft.Solve())
+            {
+                DebugHelpers.Error("constraints satisfaction error");
+            }
+        }
     }
 }

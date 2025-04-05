@@ -72,8 +72,10 @@
     </Compile>
     <Compile Include="DraftElement.cs" />
     <Compile Include="DraftEllipse.cs" />
+    <Compile Include="DraftEllipseTool.cs" />
     <Compile Include="DraftLine.cs" />
     <Compile Include="DraftPoint.cs" />
+    <Compile Include="EditFieldAttribute.cs" />
     <Compile Include="EqualsConstraint.cs" />
     <Compile Include="EqualsConstraintHelper.cs" />
     <Compile Include="EventWrapperPictureBox.cs" />
@@ -87,7 +89,9 @@
     <Compile Include="ICommandsContainer.cs" />
     <Compile Include="IDraftConstraintHelper.cs" />
     <Compile Include="IDraftEditor.cs" />
+    <Compile Include="IMeshNodesContainer.cs" />
     <Compile Include="IMessageReporter.cs" />
+    <Compile Include="IName.cs" />
     <Compile Include="Interfaces\IDraftHelper.cs" />
     <Compile Include="Interfaces\IDrawable.cs" />
     <Compile Include="Interfaces\IDrawingContext.cs" />
@@ -96,6 +100,7 @@
     <Compile Include="Interfaces\ITool.cs" />
     <Compile Include="IntersectInfo.cs" />
     <Compile Include="IntFieldEditor.cs" />
+    <Compile Include="IPropEditor.cs" />
     <Compile Include="IXmlStorable.cs" />
     <Compile Include="Line3D.cs" />
     <Compile Include="LinearConstraint.cs" />

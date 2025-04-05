@@ -23,10 +23,10 @@ namespace CascadeDesktop
             de.Init(this);
             panel1.Controls.Add(de);
 
-            Load += Form1_Load;          
+            Load += Form1_Load;
 
             de.Visible = true;
-            de.SetTool( new SelectionTool(this));
+            de.SetTool(new SelectionTool(this));
             de.SetDraft(new Draft());
             de.FitAll();
 
@@ -83,7 +83,7 @@ namespace CascadeDesktop
 
         public void CircleStart()
         {
-            //SetTool(new DraftEllipseTool(de));
+            SetTool(new DraftEllipseTool(de));
             //uncheckedAllToolButtons();
             //  toolStripButton4.Checked = true;
         }
@@ -387,13 +387,93 @@ namespace CascadeDesktop
 
         private void closeLineToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (!(de.CurrentTool is DraftLineTool dlt) || !dlt.AddedPoints.Any())            
+            if (!(de.CurrentTool is DraftLineTool dlt) || !dlt.AddedPoints.Any())
                 return;
-            
+
             var f = dlt.AddedPoints.First();
             var l = dlt.AddedPoints.Last();
             de.Draft.Elements.Add(new DraftLine(l, f, de.Draft));
             SetTool(new SelectionTool(this));
+        }
+
+        private void paramettricToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var d = AutoDialog.DialogHelpers.StartDialog();
+            d.AddOptionsField("type", "Type", new[] { "Rectangle", "Circle" }, 0);
+
+            if (!d.ShowDialog())
+                return;
+
+            var idx = d.GetOptionsFieldIdx("type");
+            switch (idx)
+            {
+                case 0:
+                    {
+                        d = AutoDialog.DialogHelpers.StartDialog();
+                        d.AddNumericField("x", "X", 0, min: -10000);
+                        d.AddNumericField("y", "Y", 0, min: -10000);
+                        d.AddNumericField("w", "Width", 0);
+                        d.AddNumericField("h", "Height", 0);
+                        if (!d.ShowDialog())
+                            return;
+
+                        //add rectangle here
+                        var xx = (float)d.GetNumericField("x");
+                        var yy = (float)d.GetNumericField("y");
+                        var ww = (float)d.GetNumericField("w");
+                        var hh = (float)d.GetNumericField("h");
+
+                        de.Backup();
+                        RectDraftTool.AddRectangletToDraft(de.Draft, new System.Drawing.PointF(xx, yy), new System.Drawing.PointF(xx + ww, yy + hh));
+
+                        break;
+                    }
+                case 1:
+                    {
+                        d = AutoDialog.DialogHelpers.StartDialog();
+                        d.AddNumericField("x", "X", 0, min: -10000);
+                        d.AddNumericField("y", "Y", 0, min: -10000);
+                        d.AddNumericField("r", "Radius", 0);
+
+                        if (!d.ShowDialog())
+                            return;
+
+                        //add rectangle here
+                        var xx = (float)d.GetNumericField("x");
+                        var yy = (float)d.GetNumericField("y");
+                        var r = (float)d.GetNumericField("r");
+
+
+                        de.Backup();
+
+
+                        break;
+                    }
+            }
+        }
+
+        private void solveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            de.SolveCSP();
+        }
+
+        public void PointAnchor()
+        {
+            if (de.selected != null && de.selected.Count() == 1)
+            {
+                if (de.selected[0] is DraftPoint dp)
+                {
+                    var ppc = new PointPositionConstraint(dp, de.Draft);
+                    de.Draft.AddConstraint(ppc);
+                }
+            }
+            else
+                MessageBox.Show("point not selected");
+        }
+
+        private void pointAnchorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            PointAnchor();
         }
     }
 }

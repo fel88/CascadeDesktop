@@ -155,4 +155,5 @@ namespace CSPLib
             writer.WriteLine($"<linearConstraint id=\"{Id}\" length=\"{Length}\" p0=\"{Element1.Id}\" p1=\"{Element2.Id}\"/>");
         }
     }
+
 }

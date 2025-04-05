@@ -9,19 +9,11 @@ using System.Text;
 using System.Windows.Forms;
 using AutoDialog;
 using CascadeDesktop.Tools;
-using System.Windows;
-using OpenTK.Platform.Windows;
-using Microsoft.Win32.SafeHandles;
 using System.IO.Compression;
 using System.Xml.Linq;
-using System.Diagnostics;
-using System.Reflection;
 using static CascadeDesktop.OccSceneObject;
-using System.Security.Cryptography;
-using OpenTK.Graphics.OpenGL;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Runtime.InteropServices;
 using CascadeDesktop.Interfaces;
+using CSPLib;
 
 namespace CascadeDesktop
 {
@@ -31,6 +23,10 @@ namespace CascadeDesktop
         {
             InitializeComponent();
             Form = this;
+            DebugHelpers.Error = (t) =>
+            {
+                StaticHelpers.ShowError(this, t, Text);                
+            };
             Load += Form1_Load;
             Shown += Form1_Shown;
             SizeChanged += Form1_SizeChanged;
@@ -45,7 +41,7 @@ namespace CascadeDesktop
             toolStripStatusLabel3.MouseEnter += ToolStripStatusLabel3_MouseEnter;
             toolStripStatusLabel3.MouseLeave += ToolStripStatusLabel3_MouseLeave;
 
-            _currentTool = new SelectionTool(this);
+            _currentTool = new Tools.SelectionTool(this);
         }
 
         private void ToolStripStatusLabel3_MouseLeave(object sender, EventArgs e)
@@ -211,7 +207,7 @@ namespace CascadeDesktop
         public void ResetTool()
         {
             //uncheckedAllToolButtons();
-            SetTool(new SelectionTool(this));
+            SetTool(new Tools.SelectionTool(this));
             //toolStripButton9.Checked = true;
         }
         private void Panel1_Paint(object sender, PaintEventArgs e)
@@ -1370,7 +1366,7 @@ namespace CascadeDesktop
 
         internal void SelectionTool()
         {
-            SetTool(new SelectionTool(this));
+            SetTool(new Tools.SelectionTool(this));
         }
 
         internal void ExtrudeFace()
