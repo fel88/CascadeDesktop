@@ -49,9 +49,4 @@ https://github.com/fel88/CascadeDesktop/assets/15663687/446fb389-447d-4e24-8220-
 - Build and run Cascade project (Ctrl+F5)
 
 
-## SAST Tools
-
-[PVS-Studio](https://pvs-studio.com/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source) - static analyzer for C, C++, C#, and Java code.
-
-
 <sub>Some icons by [Yusuke Kamiyamane](http://p.yusukekamiyamane.com/). Licensed under a [Creative Commons Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/)</sub>
