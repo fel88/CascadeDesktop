@@ -38,6 +38,13 @@ https://user-images.githubusercontent.com/15663687/223809990-b63d45bb-d33a-4a0f-
 <!--https://user-images.githubusercontent.com/15663687/220192496-6f2c0dce-35b9-4d2d-969c-4d66d6ed5dbb.mp4-->
 https://github.com/fel88/CascadeDesktop/assets/15663687/446fb389-447d-4e24-8220-a98b91b34a01
 
+## 2D CSP Draft editor using
+
+
+
+https://github.com/user-attachments/assets/db8478ee-192c-4962-8cb9-aa01b8007a7f
+
+
 
 ## How to build:
 - Install OpenCASCADE 7.7 (https://dev.opencascade.org/system/files/occt/OCC_7.7.0_release/opencascade-7.7.0-vc14-64.exe or https://github.com/Open-Cascade-SAS/OCCT/releases/download/V7_7_0/opencascade-7.7.0-vc14-64.exe)
