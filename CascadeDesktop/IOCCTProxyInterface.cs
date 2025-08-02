@@ -81,7 +81,7 @@ namespace CascadeDesktop
         Vector3 GetVertexPosition(ManagedObjHandle obj);
         void StartRotation(int x, int y);
         void Select(bool v);
-        List<Vector3> IteratePoly(ManagedObjHandle managedObjHandle);
+        List<List<Vector3>> IteratePoly(ManagedObjHandle managedObjHandle);
         ManagedObjHandle AddWireDraft(double height);
         ManagedObjHandle ImportBlueprint(Blueprint blueprint);
         ManagedObjHandle ImportBlueprint(Blueprint3d blueprint);

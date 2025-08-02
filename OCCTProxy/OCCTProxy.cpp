@@ -363,8 +363,12 @@ public:
 				//const TColgp_Array1OfPnt2d& uvNodes = aTr->UVNodes();
 
 				TColgp_Array1OfPnt aPoints(1, aTr->NbNodes());
-				for (Standard_Integer i = 1; i < aTr->NbNodes() + 1; i++)
+				NCollection_Array1<gp_Dir> aNormals(1, aTr->NbNodes());
+
+				for (Standard_Integer i = 1; i < aTr->NbNodes() + 1; i++) {
 					aPoints(i) = aTr->Node(i).Transformed(aLocation);
+					aNormals(i) = aTr->Normal(i).Transformed(aLocation);
+				}
 
 
 				Standard_Integer nnn = aTr->NbTriangles();
@@ -378,35 +382,51 @@ public:
 					gp_Pnt aPnt2 = aPoints(n2);
 					gp_Pnt aPnt3 = aPoints(n3);
 
+					gp_Dir aDir1 = aNormals(n1);
+					gp_Dir aDir2 = aNormals(n2);
+					gp_Dir aDir3 = aNormals(n3);
+
 					/*gp_Pnt2d uv1 = uvNodes(n1);
 					gp_Pnt2d uv2 = uvNodes(n2);
 					gp_Pnt2d uv3 = uvNodes(n3);*/
 
 					//QVector3D p1, p2, p3;
 
-					if (faceOrientation == TopAbs_Orientation::TopAbs_FORWARD)
+					//if (faceOrientation == TopAbs_Orientation::TopAbs_FORWARD)
 					{
 						ret.push_back(aPnt1.X());
 						ret.push_back(aPnt1.Y());
 						ret.push_back(aPnt1.Z());
 
+						ret.push_back(aDir1.X());
+						ret.push_back(aDir1.Y());
+						ret.push_back(aDir1.Z());
+
 						ret.push_back(aPnt2.X());
 						ret.push_back(aPnt2.Y());
 						ret.push_back(aPnt2.Z());
 
+						ret.push_back(aDir2.X());
+						ret.push_back(aDir2.Y());
+						ret.push_back(aDir2.Z());
+
 						ret.push_back(aPnt3.X());
 						ret.push_back(aPnt3.Y());
 						ret.push_back(aPnt3.Z());
+
+						ret.push_back(aDir3.X());
+						ret.push_back(aDir3.Y());
+						ret.push_back(aDir3.Z());
 
 						/*p1 = QVector3D(aPnt1.X(), aPnt1.Y(), aPnt1.Z());
 						p2 = QVector3D(aPnt2.X(), aPnt2.Y(), aPnt2.Z());
 						p3 = QVector3D(aPnt3.X(), aPnt3.Y(), aPnt3.Z());*/
 					}
-					else
+					/*else
 					{
-						/*p1 = QVector3D(aPnt3.X(), aPnt3.Y(), aPnt3.Z());
-						p2 = QVector3D(aPnt2.X(), aPnt2.Y(), aPnt2.Z());
-						p3 = QVector3D(aPnt1.X(), aPnt1.Y(), aPnt1.Z());*/
+						//p1 = QVector3D(aPnt3.X(), aPnt3.Y(), aPnt3.Z());
+						//p2 = QVector3D(aPnt2.X(), aPnt2.Y(), aPnt2.Z());
+						//p3 = QVector3D(aPnt1.X(), aPnt1.Y(), aPnt1.Z());
 						ret.push_back(aPnt3.X());
 						ret.push_back(aPnt3.Y());
 						ret.push_back(aPnt3.Z());
@@ -418,7 +438,7 @@ public:
 						ret.push_back(aPnt1.X());
 						ret.push_back(aPnt1.Y());
 						ret.push_back(aPnt1.Z());
-					}
+					}*/
 
 
 					/*
@@ -2122,22 +2142,34 @@ public:
 		return hhh;
 	}
 
-	System::Collections::Generic::List<Vector3^>^
+	System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^>^
 		IteratePoly(ManagedObjHandle^ h) {
 
+		System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^>^ ret = 
+			gcnew System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^> ();
 
-		System::Collections::Generic::List<Vector3^>^ ret = gcnew System::Collections::Generic::List<Vector3^>();
+		System::Collections::Generic::List<Vector3^>^ verts = gcnew System::Collections::Generic::List<Vector3^>();
+		System::Collections::Generic::List<Vector3^>^ norms = gcnew System::Collections::Generic::List<Vector3^>();
 		ObjHandle hc = h->ToObjHandle();
 
 		auto pp = impl->IteratePoly(hc);
-		for (size_t i = 0; i < pp.size(); i += 3)
+		for (size_t i = 0; i < pp.size(); i += 6)
 		{
 			Vector3^ v = gcnew Vector3();
 			v->X = pp[i];
 			v->Y = pp[i + 1];
 			v->Z = pp[i + 2];
-			ret->Add(v);
+			verts->Add(v);
+			
+			Vector3^ v2 = gcnew Vector3();
+			v2->X = pp[i+3];
+			v2->Y = pp[i + 4];
+			v2->Z = pp[i + 5];
+			norms->Add(v2);
 		}
+
+		ret->Add(verts);
+		ret->Add(norms);
 
 		return ret;
 	}

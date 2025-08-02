@@ -278,7 +278,11 @@ namespace CascadeDesktop
         {
             //curForm.ImportModel(ModelFormat.STEP);
             // return;
-            OpenFileDialog ofd = new OpenFileDialog();
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Filter = "BREP models (step; iges)|*.stp;*.step;*.iges;*.igs"
+            };
+
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
 
@@ -917,24 +921,25 @@ namespace CascadeDesktop
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
 
-
         public void ExportSelectedToObj()
         {
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.Filter = "Obj mesh|*.obj";
+
             if (sfd.ShowDialog() != DialogResult.OK)
                 return;
 
-            var res = proxy.IteratePoly(proxy.GetSelectedObject()).Select(z => new Vector3d(z.X, z.Y, z.Z)).ToArray();
+            var poly = proxy.IteratePoly(proxy.GetSelectedObject());
+            var res1 = poly[0].Select(z => new Vector3d(z.X, z.Y, z.Z)).ToArray();
+            var res2 = poly[1].Select(z => new Vector3d(z.X, z.Y, z.Z)).ToArray();
 
             const float tolerance = 1e-8f;
             StringBuilder sb = new StringBuilder();
             List<Vector3d> vvv = new List<Vector3d>();
 
-
-            for (int i = 0; i < res.Length; i += 3)
+            for (int i = 0; i < res1.Length; i += 3)
             {
-                var verts = new[] { res[i], res[i + 1], res[i + 2] };
+                var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
                 foreach (var v in verts)
                 {
                     if (vvv.Any(z => (z - v).Length < tolerance))
@@ -944,10 +949,22 @@ namespace CascadeDesktop
                     sb.AppendLine($"v {v.X} {v.Y} {v.Z}".Replace(",", "."));
                 }
             }
-            int counter = 1;
-            for (int i = 0; i < res.Length; i += 3)
+            for (int i = 0; i < res2.Length; i += 3)
             {
-                var verts = new[] { res[i], res[i + 1], res[i + 2] };
+                var verts = new[] { res2[i], res2[i + 1], res2[i + 2] };
+                foreach (var v in verts)
+                {
+                    if (vvv.Any(z => (z - v).Length < tolerance))
+                        continue;
+
+                    vvv.Add(v);
+                    sb.AppendLine($"vn {v.X} {v.Y} {v.Z}".Replace(",", "."));
+                }
+            }
+            int counter = 1;
+            for (int i = 0; i < res1.Length; i += 3)
+            {
+                var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
                 List<int> indc = new List<int>();
 
                 foreach (var vitem in verts)
