@@ -255,7 +255,7 @@ public:
 	double Radius;
 };
 
-public ref class ManagedObjHandle {
+public ref class ManagedObjHandle {//todo make two diffrent handles for top entity and all anothers 
 public:
 
 	int BindId;
@@ -2240,13 +2240,15 @@ public:
 		return ret;
 	}
 
+	
+
 	void MoveObject(ManagedObjHandle^ h, double x, double y, double z, bool rel)
 	{
 		auto o = impl->findObject(h->BindId);
 		gp_Trsf tr;
 		tr.SetValues(1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z);
 		if (rel) {
-			auto mtr = GetObjectMatrix(h);
+			auto mtr = o->Transformation();
 			tr.Multiply(mtr);
 		}
 
@@ -2490,10 +2492,10 @@ public:
 		//myAISContext()->Display(new AIS_Shape(ret), true);
 	}
 
-	ManagedObjHandle^ MakePrismFromFace(ManagedObjHandle^ m, double height) 
-		{
-			return MakePrismFromFace(m->AisShapeBindId, m, height);
-		}
+	ManagedObjHandle^ MakePrismFromFace(ManagedObjHandle^ m, double height)
+	{
+		return MakePrismFromFace(m->AisShapeBindId, m, height);
+	}
 
 	ManagedObjHandle^ MakePrismFromFace(int parentId, ManagedObjHandle^ m, double height) {
 		ObjHandle h = m->ToObjHandle();

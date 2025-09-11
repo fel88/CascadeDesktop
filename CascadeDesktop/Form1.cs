@@ -619,7 +619,7 @@ namespace CascadeDesktop
             var y = d.GetNumericField("y");
             var z = d.GetNumericField("z");
 
-            var sob = proxy.GetSelectedObject();
+            var sob = GetSelectedOccObject().Handle;
 
             switch (d.GetOptionsFieldIdx("mode"))
             {
@@ -702,7 +702,7 @@ namespace CascadeDesktop
             var y = d.GetNumericField("y");
             var z = d.GetNumericField("z");
 
-            proxy.RotateObject(proxy.GetSelectedObject(), x, y, z, ang * Math.PI / 180f, true);
+            proxy.RotateObject(GetSelectedOccObject().Handle, x, y, z, ang * Math.PI / 180f, true);
         }
 
         public void MirrorSelected()
@@ -1426,6 +1426,16 @@ namespace CascadeDesktop
             var fr = Objs.FirstOrDefault(z => z.Handle.BindId == h.BindId || z.ChildsIds.Contains(h.BindId));
             return fr;
         }
+
+        public ManagedObjHandle GetSelectedObjectWithParent()
+        {
+            var h = proxy.GetSelectedObject();
+            var hs = proxy.GetSelectedObjects();
+            var fr = Objs.FirstOrDefault(z => z.Handle.BindId == h.BindId || z.ChildsIds.Contains(h.BindId));
+            h.AisShapeBindId = fr.Handle.BindId;
+            return h;
+        }
+
         public OccSceneObject FindSelectedOccObjectByEdge(ManagedObjHandle edge)
         {
             foreach (var item in Objs)

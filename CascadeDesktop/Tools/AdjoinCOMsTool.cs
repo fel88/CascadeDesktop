@@ -45,6 +45,7 @@ namespace CascadeDesktop.Tools
                 return;
 
             surfs.Add(face);
+            
             objs.Add(fr.Handle);
             if (surfs.Count == 2)
             {
