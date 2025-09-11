@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Windows.Documents;
 using System.Xml.Linq;
 
 namespace CascadeDesktop
@@ -15,14 +17,21 @@ namespace CascadeDesktop
 
         public bool IsEquals(ManagedObjHandle h)
         {
-            return h.Handle == Handle.Handle;
+            return h.BindId == Handle.BindId;
         }
 
         public OccSceneObject(ManagedObjHandle h, IOCCTProxyInterface proxy)
         {
             Handle = h;
             Proxy = proxy;
+            var faces = proxy.GetFacesInfo(h);
+            var edges = proxy.GetEdgesInfo(h);
+            var verts = proxy.GetVertsInfo(h);
+            ChildsIds = faces.Select(z => z.BindId).Concat(edges.Select(u => u.BindId)).Concat(verts.Select(u => u.BindId)).ToList();
         }
+
+        public List<int> ChildsIds = new List<int>();
+
         public void SetTransparency(TransparencyLevel t)
         {
             Transparency = t;

@@ -1,5 +1,6 @@
 ﻿using CascadeDesktop.Interfaces;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace CascadeDesktop.Tools
@@ -31,14 +32,20 @@ namespace CascadeDesktop.Tools
             if (!Editor.Proxy.IsObjectSelected())
                 return;
 
-            var proxy = Editor.Proxy;
-            var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
+            var proxy = Editor.Proxy; 
+            var sob = proxy.GetSelectedObject();
+            var fr = Editor.Objs.FirstOrDefault(z => z.ChildsIds.Contains(sob.BindId));
+            if (fr == null)
+                return;
+
+            sob.AisShapeBindId = fr.Handle.BindId;
+            var face = proxy.GetFaceInfo(sob);
 
             if (face == null)
                 return;
 
             surfs.Add(face);
-            objs.Add(proxy.GetSelectedObject());
+            objs.Add(sob);
             if (surfs.Count == 2)
             {
                 var shift = -surfs[0].COM.ToVector3d() + surfs[1].COM.ToVector3d();

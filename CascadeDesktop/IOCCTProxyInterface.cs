@@ -18,6 +18,8 @@ namespace CascadeDesktop
         void TopView();
         void FrontView();
         ManagedObjHandle GetSelectedObject();
+        List<ManagedObjHandle> GetSelectedObjects();
+        ManagedObjHandle GetSelectedEdge();
         ManagedObjHandle GetDetectedObject();
         bool IsObjectSelected();
         void SetDisplayMode(int m);
@@ -46,6 +48,7 @@ namespace CascadeDesktop
         ManagedObjHandle MakePrismFromFace(ManagedObjHandle managedObjHandle, double height);
         List<SurfInfo> GetFacesInfo(ManagedObjHandle managedObjHandle);
         List<EdgeInfo> GetEdgesInfo(ManagedObjHandle managedObjHandle);
+        List<VertInfo> GetVertsInfo(ManagedObjHandle managedObjHandle);
         void SetDefaultGradient();
         void BackView();
         void BottomView();
@@ -76,9 +79,9 @@ namespace CascadeDesktop
         bool InitViewer(IntPtr handle);
         void SetMaterial(int v);
         void Zoom(int v1, int v2, int v3, int v4);
-        EdgeInfo GetEdgeInfoPosition(ManagedObjHandle obj);
-        SurfInfo GetFaceInfo(ManagedObjHandle obj);
-        Vector3 GetVertexPosition(ManagedObjHandle obj);
+        EdgeInfo GetEdgeInfoPosition( ManagedObjHandle obj);
+        SurfInfo GetFaceInfo( ManagedObjHandle obj);
+        Vector3 GetVertexPosition( ManagedObjHandle obj);
         void StartRotation(int x, int y);
         void Select(bool v);
         List<List<Vector3>> IteratePoly(ManagedObjHandle managedObjHandle);

@@ -14,6 +14,7 @@ using System.Xml.Linq;
 using static CascadeDesktop.OccSceneObject;
 using CascadeDesktop.Interfaces;
 using CSPLib;
+using OpenTK.Graphics.ES11;
 
 namespace CascadeDesktop
 {
@@ -25,7 +26,7 @@ namespace CascadeDesktop
             Form = this;
             DebugHelpers.Error = (t) =>
             {
-                StaticHelpers.ShowError(this, t, Text);                
+                StaticHelpers.ShowError(this, t, Text);
             };
             Load += Form1_Load;
             Shown += Form1_Shown;
@@ -108,6 +109,11 @@ namespace CascadeDesktop
 
         private void UpdateStatus(ManagedObjHandle obj)
         {
+            var fr = Objs.FirstOrDefault(z => obj.BindId == z.Handle.BindId || z.ChildsIds.Contains(obj.BindId));
+            if (fr == null)
+                return;
+
+            obj.AisShapeBindId = fr.Handle.BindId;
             var v = proxy.GetVertexPosition(obj);
             var face = proxy.GetFaceInfo(obj);
             var edge = proxy.GetEdgeInfoPosition(obj);
@@ -389,6 +395,7 @@ namespace CascadeDesktop
             var h = d.GetNumericField("h");
             var l = d.GetNumericField("l");
             var cs = proxy.MakeBox(0, 0, 0, w, l, h);
+            var edges = proxy.GetEdgesInfo(cs);
             Objs.Add(new OccSceneObject(cs, proxy));
         }
 
@@ -611,16 +618,18 @@ namespace CascadeDesktop
             var y = d.GetNumericField("y");
             var z = d.GetNumericField("z");
 
+            var sob = proxy.GetSelectedObject();
+
             switch (d.GetOptionsFieldIdx("mode"))
             {
                 case 0:
-                    proxy.MoveObject(proxy.GetSelectedObject(), x, y, z, true);
+                    proxy.MoveObject(sob, x, y, z, true);
                     break;
                 case 1:
-                    proxy.MoveObject(proxy.GetSelectedObject(), x, y, z, false);
+                    proxy.MoveObject(sob, x, y, z, false);
                     break;
                 case 2:
-                    var com = proxy.GetFaceInfo(proxy.GetSelectedObject()).COM;
+                    var com = proxy.GetFaceInfo(sob).COM;
                     var shift = new Vector3d(x, y, z) - com.ToVector3d();
                     proxy.MoveObject(proxy.GetSelectedObject(), shift.X, shift.Y, shift.Z, true);
                     break;
@@ -876,8 +885,11 @@ namespace CascadeDesktop
                 return;
 
             var r = d.GetNumericField("r");
-            var so = proxy.GetSelectedObject();
-            var occ = GetSelectedOccObject();
+            var so = proxy.GetSelectedEdge();
+
+            //var occ = GetSelectedOccObject();
+
+            var occ = FindSelectedOccObjectByEdge(so);
             if (occ == null)
                 return;
 
@@ -885,9 +897,9 @@ namespace CascadeDesktop
             ManagedObjHandle cs = null;
 
             if (faces.Count == 0)//2d fillet             
-                cs = proxy.MakeFillet2d(so, r);
+                cs = proxy.MakeFillet2d(occ.Handle, r);
             else
-                cs = proxy.MakeFillet(so, r);
+                cs = proxy.MakeFillet(occ.Handle, r);
 
             Objs.Add(new OccSceneObject(cs, proxy));
             Remove(occ);
@@ -1409,9 +1421,22 @@ namespace CascadeDesktop
         public OccSceneObject GetSelectedOccObject()
         {
             var h = proxy.GetSelectedObject();
-            var fr = Objs.FirstOrDefault(z => z.IsEquals(h));
+            var hs = proxy.GetSelectedObjects();
+            var fr = Objs.FirstOrDefault(z => z.Handle.BindId == h.BindId || z.ChildsIds.Contains(h.BindId));
             return fr;
         }
+        public OccSceneObject FindSelectedOccObjectByEdge(ManagedObjHandle edge)
+        {
+            foreach (var item in Objs)
+            {
+                var edges = proxy.GetEdgesInfo(item.Handle);
+                if (edges.Any(z => z.BindId == edge.BindId))
+                    return item;
+            }
+
+            return null;
+        }
+
         public OccSceneObject GetDetectedOccObject()
         {
             var h = proxy.GetDetectedObject();

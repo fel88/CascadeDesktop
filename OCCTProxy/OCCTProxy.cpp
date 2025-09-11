@@ -92,6 +92,14 @@
 #include <Geom_BSplineCurve.hxx>
 #include <GeomAPI_PointsToBSpline.hxx>
 
+#include <TopTools_DataMapOfShapeInteger.hxx>
+#include <XCAFDoc_ShapeTool.hxx>
+#include <TDF_Label.hxx>
+#include <TDF_ChildIterator.hxx>
+#include <TDF_Tool.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TCollection_AsciiString.hxx>
+
 #include <BRepLib.hxx>
 // list of required OCCT libraries
 
@@ -150,6 +158,9 @@ public:
 	unsigned __int64 handle;
 	unsigned __int64 handleT;
 	unsigned __int64 handleF;
+	int bindId;
+	int aisShapeBindId;
+	int shapeType;
 };
 
 public ref struct Vector3 {
@@ -183,6 +194,8 @@ public:
 	double Length;
 	unsigned __int64 Handle;
 	unsigned __int64 THandle;
+	int  BindId;
+	int  AisShapeBindId;
 };
 
 public ref class CircleEdgeInfo : EdgeInfo {
@@ -196,6 +209,16 @@ public:
 	Vector3^ COM;//center of mass
 	unsigned __int64 Handle;
 	unsigned __int64 THandle;
+	int BindId;
+	int AisShapeBindId;//parent
+};
+
+public ref class VertInfo {
+public:
+	Vector3^ Position;
+	
+	int BindId;
+	int AisShapeBindId;//parent
 };
 
 public ref class PlaneSurfInfo : SurfInfo {
@@ -236,17 +259,28 @@ public:
 	UINT64 Handle;
 	UINT64 HandleT;
 	UINT64 HandleF;
+	int BindId;
+	int AisShapeBindId;//parent
+	int ShapeType;
 
 	void FromObjHandle(ObjHandle h) {
 		Handle = h.handle;
 		HandleT = h.handleT;
 		HandleF = h.handleF;
+		BindId = h.bindId;
+		AisShapeBindId = h.aisShapeBindId;
+		ShapeType = h.shapeType;
 	}
+
 	ObjHandle ToObjHandle() {
 		ObjHandle h;
+		h.bindId = BindId;
 		h.handle = Handle;
 		h.handleT = HandleT;
 		h.handleF = HandleF;
+		h.shapeType = ShapeType;
+		h.aisShapeBindId = AisShapeBindId;
+
 		return h;
 	}
 };
@@ -289,6 +323,13 @@ static NCollection_String toNString(String^ theString)
 }
 class OCCImpl {
 public:
+	OCCImpl() {
+
+	}
+	TopTools_IndexedMapOfShape _map_shape_int;
+	opencascade::handle<AIS_InteractiveContext> ctx;
+
+
 	ObjHandle getSelectedEdge(AIS_InteractiveContext* ctx) {
 		auto objs = getSelectedObjectsList(ctx);
 		for (auto item : objs) {
@@ -324,7 +365,7 @@ public:
 	}
 
 	std::vector<double> IteratePoly(ObjHandle h) {
-		auto obj = getObject(h);
+		auto obj = findObject(h);
 		const auto& shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
 
 		//std::vector<QVector3D> vertices;
@@ -486,6 +527,13 @@ public:
 
 			const TopoDS_Shape& shape = brepowner->Shape();
 
+			if (_map_shape_int.Contains(shape)) {
+				h.bindId = _map_shape_int.FindIndex(shape);
+			}
+			else {
+
+				h.bindId = _map_shape_int.Add(shape);
+			}
 			TopoDS_TShape* ptshape = shape.TShape().get();
 
 			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
@@ -509,11 +557,20 @@ public:
 				break;
 
 			const TopoDS_Shape& shape = brepowner->Shape();
+			h.shapeType = shape.ShapeType();
 
 			TopoDS_TShape* ptshape = shape.TShape().get();
 
 			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
 			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
+
+			if (_map_shape_int.Contains(shape)) {
+				h.bindId = _map_shape_int.FindIndex(shape);
+			}
+			else {
+
+				h.bindId = _map_shape_int.Add(shape);
+			}
 			h.handle = (unsigned __int64)(self.get());
 			h.handleT = (unsigned __int64)(ptshape);
 			h.handleF = (unsigned __int64)(&shape);
@@ -545,8 +602,105 @@ public:
 		}
 		return h;
 	}
-	AIS_InteractiveObject* getObject(const ObjHandle& handle) const {
+
+
+	void CreateOcafDoc() {
+		// 1. Create a document and obtain the main label (root)
+		/*Handle(TDocStd_Document) doc = new TDocStd_Document("MyDocument");
+		Handle(TDF_Label) rootLabel = doc->Main();
+
+		// 2. Get the ShapeTool from the document
+		Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(doc->Main());
+
+		// 2. Get the ShapeTool from the document
+		Handle(XCAFDoc_ShapeTool) shapeTool = XCAFDoc_DocumentTool::ShapeTool(doc->Main());
+
+		// 3. Create some geometric shapes (e.g., using ModelingData module)
+		TopoDS_Shape boxShape = BRepBuilderAPI_MakeBox(gp_Ax2(), 10, 10, 10).Shape();
+
+		// 4. Create a label for the shape
+		TDF_Label boxLabel;
+		shapeTool->AddShape(boxShape, boxLabel); // Add the shape to the framework
+
+		// 5. Assign a name to the shape's label
+		TDF_Label nameLabel;
+		shapeTool->SetName(boxLabel, "MyBox");
+		*/
+		// 6. Assign a color to the shape's label
+		// (Details for color management would be in separate code)
+
+		/*TopoDS_Shape shape;
+		int shape_id = 123;
+		_map_shape_int.Bind(shape, shape_id);
+		int back_shape_id = 0;
+		if (_map_shape_int.IsBound(shape)) {
+			back_shape_id = _map_shape_int(shape);
+		}*/
+
+	}
+	// Assuming 'theLabel' is a TDF_Label and 'aShapeTool' is a Handle(XCAFDoc_ShapeTool)
+	// and 'shape' is the TopoDS_Shape (e.g., TopoDS_Edge) you are looking for.
+
+	TCollection_AsciiString findName(const TDF_Label& theLabel, Handle(XCAFDoc_ShapeTool) aShapeTool, const TopoDS_Shape& shape) {
+		for (TDF_ChildIterator Father(theLabel, Standard_True); Father.More(); Father.Next()) {
+			TDF_Label Child = Father.Value();
+			if (aShapeTool->IsShape(Child)) {
+				TopoDS_Shape aShape = aShapeTool->GetShape(Child);
+				if (shape.IsSame(aShape)) {
+					TCollection_AsciiString node;
+					TDF_Tool::Entry(Child, node); // Get the entry string (tag list) of the label
+					return node;
+				}
+			}
+		}
+		return "null"; // Or handle not found case appropriately
+	}
+	/*AIS_InteractiveObject* getObject(const ObjHandle& handle) const {
 		return reinterpret_cast<AIS_InteractiveObject*> (handle.handle);
+	}*/
+
+	void setAisCtx(opencascade::handle<AIS_InteractiveContext> _ctx) {
+
+		ctx = opencascade::handle<AIS_InteractiveContext>(_ctx);
+	}
+	const TopoDS_Shape& findShape(const ObjHandle& handle) const {
+		auto theIndex = handle.bindId;
+		if (theIndex < 1 || theIndex > _map_shape_int. Extent())
+			return {};
+
+		return _map_shape_int.FindKey(handle.bindId);
+	}
+
+	opencascade::handle<AIS_InteractiveObject> findObject(const ObjHandle& handle ) const {
+		return findObject(handle.bindId);
+	}
+
+	opencascade::handle<AIS_InteractiveObject> findObject(int bindId) const {
+		
+		AIS_ListOfInteractive aList;
+		ctx->DisplayedObjects(aList);
+		AIS_ListIteratorOfListOfInteractive it(aList);
+		//iterate on list:
+		while (it.More())
+		{
+			auto sin = it.Value();
+
+			Handle(AIS_Shape) aAIS_Shape = Handle(AIS_Shape)::DownCast(sin);
+			if (!aAIS_Shape.IsNull()) {
+				TopoDS_Shape aTopoDS_Shape = aAIS_Shape->Shape();
+				// Use aTopoDS_Shape here
+
+				if (_map_shape_int.Contains(aTopoDS_Shape)) {
+					if (_map_shape_int.FindIndex(aTopoDS_Shape) == bindId)
+						return sin;
+				}
+			}
+
+			//do something with the current item : it.Value ()
+			it.Next();
+		}
+		return {};
+		//return reinterpret_cast<AIS_InteractiveObject*> (handle.handle);
 	}
 
 	TopoDS_Shape* getShapeFromObject(const ObjHandle& handle) const {
@@ -554,8 +708,8 @@ public:
 	}
 
 	TopoDS_Shape MakeBoolDiff(ObjHandle h1, ObjHandle h2, bool fixShape = true) {
-		const auto* obj1 = getObject(h1);
-		const auto* obj2 = getObject(h2);
+		auto obj1 = findObject(h1);
+		auto obj2 = findObject(h2);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(obj1)->Shape();
 		shape0 = shape0.Located(obj1->LocalTransformation());
@@ -571,15 +725,24 @@ public:
 		}
 		return shape;
 	}
-
+	
 	TopoDS_Shape MakeBoolFuse(ObjHandle h1, ObjHandle h2, bool fixShape = true) {
-		const auto* obj1 = getObject(h1);
-		const auto* obj2 = getObject(h2);
+		//const auto* obj1 = getObject(h1);
+		auto obj1 = findObject(h1);
+		auto obj2 = findObject(h2);
+		//const auto* obj2 = getObject(h2);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(obj1)->Shape();
-		shape0 = shape0.Located(obj1->LocalTransformation());
+		auto trsf = obj1->Transformation();
+		shape0 = BRepBuilderAPI_Transform(shape0, trsf, Standard_True);
+
+		//shape0 = shape0.Located(obj1->LocalTransformation());
 		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
-		shape1 = shape1.Located(obj2->LocalTransformation());
+	//	shape1 = shape1.Located(obj2->LocalTransformation());
+		auto trsf2 = obj2->Transformation();
+		shape1 = BRepBuilderAPI_Transform(shape1, trsf2, Standard_True);
+
+
 		const TopoDS_Shape shape = BRepAlgoAPI_Fuse(shape0, shape1);
 
 		if (fixShape) {
@@ -592,8 +755,8 @@ public:
 	}
 
 	TopoDS_Shape MakeBoolCommon(ObjHandle h1, ObjHandle h2, bool fixShape = true) {
-		const auto* obj1 = getObject(h1);
-		const auto* obj2 = getObject(h2);
+		auto obj1 = findObject(h1);
+		auto obj2 = findObject(h2);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(obj1)->Shape();
 		shape0 = shape0.Located(obj1->LocalTransformation());
@@ -620,6 +783,7 @@ public ref class OCCTProxy
 
 
 public:
+
 	static OCCImpl* impl = new OCCImpl();
 	// ============================================
 	// Viewer functionality
@@ -683,8 +847,9 @@ public:
 		{
 			aWNTWindow->Map();
 		}
-		myAISContext() = new AIS_InteractiveContext(myViewer());
 
+		myAISContext() = new AIS_InteractiveContext(myViewer());
+		impl->setAisCtx(myAISContext());
 		myAISContext()->UpdateCurrentViewer();
 		myView()->Redraw();
 		myView()->MustBeResized();
@@ -701,9 +866,48 @@ public:
 
 	ManagedObjHandle^ GetSelectedObject() {
 		auto ret = impl->getSelectedObject(myAISContext().get());
+
 		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
 		hh->FromObjHandle(ret);
 		return hh;
+
+	}
+	
+	System::Collections::Generic::List<ManagedObjHandle^>^ GetSelectedObjects() {
+		auto objs = impl->getSelectedObjectsList(myAISContext().get());
+		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
+		for (size_t i = 0; i < objs.size(); i++)
+		{
+			ManagedObjHandle^ hh = gcnew ManagedObjHandle();
+			hh->FromObjHandle(objs[i]);
+			ret->Add(hh);
+		}
+		return ret;
+	}
+
+
+	ManagedObjHandle^ GetSelectedEdge() {
+		auto ret = impl->getSelectedEdge(myAISContext().get());
+
+		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
+		hh->FromObjHandle(ret);
+		return hh;
+	}
+
+	System::Collections::Generic::List<ManagedObjHandle^>^ GetSelectedEdges() {
+
+		std::vector<ObjHandle> edges;
+		impl->GetSelectedEdges(myAISContext().get(), edges);
+		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
+		for (size_t i = 0; i < edges.size(); i++)
+		{
+			ManagedObjHandle^ hh = gcnew ManagedObjHandle();
+			hh->FromObjHandle(edges[i]);
+			ret->Add(hh);
+		}
+
+
+		return ret;
 	}
 
 	ManagedObjHandle^ GetDetectedObject() {
@@ -2099,6 +2303,7 @@ public:
 			tr.Multiply(mtr);
 		}
 
+
 		TopLoc_Location p(tr);
 		myAISContext()->SetLocation(o, p);
 	}
@@ -2106,7 +2311,7 @@ public:
 	ManagedObjHandle^ MirrorObject(ManagedObjHandle^ h, Vector3^ dir, Vector3^ pnt, bool axis2, bool rel)
 	{
 		ObjHandle oh = h->ToObjHandle();
-		const auto* object1 = impl->getObject(oh);
+		const auto object1 = impl->findObject(oh);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
 
@@ -2145,8 +2350,8 @@ public:
 	System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^>^
 		IteratePoly(ManagedObjHandle^ h) {
 
-		System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^>^ ret = 
-			gcnew System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^> ();
+		System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^>^ ret =
+			gcnew System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^>();
 
 		System::Collections::Generic::List<Vector3^>^ verts = gcnew System::Collections::Generic::List<Vector3^>();
 		System::Collections::Generic::List<Vector3^>^ norms = gcnew System::Collections::Generic::List<Vector3^>();
@@ -2160,9 +2365,9 @@ public:
 			v->Y = pp[i + 1];
 			v->Z = pp[i + 2];
 			verts->Add(v);
-			
+
 			Vector3^ v2 = gcnew Vector3();
-			v2->X = pp[i+3];
+			v2->X = pp[i + 3];
 			v2->Y = pp[i + 4];
 			v2->Z = pp[i + 5];
 			norms->Add(v2);
@@ -2210,7 +2415,7 @@ public:
 		BRepBuilderAPI_Copy copy;
 		ObjHandle h = m->ToObjHandle();
 
-		const auto* object1 = impl->getObject(h);
+		const auto object1 = impl->findObject(h);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
 		shape0 = shape0.Located(object1->LocalTransformation());
@@ -2232,7 +2437,7 @@ public:
 	ManagedObjHandle^ MakePrism(ManagedObjHandle^ m, double height) {
 		ObjHandle h = m->ToObjHandle();
 		BRepBuilderAPI_MakeFace bface;
-		const auto* object1 = impl->getObject(h);
+		auto			 object1 = impl->findObject(h);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
 		auto compound = TopoDS::Compound(shape0);
@@ -2297,7 +2502,7 @@ public:
 	ManagedObjHandle^ MakePrismFromFace(ManagedObjHandle^ m, double height) {
 		ObjHandle h = m->ToObjHandle();
 		BRepBuilderAPI_MakeFace bface;
-		const auto* object1 = impl->getObject(h);
+		const auto object1 = impl->findObject(h);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
 		shape0 = shape0.Located(object1->LocalTransformation());
@@ -2463,26 +2668,39 @@ public:
 		hhh->FromObjHandle(hn);
 		return hhh;
 	}
+	Vector3^ GetVertexPosition( ManagedObjHandle^ h1)
+	{
+		return GetVertexPosition(h1->AisShapeBindId, h1);
+	}
 
-	Vector3^ GetVertexPosition(ManagedObjHandle^ h1)
+	Vector3^ GetVertexPosition(int parentId, ManagedObjHandle^ h1)
 	{
 		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
-		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
-		shape0 = shape0.Located(object1->LocalTransformation());
+		const auto object1 = impl->findObject(parentId);	
+
+		auto temp1 = Handle(AIS_Shape)::DownCast(object1);
+		if (temp1.IsNull()) {
+			return nullptr;
+		}
+		TopoDS_Shape shape0 = temp1->Shape();
+
+		
 
 		for (TopExp_Explorer exp(shape0, TopAbs_VERTEX); exp.More(); exp.Next()) {
-			const auto ttt = exp.Current();
+			auto ttt = exp.Current();
+			auto ind = GetShapeIndex(ttt);
+			ttt = ttt.Located(object1->LocalTransformation());
+
 			const auto& edgee = TopoDS::Vertex(ttt);
-			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
-			auto ttt4 = (unsigned __int64)(&ttt);
+			//	auto tt = ttt.TShape();
+				//TopoDS_TShape* ptshape = tt.get();
+				//auto ttt3 = (unsigned __int64)(ptshape);
+				//auto ttt4 = (unsigned __int64)(&ttt);
 
 			if (edgee.IsNull()) {
 				continue;
 			}
-			if (ttt3 == hh.handleT) {
+			if (ind == hh.bindId) {
 				Vector3^ ret = gcnew Vector3();
 
 				gp_Pnt p = BRep_Tool::Pnt(edgee);
@@ -2497,23 +2715,40 @@ public:
 
 	EdgeInfo^ GetEdgeInfoPosition(ManagedObjHandle^ h1)
 	{
-		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
-		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
-		shape0 = shape0.Located(object1->LocalTransformation());
+		return GetEdgeInfoPosition(h1->AisShapeBindId, h1);
+	}
 
-		for (TopExp_Explorer exp(shape0, TopAbs_EDGE); exp.More(); exp.Next()) {
-			const auto ttt = exp.Current();
+	EdgeInfo^ GetEdgeInfoPosition(int parentId, ManagedObjHandle^ h1)
+	{
+		auto hh = h1->ToObjHandle();
+		const auto object1 = impl->findObject(parentId);
+		if (!object1)
+			return {};
+
+		auto temp1 = Handle(AIS_Shape)::DownCast(object1);
+		if (temp1.IsNull()) {
+			return nullptr;
+		}
+		TopoDS_Shape shape0 = temp1->Shape();
+
+
+		
+
+		for (TopExp_Explorer exp(shape0, TopAbs_EDGE); exp.More(); exp.Next()) {			
+			auto ttt = exp.Current();
+			auto ind = AddOrGetShapeIndex(ttt);
+			ttt = ttt.Located(object1->LocalTransformation());
+
 			const auto& edgee = TopoDS::Edge(ttt);
 			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
-			auto ttt4 = (unsigned __int64)(&ttt);
+			//TopoDS_TShape* ptshape = tt.get();
+			//auto ttt3 = (unsigned __int64)(ptshape);
+			//auto ttt4 = (unsigned __int64)(&ttt);
 
 			if (edgee.IsNull()) {
 				continue;
 			}
-			if (ttt3 == hh.handleT) {
+			if (ind == hh.bindId) {
 
 				GProp_GProps massProps;
 				BRepGProp::LinearProperties(ttt, massProps);
@@ -2547,7 +2782,8 @@ public:
 				}
 				else
 					ret = gcnew EdgeInfo();
-
+				ret->BindId = ind;
+				ret->AisShapeBindId = parentId;
 				ret->Length = len;
 				ret->CurveType = (CurveType)curveType;
 				ret->Start = gcnew Vector3();
@@ -2743,18 +2979,24 @@ public:
 	}
 
 	SurfInfo^ GetFaceInfo(ManagedObjHandle^ h1) {
+		return GetFaceInfo(h1->AisShapeBindId, h1);
+	}
+
+	SurfInfo^ GetFaceInfo(int parentId, ManagedObjHandle^ h1) {
 		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
+		const auto object1 = impl->findObject(parentId);
 		auto temp1 = Handle(AIS_Shape)::DownCast(object1);
 		if (temp1.IsNull()) {
 			return nullptr;
 		}
 		TopoDS_Shape shape0 = temp1->Shape();
-		shape0 = shape0.Located(object1->LocalTransformation());
 
 		for (TopExp_Explorer exp(shape0, TopAbs_FACE); exp.More(); exp.Next())
 		{
-			const auto ttt = exp.Current();
+			auto ttt = exp.Current();
+			auto ind = GetShapeIndex(ttt);
+			ttt = ttt.Located(object1->LocalTransformation());
+
 			auto loc = ttt.Location();
 
 			const auto& aFace = TopoDS::Face(ttt);
@@ -2765,27 +3007,38 @@ public:
 
 			GeomAdaptor_Surface theGASurface(aSurf);
 
-			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
+			//auto tt = ttt.TShape();
+			//TopoDS_TShape* ptshape = tt.get();
+			//auto ttt3 = (unsigned __int64)(ptshape);
 
 			if (aFace.IsNull()) {
 				continue;
 			}
-			if (ttt3 == hh.handleT) {
+			if (ind == hh.bindId) {
 				switch (theGASurface.GetType())
 				{
 				case GeomAbs_Plane:
 				{
-					return ExtractPlaneSurface(ttt);
+					auto ret = ExtractPlaneSurface(ttt);
+					ret->BindId = ind;
+					ret->AisShapeBindId = parentId;
+					return ret;
 				}
 				case GeomAbs_Cylinder:
 				{
-					return ExtractCylinderSurface(ttt);
+					auto ret = ExtractCylinderSurface(ttt);
+					ret->BindId = ind;
+					ret->AisShapeBindId = parentId;
+
+					return ret;
 				}
 				case GeomAbs_Sphere:
 				{
-					return ExtractSphereSurface(ttt);
+					auto ret = ExtractSphereSurface(ttt);
+					ret->BindId = ind;
+					ret->AisShapeBindId = parentId;
+
+					return ret;
 				}
 				}
 			}
@@ -2793,16 +3046,53 @@ public:
 		return nullptr;
 	}
 
+	System::Collections::Generic::List<VertInfo^>^ GetVertsInfo(ManagedObjHandle^ h1) {
+		System::Collections::Generic::List<VertInfo^>^ rett = gcnew System::Collections::Generic::List<VertInfo^>();
+		auto hh = h1->ToObjHandle();
+		const auto object1 = impl->findObject(hh);
+		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
+		auto indp = AddOrGetShapeIndex(shape0);
+
+		for (TopExp_Explorer exp(shape0, TopAbs_VERTEX); exp.More(); exp.Next())
+		{
+			auto ttt = exp.Current();
+			auto ind = AddOrGetShapeIndex(ttt);
+
+			ttt = ttt.Located(object1->LocalTransformation());
+
+			auto loc = ttt.Location();
+
+			const auto& aVert = TopoDS::Vertex(ttt);
+			auto orient = aVert.Orientation();
+
+			if (aVert.IsNull()) 
+				continue;			
+						
+			VertInfo^ toAdd = gcnew VertInfo();
+
+			if (toAdd != nullptr) {
+				toAdd->BindId = ind;
+				toAdd->AisShapeBindId = indp;
+				rett->Add(toAdd);
+			}
+		}
+		return rett;
+	}
+
 	System::Collections::Generic::List<SurfInfo^>^ GetFacesInfo(ManagedObjHandle^ h1) {
 		System::Collections::Generic::List<SurfInfo^>^ rett = gcnew System::Collections::Generic::List<SurfInfo^>();
 		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
+		const auto object1 = impl->findObject(hh);
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
-		shape0 = shape0.Located(object1->LocalTransformation());
+		auto indp = AddOrGetShapeIndex(shape0);
 
 		for (TopExp_Explorer exp(shape0, TopAbs_FACE); exp.More(); exp.Next())
 		{
-			const auto ttt = exp.Current();
+			auto ttt = exp.Current();
+			auto ind = AddOrGetShapeIndex(ttt);
+
+			ttt = ttt.Located(object1->LocalTransformation());
+
 			auto loc = ttt.Location();
 
 			const auto& aFace = TopoDS::Face(ttt);
@@ -2822,22 +3112,28 @@ public:
 			}
 
 			auto tp = theGASurface.GetType();
+			SurfInfo^ toAdd = nullptr;
 			switch (theGASurface.GetType()) {
 			case GeomAbs_Plane:
 			{
-				rett->Add(ExtractPlaneSurface(ttt));
+				toAdd = ExtractPlaneSurface(ttt);
 			}
 			break;
 			case GeomAbs_Cylinder:
 			{
-				rett->Add(ExtractCylinderSurface(ttt));
+				toAdd = ExtractCylinderSurface(ttt);
 			}
 			break;
 			case GeomAbs_Sphere:
 			{
-				rett->Add(ExtractSphereSurface(ttt));
+				toAdd = ExtractSphereSurface(ttt);
 			}
 			break;
+			}
+			if (toAdd != nullptr) {
+				toAdd->BindId = ind;
+				toAdd->AisShapeBindId = indp;
+				rett->Add(toAdd);
 			}
 		}
 		return rett;
@@ -2846,12 +3142,17 @@ public:
 	System::Collections::Generic::List<EdgeInfo^>^ GetEdgesInfo(ManagedObjHandle^ h1) {
 		System::Collections::Generic::List<EdgeInfo^>^ rett = gcnew System::Collections::Generic::List<EdgeInfo^>();
 		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
+		auto object1 = impl->findObject(hh);
+		//const auto* object1 = impl->getObject(hh);
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
-		shape0 = shape0.Located(object1->LocalTransformation());
+		//shape0 = shape0.Located(object1->LocalTransformation());
+		int indp = AddOrGetShapeIndex(shape0);
 
 		for (TopExp_Explorer exp(shape0, TopAbs_EDGE); exp.More(); exp.Next()) {
-			const auto ttt = exp.Current();
+			const auto _ttt = exp.Current();
+			int ind = AddOrGetShapeIndex(_ttt);
+			auto ttt = _ttt.Located(object1->LocalTransformation());
+
 			const auto& edgee = TopoDS::Edge(ttt);
 			auto tt = ttt.TShape();
 			TopoDS_TShape* ptshape = tt.get();
@@ -2861,7 +3162,6 @@ public:
 			if (edgee.IsNull()) {
 				continue;
 			}
-
 
 			GProp_GProps massProps;
 			BRepGProp::LinearProperties(ttt, massProps);
@@ -2884,6 +3184,7 @@ public:
 
 
 			EdgeInfo^ ret = nullptr;
+
 			if (curveType == GeomAbs_Circle) {
 				auto ret2 = gcnew CircleEdgeInfo();
 				Handle(Geom_Circle) C2 = Handle(Geom_Circle)::DownCast(curve);
@@ -2895,6 +3196,9 @@ public:
 			}
 			else
 				ret = gcnew EdgeInfo();
+
+			ret->BindId = ind;
+			ret->AisShapeBindId = indp;
 
 			ret->Length = len;
 			ret->CurveType = (CurveType)curveType;
@@ -2923,7 +3227,7 @@ public:
 	ManagedObjHandle^ MakeChamfer(ManagedObjHandle^ h1, double s)
 	{
 		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
+		const auto object1 = impl->findObject(hh);
 		std::vector<ObjHandle> edges;
 		impl->GetSelectedEdges(myAISContext().get(), edges);
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
@@ -3018,7 +3322,7 @@ public:
 	{
 
 		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
+		const auto object1 = impl->findObject(hh);
 
 
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
@@ -3090,8 +3394,8 @@ public:
 		for (double i = 0; i <= ang; i += step)
 		{
 			auto t = (i / ang);
-			auto xx = (radius+t*radDelta)*cos(i);
-			auto yy = (radius + t * radDelta)*sin(i);
+			auto xx = (radius + t * radDelta) * cos(i);
+			auto yy = (radius + t * radDelta) * sin(i);
 			//	auto xx = i;
 			//	auto yy = 0;
 			vec.push_back(gp_Pnt(xx, yy, height * t));
@@ -3134,7 +3438,7 @@ public:
 	ManagedObjHandle^ MakeFillet2d(ManagedObjHandle^ h1, double s)
 	{
 		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
+		const auto object1 = impl->findObject(hh);
 		std::vector<ObjHandle> vertices;
 		impl->GetSelectedVertices(myAISContext().get(), vertices);
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
@@ -3204,7 +3508,7 @@ public:
 	{
 		//not tested
 		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
+		const auto object1 = impl->findObject(hh);
 		std::vector<ObjHandle> vertices;
 		impl->GetSelectedVertices(myAISContext().get(), vertices);
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
@@ -3310,33 +3614,42 @@ public:
 		hhh->FromObjHandle(hn);
 		return hhh;
 	}
+
 	ManagedObjHandle^ MakeFillet(ManagedObjHandle^ h1, double s)
 	{
 		auto hh = h1->ToObjHandle();
-		const auto* object1 = impl->getObject(hh);
+		//const auto* object1 = impl->getObject(hh);
+		const auto object1 = impl->findObject(hh);
 		std::vector<ObjHandle> edges;
 		impl->GetSelectedEdges(myAISContext().get(), edges);
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
 
 		//const auto* object2 = impl->getObject(edge);
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
-		shape0 = shape0.Located(object1->LocalTransformation());
 
 		BRepFilletAPI_MakeFillet filletOp(shape0);
 
 		bool b = false;
 		for (TopExp_Explorer edgeExplorer(shape0, TopAbs_EDGE); edgeExplorer.More(); edgeExplorer.Next()) {
-			const auto ttt = edgeExplorer.Current();
-			const auto& edgee = TopoDS::Edge(ttt);
+			const auto _ttt = edgeExplorer.Current();
+			auto ind = GetShapeIndex(_ttt);
+			//auto ttt = _ttt.Located(object1->LocalTransformation());
+
+			const auto& edgee = TopoDS::Edge(_ttt);
+			/*
 			auto tt = ttt.TShape();
 			TopoDS_TShape* ptshape = tt.get();
 			auto ttt3 = (unsigned __int64)(ptshape);
-
+			*/
 			if (edgee.IsNull()) {
 				continue;
 			}
+
 			for (auto edge : edges) {
-				if (ttt3 == edge.handleT) {
+				//if (ttt3 == edge.handleT) 
+				if (ind == edge.bindId)
+					// 
+				{
 					filletOp.Add(s, edgee);
 					b = true;
 					break;
@@ -3349,7 +3662,12 @@ public:
 
 		filletOp.Build();
 		auto shape = filletOp.Shape();
+		auto trsf = GetObjectMatrix(h1);
+		shape = BRepBuilderAPI_Transform(shape, trsf, Standard_True);
+
 		auto ais = new AIS_Shape(shape);
+		//myAISContext()->SetLocation(ais, myAISContext()->Location(object1));
+
 		myAISContext()->Display(ais, false);
 		ManagedObjHandle^ hhh = gcnew ManagedObjHandle();
 
@@ -3369,6 +3687,7 @@ public:
 		box.Build();
 		auto solid = box.Solid();
 		auto shape = new AIS_Shape(solid);
+
 		myAISContext()->Display(shape, Standard_True);
 		myAISContext()->SetDisplayMode(shape, AIS_Shaded, false);
 		auto hn = GetHandle(*shape);
@@ -3441,9 +3760,9 @@ public:
 			for (size_t j = 0; j < blueprint->Contours[i]->Items->Count; j++)
 			{
 				auto p = blueprint->Contours[i]->Items[j];
-				Line2D^ line = dynamic_cast<Line2D^>	(p);
-				BlueprintPolyline^ polyline = dynamic_cast<BlueprintPolyline^>	(p);
-				Arc2d^ arc = dynamic_cast<Arc2d^>	(p);
+				Line2D^ line = dynamic_cast<Line2D^>(p);
+				BlueprintPolyline^ polyline = dynamic_cast<BlueprintPolyline^>(p);
+				Arc2d^ arc = dynamic_cast<Arc2d^>(p);
 
 				if (polyline != nullptr) {
 					for (size_t p = 1; p < polyline->Points->Count; p++)
@@ -3519,8 +3838,8 @@ public:
 			for (size_t j = 0; j < blueprint->Contours[i]->Items->Count; j++)
 			{
 				auto p = blueprint->Contours[i]->Items[j];
-				Line3D^ line = dynamic_cast<Line3D^>	(p);
-				Arc3d^ arc = dynamic_cast<Arc3d^>	(p);
+				Line3D^ line = dynamic_cast<Line3D^>(p);
+				Arc3d^ arc = dynamic_cast<Arc3d^>(p);
 
 				if (line != nullptr) {
 					gp_Pnt pnt1(line->Start->X, line->Start->Y, line->Start->Z);
@@ -3566,11 +3885,34 @@ public:
 		builder.Add(compound, topWire);
 	}
 
+	int GetShapeIndex(const TopoDS_Shape& shape) {
+
+		if (impl->_map_shape_int.Contains(shape)) {
+			return impl->_map_shape_int.FindIndex(shape);
+		}
+		return -1;
+	}
+
+	int AddOrGetShapeIndex(const TopoDS_Shape& shape) {
+
+		if (impl->_map_shape_int.Contains(shape)) {
+			return impl->_map_shape_int.FindIndex(shape);
+		}
+		return impl->_map_shape_int.Add(shape);
+	}
 
 	ObjHandle GetHandle(const AIS_Shape& ais_shape) {
 		const TopoDS_Shape& shape = ais_shape.Shape();
-		TopoDS_TShape* ptshape = shape.TShape().get();
 		ObjHandle h;
+		if (impl->_map_shape_int.Contains(shape)) {
+			h.bindId = impl->_map_shape_int.FindIndex(shape);
+		}
+		else {
+			h.bindId = impl->_map_shape_int.Add(shape);
+		}
+
+		TopoDS_TShape* ptshape = shape.TShape().get();
+
 		h.handleF = (unsigned __int64)(&shape);
 		h.handleT = (unsigned __int64)ptshape;
 		h.handle = (unsigned __int64)(&ais_shape);

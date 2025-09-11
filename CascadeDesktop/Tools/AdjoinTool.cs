@@ -1,6 +1,7 @@
 ﻿using AutoDialog;
 using CascadeDesktop.Interfaces;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace CascadeDesktop.Tools
@@ -35,9 +36,16 @@ namespace CascadeDesktop.Tools
                 return;
 
             var proxy = Editor.Proxy;
-            var face = proxy.GetFaceInfo(proxy.GetSelectedObject());
-            var vertex = proxy.GetVertexPosition(proxy.GetSelectedObject());
-            var edge = proxy.GetEdgeInfoPosition(proxy.GetSelectedObject());
+            var sob = proxy.GetSelectedObject();
+            var fr = Editor.Objs.FirstOrDefault(z => z.ChildsIds.Contains(sob.BindId));
+            if (fr == null)
+                return;
+
+            sob.AisShapeBindId = fr.Handle.BindId;
+
+            var face = proxy.GetFaceInfo(sob);
+            var vertex = proxy.GetVertexPosition(sob);
+            var edge = proxy.GetEdgeInfoPosition(sob);
 
             if (vertex != null)
             {
