@@ -41,6 +41,7 @@
 #include <VrmlAPI_Writer.hxx>
 //wrapper of pure C++ classes to ref classes
 #include <NCollection_Haft.h>
+
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepOffsetAPI_MakePipe.hxx>
@@ -315,6 +316,13 @@ static NCollection_String toNString(String^ theString)
 
 	return NCollection_String(aWCharPtr);
 }
+
+
+
+
+
+
+
 class OCCImpl {
 public:
 	OCCImpl() {
@@ -587,9 +595,9 @@ public:
 
 			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
 			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
-		//	h.handle = (unsigned __int64)(self.get());
-		//	h.handleT = (unsigned __int64)(ptshape);
-		//	h.handleF = (unsigned __int64)(&shape);
+			//	h.handle = (unsigned __int64)(self.get());
+			//	h.handleT = (unsigned __int64)(ptshape);
+			//	h.handleF = (unsigned __int64)(&shape);
 			break;
 		}
 		return h;
@@ -765,6 +773,7 @@ public:
 		return shape;
 	}
 };
+
 
 /// <summary>
 /// Proxy class encapsulating calls to OCCT C++ classes within 
