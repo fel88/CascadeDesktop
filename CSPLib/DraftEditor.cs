@@ -12,10 +12,11 @@ using System.Diagnostics;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Xml;
 using System.Numerics;
-using Vector2 = OpenTK.Vector2;
 using TriangleNet.Geometry;
 using DxfPad;
 using CSPLib.Interfaces;
+using OpenTK.Mathematics;
+using Vector2 = OpenTK.Mathematics.Vector2;
 
 namespace CSPLib
 {
@@ -331,7 +332,7 @@ namespace CSPLib
                 var pos = PointToClient(Cursor.Position);
 
                 var pp = ctx.BackTransform(pos);
-                Vector2 v1 = new Vector2(pp.X, pp.Y);
+                OpenTK.Mathematics.Vector2 v1 = new OpenTK.Mathematics.Vector2(pp.X, pp.Y);
 
                 ctx.DrawString($"current tool: {editor.CurrentTool.GetType().Name}", SystemFonts.DefaultFont, Brushes.Black, 5, 5);
                 ctx.DrawString($"position {pp.X} {pp.Y}", SystemFonts.DefaultFont, Brushes.Black, 5, 25);

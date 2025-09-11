@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using OpenTK;
 using System.Linq;
+using OpenTK.Mathematics;
 
 namespace CSPLib
 {

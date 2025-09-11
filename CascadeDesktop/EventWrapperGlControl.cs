@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using OpenTK.GLControl;
 using System;
 using System.Windows.Forms;
 

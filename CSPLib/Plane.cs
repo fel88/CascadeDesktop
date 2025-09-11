@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using OpenTK;
 using System.Linq;
+using OpenTK.Mathematics;
 
 namespace CSPLib
 {

@@ -1,6 +1,7 @@
 ﻿using Cascade.Common;
 using IxMilia.Dxf;
 using OpenTK;
+using OpenTK.Mathematics;
 using System;
 using System.Drawing;
 using System.Globalization;
@@ -115,20 +116,20 @@ namespace CascadeDesktop
             return new Vector2d(v.X, v.Y);
         }
 
-        public static OpenTK.Vector3 ToVector3(this Vector3d v)
+        public static Vector3 ToVector3(this Vector3d v)
         {
-            return new OpenTK.Vector3((float)v.X, (float)v.Y, (float)v.Z);
+            return new Vector3((float)v.X, (float)v.Y, (float)v.Z);
         }
 
 
-        public static OpenTK.Vector2d ToVector2d(this DxfPoint v)
+        public static Vector2d ToVector2d(this DxfPoint v)
         {
-            return new OpenTK.Vector2d(v.X, v.Y);
+            return new Vector2d(v.X, v.Y);
         }
 
-        public static OpenTK.Vector2d ToVector2d(this Vertex2D v)
+        public static Vector2d ToVector2d(this Vertex2D v)
         {
-            return new OpenTK.Vector2d((float)v.X, (float)v.Y);
+            return new Vector2d((float)v.X, (float)v.Y);
         }
         public static double DistTo(this SvgPoint p, SvgPoint p2)
         {

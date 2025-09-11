@@ -4,6 +4,7 @@ using SkiaSharp;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using SkiaSharp.Views.Desktop;
+using OpenTK.Mathematics;
 
 namespace CSPLib
 {
@@ -73,8 +74,8 @@ namespace CSPLib
         {
             DrawLine(tr0, tr1);
             var canvas = Surface.Canvas;
-            var sk0 = new OpenTK.Vector2d(tr0.X, tr0.Y);
-            var sk1 = new OpenTK.Vector2d(tr1.X, tr1.Y);
+            var sk0 = new Vector2d(tr0.X, tr0.Y);
+            var sk1 = new Vector2d(tr1.X, tr1.Y);
             var dir = (sk0 - sk1).Normalized();
 
 

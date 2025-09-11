@@ -1,5 +1,6 @@
 ﻿using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using System.Drawing;
 
 namespace CascadeDesktop
@@ -68,16 +69,14 @@ namespace CascadeDesktop
 
         public static Vector3d Project(Vector3d _source, Matrix4d projection, Matrix4d view, Matrix4d world, int[] viewport)
         {
-            Vector4d source = new Vector4d(_source, 1);
-
             var w = viewport[2];
             var h = viewport[3];
             int x = 0;
             int y = 0;
 
             Matrix4d matrix = Matrix4d.Mult(Matrix4d.Mult(world, view), projection);
-            Vector4d vector = Vector4d.Transform(source, matrix);
-            var a = (((source.X * matrix.M14) + (source.Y * matrix.M24)) + (source.Z * matrix.M34)) + matrix.M44;
+            Vector3d vector = Vector3d.TransformVector(_source, matrix);
+            var a = (((_source.X * matrix.M14) + (_source.Y * matrix.M24)) + (_source.Z * matrix.M34)) + matrix.M44;
             if (!WithinEpsilon(a, 1f))
             {
                 vector = (vector / a);
@@ -85,10 +84,10 @@ namespace CascadeDesktop
             vector.X = (((vector.X + 1f) * 0.5f) * w) + x;
             vector.Y = (((-vector.Y + 1f) * 0.5f) * h) + y;
             //vector.Z = (vector.Z * (this.MaxDepth - this.MinDepth)) + this.MinDepth;
-            return vector.Xyz;
+            return vector;
         }
 
-        public static OpenTK.Vector3? Project(OpenTK.Vector3 v)
+        public static OpenTK.Mathematics.Vector3? Project(OpenTK.Mathematics.Vector3 v)
         {
             float objx = v.X;
             float objy = v.Y;
@@ -123,7 +122,7 @@ namespace CascadeDesktop
             fTempo[6] *= fTempo[7];
             // Window coordinates
             // Map x, y to range 0-1
-            OpenTK.Vector3 ret;
+            OpenTK.Mathematics.Vector3 ret;
             ret.X = (fTempo[4] * 0.5f + 0.5f) * viewport[2] + viewport[0];
             ret.Y = (fTempo[5] * 0.5f + 0.5f) * viewport[3] + viewport[1];
             // This is only correct when glDepthRange(0.0, 1.0)
@@ -144,8 +143,8 @@ namespace CascadeDesktop
             Matrix4d viewInv = Matrix4d.Invert(view);
             Matrix4d projInv = Matrix4d.Invert(projection);
 
-            Vector4d.Transform(ref vec, ref projInv, out vec);
-            Vector4d.Transform(ref vec, ref viewInv, out vec);
+            vec = vec * projInv;
+            vec = vec * viewInv;            
 
             if (vec.W > 0.000001f || vec.W < -0.000001f)
             {

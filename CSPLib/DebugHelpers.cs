@@ -7,6 +7,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Threading;
+using OpenTK.Mathematics;
 
 namespace CSPLib
 {

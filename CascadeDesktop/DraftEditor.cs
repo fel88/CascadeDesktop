@@ -2,6 +2,7 @@
 using Cascade.Common;
 using IxMilia.Dxf;
 using OpenTK;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

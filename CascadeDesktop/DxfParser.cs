@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using OpenTK;
 using CascadeDesktop.Interfaces;
+using OpenTK.Mathematics;
 
 namespace CascadeDesktop
 {

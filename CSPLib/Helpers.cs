@@ -4,6 +4,7 @@ using System.Linq;
 using System.Drawing;
 using OpenTK;
 using System.Globalization;
+using OpenTK.Mathematics;
 
 namespace CSPLib
 {

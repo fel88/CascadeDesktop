@@ -15,6 +15,7 @@ using static CascadeDesktop.OccSceneObject;
 using CascadeDesktop.Interfaces;
 using CSPLib;
 using OpenTK.Graphics.ES11;
+using OpenTK.Mathematics;
 
 namespace CascadeDesktop
 {

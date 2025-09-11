@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using SkiaSharp;
 using System.Drawing;
 using OpenTK;
+using OpenTK.Mathematics;
 
 namespace CSPLib.Interfaces
 {

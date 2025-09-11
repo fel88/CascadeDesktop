@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using OpenTK.Mathematics;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
@@ -45,9 +46,9 @@ namespace CascadeDesktop
                     var m2 = Matrix4d.CreateFromAxisAngle(cameraUpStart, -(startPosX - pos.X) / 180f / kk * (float)Math.PI);
                     //var m2 = Matrix3.CreateFromAxisAngle(Vector3.UnitZ, -(startPosX - pos.X) / 180f / kk * (float)Math.PI);
 
-                    v1 = Vector3d.Transform(v1, m1);
+                    v1 = Vector3d.TransformVector(v1, m1);
                     //v1 *= m1;
-                    v1 = Vector3d.Transform(v1, m2);
+                    v1 = Vector3d.TransformVector(v1, m2);
                     //v1 *= m2;
 
                     var up1 = cameraUpStart;

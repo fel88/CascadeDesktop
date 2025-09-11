@@ -6,6 +6,7 @@ using OpenTK;
 using System.Linq;
 using TriangleNet.Geometry;
 using TriangleNet.Meshing;
+using OpenTK.Mathematics;
 
 namespace CSPLib
 {

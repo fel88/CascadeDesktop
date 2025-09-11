@@ -1,7 +1,9 @@
 ﻿using Cascade.Common;
 using CascadeDesktop.Interfaces;
 using OpenTK;
+using OpenTK.GLControl;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -15,12 +17,18 @@ namespace CascadeDesktop
         public DraftEditor3d()
         {
             InitializeComponent();
-            glControl = new OpenTK.GLControl(new OpenTK.Graphics.GraphicsMode(32, 24, 0, 8));
-
-            if (glControl.Context.GraphicsMode.Samples == 0)
+            glControl = new GLControl(new GLControlSettings()
             {
-                glControl = new OpenTK.GLControl(new OpenTK.Graphics.GraphicsMode(32, 24, 0, 8));
-            }
+                NumberOfSamples = 8,
+                Profile = OpenTK.Windowing.Common.ContextProfile.Compatability,
+                StencilBits = 0,
+                DepthBits = 24
+            }); 
+
+            //if (glControl.Context.GraphicsMode.Samples == 0)
+            //{
+            //    glControl = new GLControl(new OpenTK.Graphics.GraphicsMode(32, 24, 0, 8));
+            //}
             evwrapper = new EventWrapperGlControl(glControl);
 
             glControl.Paint += Gl_Paint;
@@ -301,7 +309,7 @@ namespace CascadeDesktop
             });
             Blueprint.Items.Add(new Line3D()
             {
-                Start = new Vertex(x1, y1,z1),
+                Start = new Vertex(x1, y1, z1),
                 End = new Vertex(x2, y2, z2)
             });
 

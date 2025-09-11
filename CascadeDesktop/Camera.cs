@@ -1,5 +1,7 @@
 ﻿using OpenTK;
+using OpenTK.GLControl;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,8 +52,8 @@ namespace CascadeDesktop
         {
             var vect = CamFrom - CamTo;
             var m = Matrix4d.CreateFromAxisAngle(CamUp, ang);
-            CamFrom = Vector3d.Transform(vect, m) + CamTo;
-            CamUp = Vector3d.Transform(CamUp, m);
+            CamFrom = Vector3d.TransformVector(vect, m) + CamTo;
+            CamUp = Vector3d.TransformVector(CamUp, m);
         }
 
         public void RotateFromX(float ang)
@@ -59,8 +61,8 @@ namespace CascadeDesktop
             var vect = CamFrom - CamTo;
             var m = Matrix4d.CreateFromAxisAngle(Vector3d.UnitX, ang);
 
-            CamFrom = Vector3d.Transform(vect, m) + CamTo;
-            CamUp = Vector3d.Transform(CamUp, m);
+            CamFrom = Vector3d.TransformVector(vect, m) + CamTo;
+            CamUp = Vector3d.TransformVector(CamUp, m);
         }
 
         public void RotateFromY(float ang)
@@ -71,8 +73,8 @@ namespace CascadeDesktop
             var m = Matrix4d.CreateFromAxisAngle(cross1, ang);
             //var m = Matrix4.CreateRotationY(ang);
 
-            CamFrom = Vector3d.Transform(vect, m) + CamTo;
-            CamUp = Vector3d.Transform(CamUp, m);
+            CamFrom = Vector3d.TransformVector(vect, m) + CamTo;
+            CamUp = Vector3d.TransformVector(CamUp, m);
         }
 
         public float zoom = 1;

@@ -13,9 +13,9 @@
   <ItemGroup>
     <PackageReference Include="AutoDialog" Version="1.0.0.7" />
     <PackageReference Include="IxMilia.Dxf" Version="0.8.3" />
-    <PackageReference Include="OpenTK" Version="3.3.3" />
-    <PackageReference Include="OpenTK.GLControl" Version="3.3.3" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
+    <PackageReference Include="OpenTK" Version="4.9.4" />
+    <PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.9" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="RibbonMenu.cs">
