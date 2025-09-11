@@ -55,6 +55,6 @@ https://github.com/user-attachments/assets/db8478ee-192c-4962-8cb9-aa01b8007a7f
 - Open soultion Cascade.sln
 - Build and run Cascade project (Ctrl+F5)
 
-If you have HashCode during compilation of OCCTProxy, you can directly edit NCollection_DefaultHasher.hxx file (just add :: before HashCode) (https://dev.opencascade.org/content/opencascade-760-not-compiling-net-60-class-library-visual-studio-2022-windows-10)
+If you have a HashCode error during compilation of OCCTProxy, you can directly edit NCollection_DefaultHasher.hxx file (just add :: before HashCode) (https://dev.opencascade.org/content/opencascade-760-not-compiling-net-60-class-library-visual-studio-2022-windows-10)
 
 <sub>Some icons by [Yusuke Kamiyamane](http://p.yusukekamiyamane.com/). Licensed under a [Creative Commons Attribution 3.0 License](http://creativecommons.org/licenses/by/3.0/)</sub>
