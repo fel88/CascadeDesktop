@@ -264,12 +264,12 @@ namespace CSPLib
         public override System.Windows.Forms.Control GenerateRenderControl()
         {
             System.Windows.Forms.Control co = null;
-            if (GlSupport)
+            //if (GlSupport)
             {
-                co = new SKGLControl();
-                ((SKGLControl)co).PaintSurface += Co_PaintSurface;
+                //co = new SKGLControl();
+                //((SKGLControl)co).PaintSurface += Co_PaintSurface;
             }
-            else
+            //else
             {
                 co = new SKControl();
                 ((SKControl)co).PaintSurface += Co_PaintSurface1;

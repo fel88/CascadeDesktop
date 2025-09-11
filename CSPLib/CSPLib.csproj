@@ -10,6 +10,7 @@
     <Reference Include="Microsoft.CSharp" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="OpenTK" Version="4.9.4" />
+    <PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
     <PackageReference Include="SkiaSharp.Views.WindowsForms" Version="3.119.0" />
   </ItemGroup>
   <ItemGroup>
