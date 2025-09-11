@@ -1,3 +1,5 @@
+#include <iostream>
+#include <optional>
 // include required OCCT headers
 #include <Standard_Version.hxx>
 #include <Message_ProgressIndicator.hxx>
@@ -155,9 +157,7 @@ private:
 };
 struct ObjHandle {
 public:
-	unsigned __int64 handle;
-	unsigned __int64 handleT;
-	unsigned __int64 handleF;
+
 	int bindId;
 	int aisShapeBindId;
 	int shapeType;
@@ -216,7 +216,7 @@ public:
 public ref class VertInfo {
 public:
 	Vector3^ Position;
-	
+
 	int BindId;
 	int AisShapeBindId;//parent
 };
@@ -256,17 +256,13 @@ public:
 
 public ref class ManagedObjHandle {
 public:
-	UINT64 Handle;
-	UINT64 HandleT;
-	UINT64 HandleF;
+
 	int BindId;
 	int AisShapeBindId;//parent
 	int ShapeType;
 
 	void FromObjHandle(ObjHandle h) {
-		Handle = h.handle;
-		HandleT = h.handleT;
-		HandleF = h.handleF;
+
 		BindId = h.bindId;
 		AisShapeBindId = h.aisShapeBindId;
 		ShapeType = h.shapeType;
@@ -275,9 +271,7 @@ public:
 	ObjHandle ToObjHandle() {
 		ObjHandle h;
 		h.bindId = BindId;
-		h.handle = Handle;
-		h.handleT = HandleT;
-		h.handleF = HandleF;
+
 		h.shapeType = ShapeType;
 		h.aisShapeBindId = AisShapeBindId;
 
@@ -330,37 +324,31 @@ public:
 	opencascade::handle<AIS_InteractiveContext> ctx;
 
 
-	ObjHandle getSelectedEdge(AIS_InteractiveContext* ctx) {
-		auto objs = getSelectedObjectsList(ctx);
+	ObjHandle getSelectedEdge() {
+		auto objs = getSelectedObjectsList(TopAbs_ShapeEnum::TopAbs_EDGE);
 		for (auto item : objs) {
-			TopoDS_TShape* ptshape = (TopoDS_TShape*)item.handleT;
-			TopoDS_TEdge* edge = dynamic_cast<TopoDS_TEdge*>(ptshape);
-			if (edge != nullptr) {
-				return item;
-			}
+
+			return item;
+
 		}
 		return ObjHandle();
 	}
 
-	void  GetSelectedEdges(AIS_InteractiveContext* ctx, std::vector<ObjHandle>& list) {
-		auto objs = getSelectedObjectsList(ctx);
+	void  GetSelectedEdges(std::vector<ObjHandle>& list) {
+		auto objs = getSelectedObjectsList(TopAbs_ShapeEnum::TopAbs_EDGE);
 		for (auto item : objs) {
-			TopoDS_TShape* ptshape = (TopoDS_TShape*)item.handleT;
-			TopoDS_TEdge* edge = dynamic_cast<TopoDS_TEdge*>(ptshape);
-			if (edge != nullptr) {
-				list.push_back(item);
-			}
+
+			list.push_back(item);
+
 		}
 	}
 
-	void  GetSelectedVertices(AIS_InteractiveContext* ctx, std::vector<ObjHandle>& list) {
-		auto objs = getSelectedObjectsList(ctx);
+	void  GetSelectedVertices(std::vector<ObjHandle>& list) {
+		auto objs = getSelectedObjectsList(TopAbs_ShapeEnum::TopAbs_VERTEX);
 		for (auto item : objs) {
-			TopoDS_TShape* ptshape = (TopoDS_TShape*)item.handleT;
-			TopoDS_TVertex* vertex = dynamic_cast<TopoDS_TVertex*>(ptshape);
-			if (vertex != nullptr) {
-				list.push_back(item);
-			}
+
+			list.push_back(item);
+
 		}
 	}
 
@@ -513,8 +501,9 @@ public:
 		return ret;
 	}
 
-	std::vector<ObjHandle> getSelectedObjectsList(AIS_InteractiveContext* ctx) {
+	std::vector<ObjHandle> getSelectedObjectsList(std::optional<TopAbs_ShapeEnum> type = std::nullopt) {
 		std::vector<ObjHandle> ret;
+
 		for (ctx->InitSelected(); ctx->MoreSelected(); ctx->NextSelected())
 		{
 			ObjHandle h;
@@ -527,20 +516,23 @@ public:
 
 			const TopoDS_Shape& shape = brepowner->Shape();
 
-			if (_map_shape_int.Contains(shape)) {
-				h.bindId = _map_shape_int.FindIndex(shape);
-			}
-			else {
+			if (!type.has_value() || shape.ShapeType() == type.value())
+			{
+				if (_map_shape_int.Contains(shape)) {
+					h.bindId = _map_shape_int.FindIndex(shape);
+				}
+				else {
 
-				h.bindId = _map_shape_int.Add(shape);
-			}
-			TopoDS_TShape* ptshape = shape.TShape().get();
+					h.bindId = _map_shape_int.Add(shape);
+				}
+				TopoDS_TShape* ptshape = shape.TShape().get();
 
-			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
-			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
-			h.handle = (unsigned __int64)(self.get());
-			h.handleT = (unsigned __int64)(ptshape);
-			ret.push_back(h);
+				Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
+				Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
+				//h.handle = (unsigned __int64)(self.get());
+				//h.handleT = (unsigned __int64)(ptshape);
+				ret.push_back(h);
+			}
 		}
 		return ret;
 	}
@@ -571,9 +563,9 @@ public:
 
 				h.bindId = _map_shape_int.Add(shape);
 			}
-			h.handle = (unsigned __int64)(self.get());
-			h.handleT = (unsigned __int64)(ptshape);
-			h.handleF = (unsigned __int64)(&shape);
+			//h.handle = (unsigned __int64)(self.get());
+			//h.handleT = (unsigned __int64)(ptshape);
+			//h.handleF = (unsigned __int64)(&shape);
 			break;
 		}
 		return h;
@@ -595,9 +587,9 @@ public:
 
 			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
 			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
-			h.handle = (unsigned __int64)(self.get());
-			h.handleT = (unsigned __int64)(ptshape);
-			h.handleF = (unsigned __int64)(&shape);
+		//	h.handle = (unsigned __int64)(self.get());
+		//	h.handleT = (unsigned __int64)(ptshape);
+		//	h.handleF = (unsigned __int64)(&shape);
 			break;
 		}
 		return h;
@@ -665,18 +657,18 @@ public:
 	}
 	const TopoDS_Shape& findShape(const ObjHandle& handle) const {
 		auto theIndex = handle.bindId;
-		if (theIndex < 1 || theIndex > _map_shape_int. Extent())
+		if (theIndex < 1 || theIndex > _map_shape_int.Extent())
 			return {};
 
 		return _map_shape_int.FindKey(handle.bindId);
 	}
 
-	opencascade::handle<AIS_InteractiveObject> findObject(const ObjHandle& handle ) const {
+	opencascade::handle<AIS_InteractiveObject> OCCImpl::findObject(const ObjHandle& handle) const {
 		return findObject(handle.bindId);
 	}
 
-	opencascade::handle<AIS_InteractiveObject> findObject(int bindId) const {
-		
+	opencascade::handle<AIS_InteractiveObject> OCCImpl::findObject(int bindId) const {
+
 		AIS_ListOfInteractive aList;
 		ctx->DisplayedObjects(aList);
 		AIS_ListIteratorOfListOfInteractive it(aList);
@@ -703,9 +695,9 @@ public:
 		//return reinterpret_cast<AIS_InteractiveObject*> (handle.handle);
 	}
 
-	TopoDS_Shape* getShapeFromObject(const ObjHandle& handle) const {
+	/*TopoDS_Shape* getShapeFromObject(const ObjHandle& handle) const {
 		return reinterpret_cast<TopoDS_Shape*> (handle.handleF);
-	}
+	}*/
 
 	TopoDS_Shape MakeBoolDiff(ObjHandle h1, ObjHandle h2, bool fixShape = true) {
 		auto obj1 = findObject(h1);
@@ -725,7 +717,7 @@ public:
 		}
 		return shape;
 	}
-	
+
 	TopoDS_Shape MakeBoolFuse(ObjHandle h1, ObjHandle h2, bool fixShape = true) {
 		//const auto* obj1 = getObject(h1);
 		auto obj1 = findObject(h1);
@@ -738,7 +730,7 @@ public:
 
 		//shape0 = shape0.Located(obj1->LocalTransformation());
 		TopoDS_Shape shape1 = Handle(AIS_Shape)::DownCast(obj2)->Shape();
-	//	shape1 = shape1.Located(obj2->LocalTransformation());
+		//	shape1 = shape1.Located(obj2->LocalTransformation());
 		auto trsf2 = obj2->Transformation();
 		shape1 = BRepBuilderAPI_Transform(shape1, trsf2, Standard_True);
 
@@ -872,9 +864,9 @@ public:
 		return hh;
 
 	}
-	
+
 	System::Collections::Generic::List<ManagedObjHandle^>^ GetSelectedObjects() {
-		auto objs = impl->getSelectedObjectsList(myAISContext().get());
+		auto objs = impl->getSelectedObjectsList();
 		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
 		for (size_t i = 0; i < objs.size(); i++)
 		{
@@ -887,7 +879,7 @@ public:
 
 
 	ManagedObjHandle^ GetSelectedEdge() {
-		auto ret = impl->getSelectedEdge(myAISContext().get());
+		auto ret = impl->getSelectedEdge();
 
 		ManagedObjHandle^ hh = gcnew ManagedObjHandle();
 		hh->FromObjHandle(ret);
@@ -897,7 +889,7 @@ public:
 	System::Collections::Generic::List<ManagedObjHandle^>^ GetSelectedEdges() {
 
 		std::vector<ObjHandle> edges;
-		impl->GetSelectedEdges(myAISContext().get(), edges);
+		impl->GetSelectedEdges(edges);
 		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
 		for (size_t i = 0; i < edges.size(); i++)
 		{
@@ -1599,8 +1591,7 @@ aView->Update();
 		if (myAISContext().IsNull())
 			return;
 
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto o = impl->findObject(h->BindId);
 		myAISContext()->SetTransparency(o, theTrans, AutoViewerUpdate);
 	}
 
@@ -1617,8 +1608,7 @@ aView->Update();
 		if (myAISContext().IsNull())
 			return;
 
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto o = impl->findObject(h->BindId);
 		Quantity_Color c(red / 255., green / 255., blue / 255., Quantity_TOC_RGB);
 		myAISContext()->SetColor(o, c, AutoViewerUpdate);
 	}
@@ -1976,11 +1966,10 @@ public:
 		STEPControl_StepModelType aType = STEPControl_AsIs;
 		IFSelect_ReturnStatus aStatus;
 		STEPControl_Writer aWriter;
+		auto anIO = impl->findObject(h->BindId);
 
 		//auto anIO = impl->getObject(h);
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
-		auto anIO = o;
+
 		Handle(AIS_Shape) anIS = Handle(AIS_Shape)::DownCast(anIO);
 		TopoDS_Shape aShape = anIS->Shape();
 		aStatus = aWriter.Transfer(aShape, aType);
@@ -2009,8 +1998,7 @@ public:
 		STEPControl_Writer aWriter;
 
 		//auto anIO = impl->getObject(h);
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto o = impl->findObject(h->BindId);
 		auto anIO = o;
 
 		Handle(AIS_Shape) anIS = Handle(AIS_Shape)::DownCast(anIO);
@@ -2204,8 +2192,7 @@ public:
 	}
 
 	void Erase(ManagedObjHandle^ h, bool updateViewer) {
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto o = impl->findObject(h->BindId);
 		myAISContext()->Erase(o, updateViewer);
 	}
 
@@ -2214,27 +2201,25 @@ public:
 	}
 
 	void Remove(ManagedObjHandle^ h) {
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto o = impl->findObject(h->BindId);
 		myAISContext()->Remove(o, true);
 	}
 
 	void Display(ManagedObjHandle^ h, bool wireframe) {
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto o = impl->findObject(h->BindId);
 		myAISContext()->Display(o, false);
 		myAISContext()->SetDisplayMode(o, wireframe ? AIS_WireFrame : AIS_Shaded, true);
 	}
 
 	gp_Trsf GetObjectMatrix(ManagedObjHandle^ h) {
-		AIS_InteractiveObject* p = (AIS_InteractiveObject*)(h->Handle);
+		auto p = impl->findObject(h->BindId);
 		auto trans = p->Transformation();
 		return trans;
 	}
 
 	System::Collections::Generic::List<double>^ GetObjectMatrixValues(ManagedObjHandle^ h) {
 		System::Collections::Generic::List<double>^ ret = gcnew System::Collections::Generic::List<double>();
-		AIS_InteractiveObject* p = (AIS_InteractiveObject*)(h->Handle);
+		auto p = impl->findObject(h->BindId);
 		auto trans = p->Transformation();
 		for (size_t i = 1; i <= 3; i++)
 		{
@@ -2248,8 +2233,7 @@ public:
 
 	void MoveObject(ManagedObjHandle^ h, double x, double y, double z, bool rel)
 	{
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto o = impl->findObject(h->BindId);
 		gp_Trsf tr;
 		tr.SetValues(1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z);
 		if (rel) {
@@ -2263,8 +2247,7 @@ public:
 
 	void SetMatrixValues(ManagedObjHandle^ h, System::Collections::Generic::List<double>^ m)
 	{
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto o = impl->findObject(h->BindId);
 		gp_Trsf tr;
 		double a11 = m[0];
 		double a12 = m[1];
@@ -2292,8 +2275,7 @@ public:
 
 	void RotateObject(ManagedObjHandle^ h, double x, double y, double z, double ang, bool rel)
 	{
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+		auto o = impl->findObject(h->BindId);
 		gp_Trsf tr;
 		gp_Ax1 ax(gp_Pnt(0, 0, 0), gp_Dir(x, y, z));
 		tr.SetRotation(ax, ang);
@@ -2315,8 +2297,7 @@ public:
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
 
-		Handle(AIS_InteractiveObject) o;
-		o.reset((AIS_InteractiveObject*)h->Handle);
+
 		gp_Trsf tr;
 		if (axis2) {
 			gp_Ax2 ax2(gp_Pnt(pnt->X, pnt->Y, pnt->Z), gp_Dir(dir->X, dir->Y, dir->Z));
@@ -2499,27 +2480,37 @@ public:
 		//const auto ret = impl->MakeBoolFuse(h1, h2, fixShape);
 		//myAISContext()->Display(new AIS_Shape(ret), true);
 	}
-	ManagedObjHandle^ MakePrismFromFace(ManagedObjHandle^ m, double height) {
+
+	ManagedObjHandle^ MakePrismFromFace(ManagedObjHandle^ m, double height) 
+		{
+			return MakePrismFromFace(m->AisShapeBindId, m, height);
+		}
+
+	ManagedObjHandle^ MakePrismFromFace(int parentId, ManagedObjHandle^ m, double height) {
 		ObjHandle h = m->ToObjHandle();
 		BRepBuilderAPI_MakeFace bface;
-		const auto object1 = impl->findObject(h);
+		const auto object1 = impl->findObject(parentId);
 
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
-		shape0 = shape0.Located(object1->LocalTransformation());
+
 		int counter = 0;
 		for (TopExp_Explorer aExpFace(shape0, TopAbs_FACE); aExpFace.More(); aExpFace.Next())
 		{
-			const auto ttt = aExpFace.Current();
+			auto ttt = aExpFace.Current();
+			auto ind = AddOrGetShapeIndex(ttt);
+
+			ttt = ttt.Located(object1->LocalTransformation());
+
 			const auto& edgee = TopoDS::Face(ttt);
-			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
-			auto ttt4 = (unsigned __int64)(&ttt);
+			//auto tt = ttt.TShape();
+			//TopoDS_TShape* ptshape = tt.get();
+			//auto ttt3 = (unsigned __int64)(ptshape);
+			//auto ttt4 = (unsigned __int64)(&ttt);
 
 			if (edgee.IsNull()) {
 				continue;
 			}
-			if (ttt3 == h.handleT) {
+			if (ind == h.bindId) {
 
 
 				TopLoc_Location aLocation;
@@ -2668,7 +2659,7 @@ public:
 		hhh->FromObjHandle(hn);
 		return hhh;
 	}
-	Vector3^ GetVertexPosition( ManagedObjHandle^ h1)
+	Vector3^ GetVertexPosition(ManagedObjHandle^ h1)
 	{
 		return GetVertexPosition(h1->AisShapeBindId, h1);
 	}
@@ -2676,7 +2667,7 @@ public:
 	Vector3^ GetVertexPosition(int parentId, ManagedObjHandle^ h1)
 	{
 		auto hh = h1->ToObjHandle();
-		const auto object1 = impl->findObject(parentId);	
+		const auto object1 = impl->findObject(parentId);
 
 		auto temp1 = Handle(AIS_Shape)::DownCast(object1);
 		if (temp1.IsNull()) {
@@ -2684,7 +2675,7 @@ public:
 		}
 		TopoDS_Shape shape0 = temp1->Shape();
 
-		
+
 
 		for (TopExp_Explorer exp(shape0, TopAbs_VERTEX); exp.More(); exp.Next()) {
 			auto ttt = exp.Current();
@@ -2732,9 +2723,9 @@ public:
 		TopoDS_Shape shape0 = temp1->Shape();
 
 
-		
 
-		for (TopExp_Explorer exp(shape0, TopAbs_EDGE); exp.More(); exp.Next()) {			
+
+		for (TopExp_Explorer exp(shape0, TopAbs_EDGE); exp.More(); exp.Next()) {
 			auto ttt = exp.Current();
 			auto ind = AddOrGetShapeIndex(ttt);
 			ttt = ttt.Located(object1->LocalTransformation());
@@ -3065,9 +3056,9 @@ public:
 			const auto& aVert = TopoDS::Vertex(ttt);
 			auto orient = aVert.Orientation();
 
-			if (aVert.IsNull()) 
-				continue;			
-						
+			if (aVert.IsNull())
+				continue;
+
 			VertInfo^ toAdd = gcnew VertInfo();
 
 			if (toAdd != nullptr) {
@@ -3229,18 +3220,20 @@ public:
 		auto hh = h1->ToObjHandle();
 		const auto object1 = impl->findObject(hh);
 		std::vector<ObjHandle> edges;
-		impl->GetSelectedEdges(myAISContext().get(), edges);
+		impl->GetSelectedEdges(edges);
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
 
 		//const auto* object2 = impl->getObject(edge);
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
-		shape0 = shape0.Located(object1->LocalTransformation());
 
 		BRepFilletAPI_MakeChamfer chamferOp(shape0);
 
 		bool b = false;
 		for (TopExp_Explorer edgeExplorer(shape0, TopAbs_EDGE); edgeExplorer.More(); edgeExplorer.Next()) {
-			const auto ttt = edgeExplorer.Current();
+			auto ttt = edgeExplorer.Current();
+			auto ind = AddOrGetShapeIndex(ttt);
+			ttt = ttt.Located(object1->LocalTransformation());
+
 			const auto& edgee = TopoDS::Edge(ttt);
 			auto tt = ttt.TShape();
 			TopoDS_TShape* ptshape = tt.get();
@@ -3250,7 +3243,10 @@ public:
 				continue;
 			}
 			for (auto edge : edges) {
-				if (ttt3 == edge.handleT) {
+				//todo fix
+				//if (ttt3 == edge.handleT) 
+				{
+
 					chamferOp.Add(s, edgee);
 					b = true;
 					break;
@@ -3440,7 +3436,7 @@ public:
 		auto hh = h1->ToObjHandle();
 		const auto object1 = impl->findObject(hh);
 		std::vector<ObjHandle> vertices;
-		impl->GetSelectedVertices(myAISContext().get(), vertices);
+		impl->GetSelectedVertices(vertices);
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
 
 		//const auto* object2 = impl->getObject(edge);
@@ -3476,7 +3472,9 @@ public:
 			for (int i = 0;i < vertices.size();i++)
 			{
 				auto& vertex = vertices[i];
-				if (ttt3 == vertex.handleT) {
+				//todo fix
+				//if (ttt3 == vertex.handleT) 
+				{
 					filletOp.AddFillet(_vertex, s);
 					b = true;
 					vertices.erase(vertices.begin() + i);
@@ -3510,7 +3508,7 @@ public:
 		auto hh = h1->ToObjHandle();
 		const auto object1 = impl->findObject(hh);
 		std::vector<ObjHandle> vertices;
-		impl->GetSelectedVertices(myAISContext().get(), vertices);
+		impl->GetSelectedVertices(vertices);
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
 
 		//const auto* object2 = impl->getObject(edge);
@@ -3549,7 +3547,9 @@ public:
 					for (int i = 0;i < vertices.size();i++)
 					{
 						auto& vertex = vertices[i];
-						if (ttt3 == vertex.handleT) {
+						//todo fix
+						//if (ttt3 == vertex.handleT) 
+						{
 							edges.push_back(std::reference_wrapper<const TopoDS_Edge>(_edge));
 
 							break;
@@ -3587,7 +3587,9 @@ public:
 			for (int i = 0;i < vertices.size();i++)
 			{
 				auto& vertex = vertices[i];
-				if (ttt3 == vertex.handleT) {
+				//todo fix
+			//	if (ttt3 == vertex.handleT) 
+				{
 					filletOp.AddFillet(_vertex, s);
 					b = true;
 					vertices.erase(vertices.begin() + i);
@@ -3621,7 +3623,7 @@ public:
 		//const auto* object1 = impl->getObject(hh);
 		const auto object1 = impl->findObject(hh);
 		std::vector<ObjHandle> edges;
-		impl->GetSelectedEdges(myAISContext().get(), edges);
+		impl->GetSelectedEdges(edges);
 		//auto edge = impl->getSelectedEdge(myAISContext().get());
 
 		//const auto* object2 = impl->getObject(edge);
@@ -3913,9 +3915,9 @@ public:
 
 		TopoDS_TShape* ptshape = shape.TShape().get();
 
-		h.handleF = (unsigned __int64)(&shape);
-		h.handleT = (unsigned __int64)ptshape;
-		h.handle = (unsigned __int64)(&ais_shape);
+		//h.handleF = (unsigned __int64)(&shape);
+		//h.handleT = (unsigned __int64)ptshape;
+		//h.handle = (unsigned __int64)(&ais_shape);
 		return h;
 	}
 

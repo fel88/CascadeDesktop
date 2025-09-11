@@ -45,7 +45,7 @@ namespace CascadeDesktop.Tools
                 return;
 
             surfs.Add(face);
-            objs.Add(sob);
+            objs.Add(fr.Handle);
             if (surfs.Count == 2)
             {
                 var shift = -surfs[0].COM.ToVector3d() + surfs[1].COM.ToVector3d();

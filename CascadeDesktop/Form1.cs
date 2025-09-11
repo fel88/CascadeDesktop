@@ -893,7 +893,7 @@ namespace CascadeDesktop
             if (occ == null)
                 return;
 
-            var faces = proxy.GetFacesInfo(so);
+            var faces = proxy.GetFacesInfo(occ.Handle);
             ManagedObjHandle cs = null;
 
             if (faces.Count == 0)//2d fillet             

@@ -82,7 +82,7 @@ namespace CascadeDesktop.Tools
             else if (face is PlaneSurfInfo p)
             {
                 planes.Add(p);
-                objs.Add(proxy.GetSelectedObject());
+                objs.Add(fr.Handle);
                 if (planes.Count == 2)
                 {
                     var shift = GeomHelpers.GetAdjointFacesShift(planes[0], planes[1]);
