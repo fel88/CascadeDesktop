@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <EnableManagedPackageReferenceSupport>true</EnableManagedPackageReferenceSupport>
     <ProjectGuid>{969912D9-78E7-4AB8-B4FF-6B52B4F03991}</ProjectGuid>
     <RootNamespace>OCCTProxy</RootNamespace>
     <Keyword>Win32Proj</Keyword>
@@ -203,6 +204,11 @@
     <ProjectReference Include="..\Cascade.Common\Cascade.Common.csproj">
       <Project>{95890ba4-c636-4145-ac66-8efdb6f3d977}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenTK.Mathematics">
+      <Version>4.9.4</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

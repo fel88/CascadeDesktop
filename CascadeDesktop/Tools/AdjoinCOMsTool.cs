@@ -49,7 +49,7 @@ namespace CascadeDesktop.Tools
             objs.Add(fr.Handle);
             if (surfs.Count == 2)
             {
-                var shift = -surfs[0].COM.ToVector3d() + surfs[1].COM.ToVector3d();
+                var shift = -surfs[0].COM + surfs[1].COM;
                 Editor.Proxy.MoveObject(objs[0], shift.X, shift.Y, shift.Z, true);
                 Editor.ResetTool();
             }

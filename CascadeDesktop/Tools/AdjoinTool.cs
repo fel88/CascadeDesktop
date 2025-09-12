@@ -1,5 +1,6 @@
 ﻿using AutoDialog;
 using CascadeDesktop.Interfaces;
+using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -50,10 +51,10 @@ namespace CascadeDesktop.Tools
             if (vertex != null)
             {
                 objs.Add(proxy.GetSelectedObject());
-                vertices.Add(vertex);
+                vertices.Add(vertex.Value);
                 if (vertices.Count == 2)
                 {
-                    var shift = vertices[1].ToVector3d() - vertices[0].ToVector3d();
+                    var shift = vertices[1] - vertices[0];
                     if (shift != null)
                     {
                         var dir = shift.Normalized();
@@ -146,7 +147,7 @@ namespace CascadeDesktop.Tools
         List<PlaneSurfInfo> planes = new List<PlaneSurfInfo>();
         List<CylinderSurfInfo> cylinders = new List<CylinderSurfInfo>();
         List<EdgeInfo> edges = new List<EdgeInfo>();
-        List<Vector3> vertices = new List<Vector3>();
+        List<Vector3d> vertices = new List<Vector3d>();
 
         public override void Select()
         {

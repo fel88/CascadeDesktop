@@ -108,6 +108,8 @@
 
 
 using namespace Cascade::Common;
+using namespace OpenTK::Mathematics;
+using namespace System::Collections::Generic;
 
 #pragma comment(lib, "TKernel.lib")
 #pragma comment(lib, "TKMath.lib")
@@ -164,14 +166,7 @@ public:
 	int shapeType;
 };
 
-public ref struct Vector3 {
-public:
-	Vector3() {}
-	Vector3(double x, double y, double z) { X = x;Y = y;Z = z; }
-	double X;
-	double Y;
-	double Z;
-};
+
 
 public enum class CurveType
 {
@@ -189,12 +184,10 @@ public enum class CurveType
 public ref class EdgeInfo {
 public:
 	CurveType CurveType;
-	Vector3^ COM;//center of mass
-	Vector3^ Start;
-	Vector3^ End;
+	Vector3d COM;//center of mass
+	Vector3d Start;
+	Vector3d End;
 	double Length;
-	unsigned __int64 Handle;
-	unsigned __int64 THandle;
 	int  BindId;
 	int  AisShapeBindId;
 };
@@ -206,17 +199,15 @@ public:
 
 public ref class SurfInfo {
 public:
-	Vector3^ Position;
-	Vector3^ COM;//center of mass
-	unsigned __int64 Handle;
-	unsigned __int64 THandle;
+	Vector3d Position;
+	Vector3d COM;//center of mass
 	int BindId;
 	int AisShapeBindId;//parent
 };
 
 public ref class VertInfo {
 public:
-	Vector3^ Position;
+	Vector3d Position;
 
 	int BindId;
 	int AisShapeBindId;//parent
@@ -224,7 +215,7 @@ public:
 
 public ref class PlaneSurfInfo : SurfInfo {
 public:
-	Vector3^ Normal;
+	Vector3d Normal;
 };
 
 public ref class SurfOfRevolutionInfo : SurfInfo {
@@ -247,7 +238,7 @@ public:
 public ref class CylinderSurfInfo :SurfInfo {
 public:
 	double Radius;
-	Vector3^ Axis;
+	Vector3d Axis;
 };
 
 public ref class SphereSurfInfo : SurfInfo {
@@ -874,9 +865,9 @@ public:
 
 	}
 
-	System::Collections::Generic::List<ManagedObjHandle^>^ GetSelectedObjects() {
+	List<ManagedObjHandle^>^ GetSelectedObjects() {
 		auto objs = impl->getSelectedObjectsList();
-		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
+		List<ManagedObjHandle^>^ ret = gcnew List<ManagedObjHandle^>();
 		for (size_t i = 0; i < objs.size(); i++)
 		{
 			ManagedObjHandle^ hh = gcnew ManagedObjHandle();
@@ -895,11 +886,11 @@ public:
 		return hh;
 	}
 
-	System::Collections::Generic::List<ManagedObjHandle^>^ GetSelectedEdges() {
+	List<ManagedObjHandle^>^ GetSelectedEdges() {
 
 		std::vector<ObjHandle> edges;
 		impl->GetSelectedEdges(edges);
-		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
+		List<ManagedObjHandle^>^ ret = gcnew List<ManagedObjHandle^>();
 		for (size_t i = 0; i < edges.size(); i++)
 		{
 			ManagedObjHandle^ hh = gcnew ManagedObjHandle();
@@ -1102,62 +1093,64 @@ aView->Update();
 		}
 	}
 
-	Vector3^ GetGravityPoint()
+	Nullable<Vector3d> GetGravityPoint()
 	{
 		if (!myView().IsNull())
 		{
 			auto ret = myView()->GravityPoint();
-			Vector3^ v = gcnew Vector3();
-			v->X = ret.X();
-			v->X = ret.Y();
-			v->X = ret.Z();
+			Vector3d v;
+			v.X = ret.X();
+			v.X = ret.Y();
+			v.X = ret.Z();
 			return v;
 		}
-		return nullptr;
+		return {};
 	}
-	Vector3^ GetEye()
+
+	Nullable<Vector3d> GetEye()
 	{
 		if (!myView().IsNull())
 		{
 
 			auto ret = myView()->Camera()->Eye();
-			Vector3^ v = gcnew Vector3();
-			v->X = ret.X();
-			v->X = ret.Y();
-			v->X = ret.Z();
+			Vector3d v;
+			v.X = ret.X();
+			v.X = ret.Y();
+			v.X = ret.Z();
 			return v;
 		}
-		return nullptr;
+		return {};
 	}
 
-	Vector3^ GetCenter()
+	Nullable<Vector3d>  GetCenter()
 	{
 		if (!myView().IsNull())
 		{
 
 			auto ret = myView()->Camera()->Center();
-			Vector3^ v = gcnew Vector3();
-			v->X = ret.X();
-			v->X = ret.Y();
-			v->X = ret.Z();
+			Vector3d v;
+			v.X = ret.X();
+			v.X = ret.Y();
+			v.X = ret.Z();
 			return v;
 		}
-		return nullptr;
+
+		return {};
 	}
 
-	Vector3^ GetUp()
+	Nullable<Vector3d>  GetUp()
 	{
 		if (!myView().IsNull())
 		{
 
 			auto ret = myView()->Camera()->Up();
-			Vector3^ v = gcnew Vector3();
-			v->X = ret.X();
-			v->X = ret.Y();
-			v->X = ret.Z();
+			Vector3d v;
+			v.X = ret.X();
+			v.X = ret.Y();
+			v.X = ret.Z();
 			return v;
 		}
-		return nullptr;
+		return Nullable<Vector3d>();
 	}
 	/// <summary>
 	///Select by rectangle
@@ -1769,7 +1762,7 @@ public:
 	}
 	//#include <msclr/marshal_cppstd.h>
 
-	System::Collections::Generic::List<ManagedObjHandle^>^ ImportStep(System::String^ str)
+	List<ManagedObjHandle^>^ ImportStep(System::String^ str)
 	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
 		return ImportStep(aFilename);
@@ -1777,7 +1770,7 @@ public:
 
 
 
-	System::Collections::Generic::List<ManagedObjHandle^>^ ImportStep(System::String^ name, System::Collections::Generic::List<System::Byte>^ bts)
+	List<ManagedObjHandle^>^ ImportStep(System::String^ name, List<System::Byte>^ bts)
 	{
 		auto buf = new uint8_t[bts->Count];
 		for (int i = 0;i < bts->Count;i++) {
@@ -1796,7 +1789,7 @@ public:
 		return ImportStep(aFilename, s);
 	}
 
-	System::Collections::Generic::List<ManagedObjHandle^>^ ImportIges(System::String^ str)
+	List<ManagedObjHandle^>^ ImportIges(System::String^ str)
 	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
 		return ImportIges(aFilename);
@@ -1806,9 +1799,9 @@ public:
 	///Import Step file
 	/// </summary>
 	/// <param name="theFileName">Name of import file</param>
-	System::Collections::Generic::List<ManagedObjHandle^>^ ImportStep(const TCollection_AsciiString& theFileName)
+	List<ManagedObjHandle^>^ ImportStep(const TCollection_AsciiString& theFileName)
 	{
-		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
+		List<ManagedObjHandle^>^ ret = gcnew List<ManagedObjHandle^>();
 		STEPControl_Reader aReader;
 
 		IFSelect_ReturnStatus aStatus = aReader.ReadFile(theFileName.ToCString());
@@ -1857,9 +1850,9 @@ public:
 	///Import Step stream
 	/// </summary>
 	/// <param name="theFileName">Name of import file</param>
-	System::Collections::Generic::List<ManagedObjHandle^>^ ImportStep(const TCollection_AsciiString& name, std::istream& stream)
+	List<ManagedObjHandle^>^ ImportStep(const TCollection_AsciiString& name, std::istream& stream)
 	{
-		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
+		List<ManagedObjHandle^>^ ret = gcnew List<ManagedObjHandle^>();
 		STEPControl_Reader aReader;
 		IFSelect_ReturnStatus aStatus = aReader.ReadStream(name.ToCString(), stream);
 
@@ -1908,9 +1901,9 @@ public:
 	///Import Iges file
 	/// </summary>
 	/// <param name="theFileName">Name of import file</param>
-	System::Collections::Generic::List<ManagedObjHandle^>^ ImportIges(const TCollection_AsciiString& theFileName)
+	List<ManagedObjHandle^>^ ImportIges(const TCollection_AsciiString& theFileName)
 	{
-		System::Collections::Generic::List<ManagedObjHandle^>^ ret = gcnew System::Collections::Generic::List<ManagedObjHandle^>();
+		List<ManagedObjHandle^>^ ret = gcnew List<ManagedObjHandle^>();
 
 		IGESControl_Reader aReader;
 		int aStatus = aReader.ReadFile(theFileName.ToCString());
@@ -2000,7 +1993,7 @@ public:
 	///Export Step file
 	/// </summary>
 	/// <param name="theFileName">Name of export file</param>
-	System::Collections::Generic::List<System::Byte>^ ExportStepStream(ManagedObjHandle^ h)
+	List<System::Byte>^ ExportStepStream(ManagedObjHandle^ h)
 	{
 		STEPControl_StepModelType aType = STEPControl_AsIs;
 		IFSelect_ReturnStatus aStatus;
@@ -2017,7 +2010,7 @@ public:
 		if (aStatus != IFSelect_RetDone)
 			return nullptr;
 
-		auto bts = gcnew System::Collections::Generic::List<System::Byte>();
+		auto bts = gcnew List<System::Byte>();
 		std::stringstream  ostr;
 		aStatus = aWriter.WriteStream(ostr);
 		unsigned char n2;
@@ -2226,8 +2219,8 @@ public:
 		return trans;
 	}
 
-	System::Collections::Generic::List<double>^ GetObjectMatrixValues(ManagedObjHandle^ h) {
-		System::Collections::Generic::List<double>^ ret = gcnew System::Collections::Generic::List<double>();
+	List<double>^ GetObjectMatrixValues(ManagedObjHandle^ h) {
+		List<double>^ ret = gcnew List<double>();
 		auto p = impl->findObject(h->BindId);
 		auto trans = p->Transformation();
 		for (size_t i = 1; i <= 3; i++)
@@ -2240,7 +2233,7 @@ public:
 		return ret;
 	}
 
-	
+
 
 	void MoveObject(ManagedObjHandle^ h, double x, double y, double z, bool rel)
 	{
@@ -2256,7 +2249,7 @@ public:
 		myAISContext()->SetLocation(o, p);
 	}
 
-	void SetMatrixValues(ManagedObjHandle^ h, System::Collections::Generic::List<double>^ m)
+	void SetMatrixValues(ManagedObjHandle^ h, List<double>^ m)
 	{
 		auto o = impl->findObject(h->BindId);
 		gp_Trsf tr;
@@ -2301,7 +2294,7 @@ public:
 		myAISContext()->SetLocation(o, p);
 	}
 
-	ManagedObjHandle^ MirrorObject(ManagedObjHandle^ h, Vector3^ dir, Vector3^ pnt, bool axis2, bool rel)
+	ManagedObjHandle^ MirrorObject(ManagedObjHandle^ h, Vector3d dir, Vector3d pnt, bool axis2, bool rel)
 	{
 		ObjHandle oh = h->ToObjHandle();
 		const auto object1 = impl->findObject(oh);
@@ -2311,11 +2304,11 @@ public:
 
 		gp_Trsf tr;
 		if (axis2) {
-			gp_Ax2 ax2(gp_Pnt(pnt->X, pnt->Y, pnt->Z), gp_Dir(dir->X, dir->Y, dir->Z));
+			gp_Ax2 ax2(gp_Pnt(pnt.X, pnt.Y, pnt.Z), gp_Dir(dir.X, dir.Y, dir.Z));
 			tr.SetMirror(ax2);
 		}
 		else {
-			gp_Ax1 ax(gp_Pnt(pnt->X, pnt->Y, pnt->Z), gp_Dir(dir->X, dir->Y, dir->Z));
+			gp_Ax1 ax(gp_Pnt(pnt.X, pnt.Y, pnt.Z), gp_Dir(dir.X, dir.Y, dir.Z));
 			tr.SetMirror(ax);
 		}
 
@@ -2339,29 +2332,27 @@ public:
 		return hhh;
 	}
 
-	System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^>^
-		IteratePoly(ManagedObjHandle^ h) {
+	List<List<Vector3d>^>^ IteratePoly(ManagedObjHandle^ h) {
 
-		System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^>^ ret =
-			gcnew System::Collections::Generic::List<System::Collections::Generic::List<Vector3^>^>();
+		List<List<Vector3d>^>^ ret =			gcnew List<List<Vector3d>^>();
 
-		System::Collections::Generic::List<Vector3^>^ verts = gcnew System::Collections::Generic::List<Vector3^>();
-		System::Collections::Generic::List<Vector3^>^ norms = gcnew System::Collections::Generic::List<Vector3^>();
+		List<Vector3d>^ verts = gcnew List<Vector3d>();
+		List<Vector3d>^ norms = gcnew List<Vector3d>();
 		ObjHandle hc = h->ToObjHandle();
 
 		auto pp = impl->IteratePoly(hc);
 		for (size_t i = 0; i < pp.size(); i += 6)
 		{
-			Vector3^ v = gcnew Vector3();
-			v->X = pp[i];
-			v->Y = pp[i + 1];
-			v->Z = pp[i + 2];
+			Vector3d v;
+			v.X = pp[i];
+			v.Y = pp[i + 1];
+			v.Z = pp[i + 2];
 			verts->Add(v);
 
-			Vector3^ v2 = gcnew Vector3();
-			v2->X = pp[i + 3];
-			v2->Y = pp[i + 4];
-			v2->Z = pp[i + 5];
+			Vector3d v2;
+			v2.X = pp[i + 3];
+			v2.Y = pp[i + 4];
+			v2.Z = pp[i + 5];
 			norms->Add(v2);
 		}
 
@@ -2534,17 +2525,17 @@ public:
 				float aU = 0;
 				float aV = 0;
 				gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
-				Vector3^ pos = gcnew Vector3();
-				Vector3^ nrm = gcnew Vector3();
+				Vector3d pos;
+				Vector3d nrm;
 
 				PlaneSurfInfo^ ret = gcnew PlaneSurfInfo();
 				GProp_GProps massProps;
 				BRepGProp::SurfaceProperties(ttt, massProps);
 				gp_Pnt gPt = massProps.CentreOfMass();
 
-				pos->X = aPnt.X();
-				pos->Y = aPnt.Y();
-				pos->Z = aPnt.Z();
+				pos.X = aPnt.X();
+				pos.Y = aPnt.Y();
+				pos.Z = aPnt.Z();
 
 				auto orient = edgee.Orientation();
 
@@ -2670,19 +2661,20 @@ public:
 		hhh->FromObjHandle(hn);
 		return hhh;
 	}
-	Vector3^ GetVertexPosition(ManagedObjHandle^ h1)
+
+	Nullable<Vector3d> GetVertexPosition(ManagedObjHandle^ h1)
 	{
 		return GetVertexPosition(h1->AisShapeBindId, h1);
 	}
 
-	Vector3^ GetVertexPosition(int parentId, ManagedObjHandle^ h1)
+	Nullable<Vector3d> GetVertexPosition(int parentId, ManagedObjHandle^ h1)
 	{
 		auto hh = h1->ToObjHandle();
 		const auto object1 = impl->findObject(parentId);
 
 		auto temp1 = Handle(AIS_Shape)::DownCast(object1);
 		if (temp1.IsNull()) {
-			return nullptr;
+			return {};
 		}
 		TopoDS_Shape shape0 = temp1->Shape();
 
@@ -2703,16 +2695,16 @@ public:
 				continue;
 			}
 			if (ind == hh.bindId) {
-				Vector3^ ret = gcnew Vector3();
+				Vector3d ret;
 
 				gp_Pnt p = BRep_Tool::Pnt(edgee);
-				ret->X = p.X();
-				ret->Y = p.Y();
-				ret->Z = p.Z();
+				ret.X = p.X();
+				ret.Y = p.Y();
+				ret.Z = p.Z();
 				return ret;
 			}
 		}
-		return nullptr;
+		return {};
 	}
 
 	EdgeInfo^ GetEdgeInfoPosition(ManagedObjHandle^ h1)
@@ -2788,21 +2780,18 @@ public:
 				ret->AisShapeBindId = parentId;
 				ret->Length = len;
 				ret->CurveType = (CurveType)curveType;
-				ret->Start = gcnew Vector3();
-				ret->End = gcnew Vector3();
+			
+				ret->COM.X = gPt.X();
+				ret->COM.Y = gPt.Y();
+				ret->COM.Z = gPt.Z();
 
-				ret->COM = gcnew Vector3();
-				ret->COM->X = gPt.X();
-				ret->COM->Y = gPt.Y();
-				ret->COM->Z = gPt.Z();
+				ret->Start.X = pnt1.X();
+				ret->Start.Y = pnt1.Y();
+				ret->Start.Z = pnt1.Z();
 
-				ret->Start->X = pnt1.X();
-				ret->Start->Y = pnt1.Y();
-				ret->Start->Z = pnt1.Z();
-
-				ret->End->X = pnt2.X();
-				ret->End->Y = pnt2.Y();
-				ret->End->Z = pnt2.Z();
+				ret->End.X = pnt2.X();
+				ret->End.Y = pnt2.Y();
+				ret->End.Z = pnt2.Z();
 				return ret;
 			}
 		}
@@ -2854,8 +2843,8 @@ public:
 		float aV = 0;
 
 		gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
-		Vector3^ pos = gcnew Vector3();
-		Vector3^ nrm = gcnew Vector3();
+		Vector3d pos;
+		Vector3d nrm;
 
 		CylinderSurfInfo^ ret = gcnew CylinderSurfInfo();
 
@@ -2863,19 +2852,17 @@ public:
 		BRepGProp::SurfaceProperties(ttt, massProps);
 		gp_Pnt gPt = massProps.CentreOfMass();
 
-		nrm->X = dir.X();
-		nrm->Y = dir.Y();
-		nrm->Z = dir.Z();
+		nrm.X = dir.X();
+		nrm.Y = dir.Y();
+		nrm.Z = dir.Z();
 
-
-		pos->X = aPnt.X();
-		pos->Y = aPnt.Y();
-		pos->Z = aPnt.Z();
-
-		ret->COM = gcnew Vector3();
-		ret->COM->X = gPt.X();
-		ret->COM->Y = gPt.Y();
-		ret->COM->Z = gPt.Z();
+		pos.X = aPnt.X();
+		pos.Y = aPnt.Y();
+		pos.Z = aPnt.Z();
+		
+		ret->COM.X = gPt.X();
+		ret->COM.Y = gPt.Y();
+		ret->COM.Z = gPt.Z();
 		ret->Position = pos;
 		ret->Radius = rad;
 		ret->Axis = nrm;
@@ -2911,7 +2898,7 @@ public:
 		float aV = 0;
 
 		gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
-		Vector3^ pos = gcnew Vector3();
+		Vector3d pos;
 
 		SphereSurfInfo^ ret = gcnew SphereSurfInfo();
 
@@ -2920,19 +2907,20 @@ public:
 		gp_Pnt gPt = massProps.CentreOfMass();
 
 
-		pos->X = aPnt.X();
-		pos->Y = aPnt.Y();
-		pos->Z = aPnt.Z();
+		pos.X = aPnt.X();
+		pos.Y = aPnt.Y();
+		pos.Z = aPnt.Z();
 
-		ret->COM = gcnew Vector3();
-		ret->COM->X = gPt.X();
-		ret->COM->Y = gPt.Y();
-		ret->COM->Z = gPt.Z();
+		
+		ret->COM.X = gPt.X();
+		ret->COM.Y = gPt.Y();
+		ret->COM.Z = gPt.Z();
 		ret->Position = pos;
 		ret->Radius = rad;
 
 		return ret;
 	}
+
 	PlaneSurfInfo^ ExtractPlaneSurface(TopoDS_Shape ttt) {
 		auto loc = ttt.Location();
 
@@ -2949,31 +2937,31 @@ public:
 		float aU = 0;
 		float aV = 0;
 		gp_Pnt aPnt = aSurf->Value(aU, aV).Transformed(aLocation.Transformation());
-		Vector3^ pos = gcnew Vector3();
-		Vector3^ nrm = gcnew Vector3();
+
+		Vector3d pos;
+		Vector3d nrm;
 
 		PlaneSurfInfo^ ret = gcnew PlaneSurfInfo();
 		GProp_GProps massProps;
 		BRepGProp::SurfaceProperties(ttt, massProps);
 		gp_Pnt gPt = massProps.CentreOfMass();
 
-		pos->X = aPnt.X();
-		pos->Y = aPnt.Y();
-		pos->Z = aPnt.Z();
+		pos.X = aPnt.X();
+		pos.Y = aPnt.Y();
+		pos.Z = aPnt.Z();
 
 		auto dir = pln.Axis().Direction().Transformed(aLocation.Transformation());
 		if (orient == TopAbs_REVERSED) {
 			dir.Reverse();
 		}
 
-		nrm->X = dir.X();
-		nrm->Y = dir.Y();
-		nrm->Z = dir.Z();
-
-		ret->COM = gcnew Vector3();
-		ret->COM->X = gPt.X();
-		ret->COM->Y = gPt.Y();
-		ret->COM->Z = gPt.Z();
+		nrm.X = dir.X();
+		nrm.Y = dir.Y();
+		nrm.Z = dir.Z();
+	
+		ret->COM.X = gPt.X();
+		ret->COM.Y = gPt.Y();
+		ret->COM.Z = gPt.Z();
 		ret->Position = pos;
 		ret->Normal = nrm;
 
@@ -3048,8 +3036,8 @@ public:
 		return nullptr;
 	}
 
-	System::Collections::Generic::List<VertInfo^>^ GetVertsInfo(ManagedObjHandle^ h1) {
-		System::Collections::Generic::List<VertInfo^>^ rett = gcnew System::Collections::Generic::List<VertInfo^>();
+	List<VertInfo^>^ GetVertsInfo(ManagedObjHandle^ h1) {
+		List<VertInfo^>^ rett = gcnew List<VertInfo^>();
 		auto hh = h1->ToObjHandle();
 		const auto object1 = impl->findObject(hh);
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
@@ -3081,8 +3069,8 @@ public:
 		return rett;
 	}
 
-	System::Collections::Generic::List<SurfInfo^>^ GetFacesInfo(ManagedObjHandle^ h1) {
-		System::Collections::Generic::List<SurfInfo^>^ rett = gcnew System::Collections::Generic::List<SurfInfo^>();
+	List<SurfInfo^>^ GetFacesInfo(ManagedObjHandle^ h1) {
+		List<SurfInfo^>^ rett = gcnew List<SurfInfo^>();
 		auto hh = h1->ToObjHandle();
 		const auto object1 = impl->findObject(hh);
 		TopoDS_Shape shape0 = Handle(AIS_Shape)::DownCast(object1)->Shape();
@@ -3141,8 +3129,8 @@ public:
 		return rett;
 	}
 
-	System::Collections::Generic::List<EdgeInfo^>^ GetEdgesInfo(ManagedObjHandle^ h1) {
-		System::Collections::Generic::List<EdgeInfo^>^ rett = gcnew System::Collections::Generic::List<EdgeInfo^>();
+	List<EdgeInfo^>^ GetEdgesInfo(ManagedObjHandle^ h1) {
+		List<EdgeInfo^>^ rett = gcnew List<EdgeInfo^>();
 		auto hh = h1->ToObjHandle();
 		auto object1 = impl->findObject(hh);
 		//const auto* object1 = impl->getObject(hh);
@@ -3204,21 +3192,18 @@ public:
 
 			ret->Length = len;
 			ret->CurveType = (CurveType)curveType;
-			ret->Start = gcnew Vector3();
-			ret->End = gcnew Vector3();
+			
+			ret->COM.X = gPt.X();
+			ret->COM.Y = gPt.Y();
+			ret->COM.Z = gPt.Z();
 
-			ret->COM = gcnew Vector3();
-			ret->COM->X = gPt.X();
-			ret->COM->Y = gPt.Y();
-			ret->COM->Z = gPt.Z();
+			ret->Start.X = pnt1.X();
+			ret->Start.Y = pnt1.Y();
+			ret->Start.Z = pnt1.Z();
 
-			ret->Start->X = pnt1.X();
-			ret->Start->Y = pnt1.Y();
-			ret->Start->Z = pnt1.Z();
-
-			ret->End->X = pnt2.X();
-			ret->End->Y = pnt2.Y();
-			ret->End->Z = pnt2.Z();
+			ret->End.X = pnt2.X();
+			ret->End.Y = pnt2.Y();
+			ret->End.Z = pnt2.Z();
 
 			rett->Add(ret);
 

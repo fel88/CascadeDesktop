@@ -121,8 +121,8 @@ namespace CascadeDesktop
 
             if (edge != null)
             {
-                var vect = edge.Start.ToVector3d();
-                var vect2 = edge.End.ToVector3d();
+                var vect = edge.Start;
+                var vect2 = edge.End;
                 SetStatus3(string.Empty);
                 AppendStatusVector("edge " + edge.CurveType.ToString(), vect);
                 AppendStatusVector(" ", vect2);
@@ -130,30 +130,30 @@ namespace CascadeDesktop
                 {
                     AppendDouble("radius", cei.Radius);
                 }
-                AppendStatusVector("com", edge.COM.ToVector3d());
+                AppendStatusVector("com", edge.COM);
                 AppendStatus3($" len: {edge.Length}");
             }
             else if (v != null)
             {
-                var vect = v.ToVector3d();
+                var vect = v.Value;
                 SetStatus3($"vertex: {vect.X} {vect.Y} {vect.Z}");
             }
             else if (face != null)
             {
-                var vect = face.Position.ToVector3d();
+                var vect = face.Position;
                 if (face is PlaneSurfInfo p)
                 {
-                    var nrm = p.Normal.ToVector3d();
+                    var nrm = p.Normal;
                     ClearStatus3();
                     AppendStatusVector("plane", vect);
                     AppendStatusVector("normal", nrm);
-                    AppendStatusVector("com", p.COM.ToVector3d());
+                    AppendStatusVector("com", p.COM);
                 }
                 else if (face is CylinderSurfInfo c)
                 {
                     ClearStatus3();
                     AppendStatusVector("cylinder", vect);
-                    AppendStatusVector("COM", c.COM.ToVector3d());
+                    AppendStatusVector("COM", c.COM);
                     AppendDouble("radius", c.Radius);
 
                 }
@@ -161,7 +161,7 @@ namespace CascadeDesktop
                 {
                     ClearStatus3();
                     AppendStatusVector("sphere", vect);
-                    AppendStatusVector("COM", s.COM.ToVector3d());
+                    AppendStatusVector("COM", s.COM);
                     AppendDouble("radius", s.Radius);
 
                 }
@@ -169,7 +169,7 @@ namespace CascadeDesktop
                 {
                     ClearStatus3();
                     AppendStatusVector(face.GetType().Name, vect);
-                    AppendStatusVector("COM", face.COM.ToVector3d());
+                    AppendStatusVector("COM", face.COM);
                 }
             }
             else
@@ -607,7 +607,7 @@ namespace CascadeDesktop
             }
 
             var d = DialogHelpers.StartDialog();
-            d.AddOptionsField("mode", "Mode", new string[] { "Relative", "Abs", "Abs COM of selected face" }, 0);
+            d.AddOptionsField("mode", "Mode", ["Relative", "Abs", "Abs COM of selected face"], 0);
             d.AddNumericField("x", "x", 0, 10000, -10000);
             d.AddNumericField("y", "y", 0, 10000, -10000);
             d.AddNumericField("z", "z", 0, 10000, -10000);
@@ -631,7 +631,7 @@ namespace CascadeDesktop
                     break;
                 case 2:
                     var com = proxy.GetFaceInfo(sob).COM;
-                    var shift = new Vector3d(x, y, z) - com.ToVector3d();
+                    var shift = new Vector3d(x, y, z) - com;
                     proxy.MoveObject(proxy.GetSelectedObject(), shift.X, shift.Y, shift.Z, true);
                     break;
             }
@@ -733,7 +733,7 @@ namespace CascadeDesktop
             var dy = d.GetNumericField("dy");
             var dz = d.GetNumericField("dz");
 
-            var h = proxy.MirrorObject(proxy.GetSelectedObject(), new Vector3(dx, dy, dz), new Vector3(x, y, z), true, true);
+            var h = proxy.MirrorObject(proxy.GetSelectedObject(), new Vector3d(dx, dy, dz), new Vector3d(x, y, z), true, true);
             Objs.Add(new OccSceneObject(h, proxy) { Name = "mirrored" });
         }
 

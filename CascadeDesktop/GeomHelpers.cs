@@ -8,14 +8,14 @@ namespace CascadeDesktop
     {
         public static Vector3d? GetAdjointFacesShift(PlaneSurfInfo plane1, PlaneSurfInfo plane2, float eps = 1e-8f)
         {
-            var cross1 = Vector3d.Cross(plane1.Normal.ToVector3d(), plane2.Normal.ToVector3d());
+            var cross1 = Vector3d.Cross(plane1.Normal, plane2.Normal);
             if (Math.Abs(cross1.Length) < eps)
             {//colinear
              //just translate
 
-                var temp = new Plane() { Location = plane2.Position.ToVector3d(), Normal = plane2.Normal.ToVector3d() };
-                var proj = temp.GetProjPoint(plane1.Position.ToVector3d());
-                proj = proj - plane1.Position.ToVector3d();//shift
+                var temp = new Plane() { Location = plane2.Position, Normal = plane2.Normal };
+                var proj = temp.GetProjPoint(plane1.Position);
+                proj = proj - plane1.Position;//shift
                 return proj;
 
             }
@@ -24,7 +24,7 @@ namespace CascadeDesktop
 
         public static Vector3d? GetAdjointEdgesShift(EdgeInfo edge1, EdgeInfo edge2, float eps = 1e-8f)
         {
-            return edge2.COM.ToVector3d() - edge1.COM.ToVector3d();
+            return edge2.COM - edge1.COM;
         }
 
         public static bool IsCollinear(Vector3d axis1, Vector3d axis2, float eps = 1e-8f)
@@ -48,14 +48,14 @@ namespace CascadeDesktop
         }
         public static Vector3d? GetAdjointFacesShift(CylinderSurfInfo cylinder1, CylinderSurfInfo cylinder2, float eps = 1e-8f)
         {
-            var cross1 = Vector3d.Cross(cylinder1.Axis.ToVector3d(), cylinder2.Axis.ToVector3d());
+            var cross1 = Vector3d.Cross(cylinder1.Axis, cylinder2.Axis);
             if (Math.Abs(cross1.Length) < eps)
             {//colinear
              //just translate
 
-                var temp = new Plane() { Location = cylinder1.Position.ToVector3d(), Normal = cylinder1.Axis.ToVector3d() };
-                var proj = temp.GetProjPoint(cylinder2.COM.ToVector3d());
-                var proj2 = temp.GetProjPoint(cylinder1.COM.ToVector3d());
+                var temp = new Plane() { Location = cylinder1.Position, Normal = cylinder1.Axis };
+                var proj = temp.GetProjPoint(cylinder2.COM);
+                var proj2 = temp.GetProjPoint(cylinder1.COM);
                 proj -= proj2;//shift
                 return proj;
             }

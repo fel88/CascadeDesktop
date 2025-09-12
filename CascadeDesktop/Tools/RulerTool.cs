@@ -1,4 +1,5 @@
 ﻿using CascadeDesktop.Interfaces;
+using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -49,21 +50,21 @@ namespace CascadeDesktop.Tools
             //vecs.Add(proxy.GetVertexPoition(proxy.GetSelectedObject()).ToVector3d());            
             if (objs.Count == 2)
             {
-                if (mobjs.All(z => z is Vector3))
+                if (mobjs.All(z => z is Vector3d))
                 {
-                    var vecs = mobjs.Cast<Vector3>().ToArray();
-                    Editor.SetStatus($"dist: {(vecs[0].ToVector3d() - vecs[1].ToVector3d()).Length}");
+                    var vecs = mobjs.Cast<Vector3d>().ToArray();
+                    Editor.SetStatus($"dist: {(vecs[0] - vecs[1]).Length}");
                     Editor.ResetTool();
                 }
                 else
-                if (mobjs.Any(z => z is Vector3) && mobjs.Any(z => z is EdgeInfo))
+                if (mobjs.Any(z => z is Vector3d) && mobjs.Any(z => z is EdgeInfo))
                 {
-                    var vec = mobjs.First(z => z is Vector3) as Vector3;
+                    var vec = (Vector3d)mobjs.First(z => z is Vector3d);
                     var edg = mobjs.First(z => z is EdgeInfo) as EdgeInfo;
                     if (edg.CurveType == CurveType.Line)
                     {
                         //get projection point to edge
-                        var d = GeomHelpers.dist(vec.ToVector3d(), edg.Start.ToVector3d(), edg.End.ToVector3d());
+                        var d = GeomHelpers.dist(vec, edg.Start, edg.End);
                         Editor.SetStatus($"dist: {d}");
                     }
                     else
@@ -75,10 +76,10 @@ namespace CascadeDesktop.Tools
                 else
                 if (mobjs.Any(z => z is Vector3) && mobjs.Any(z => z is PlaneSurfInfo))
                 {
-                    var vec = mobjs.First(z => z is Vector3) as Vector3;
+                    var vec = (Vector3d)mobjs.First(z => z is Vector3d)  ;
                     var pln = mobjs.First(z => z is PlaneSurfInfo) as PlaneSurfInfo;
-                    var p = new Plane() { Location = pln.Position.ToVector3d(), Normal = pln.Normal.ToVector3d() };
-                    var len = (vec.ToVector3d() - p.GetProjPoint(vec.ToVector3d())).Length;
+                    var p = new Plane() { Location = pln.Position, Normal = pln.Normal };
+                    var len = (vec - p.GetProjPoint(vec)).Length;
                     Editor.SetStatus($"point to plane face dist: {len}");
                     Editor.ResetTool();
                 }
@@ -87,14 +88,14 @@ namespace CascadeDesktop.Tools
                 {
                     var v1 = mobjs.First(z => z is PlaneSurfInfo) as PlaneSurfInfo;
                     var v2 = mobjs.First(z => z != v1 && z is PlaneSurfInfo) as PlaneSurfInfo;
-                    if (!GeomHelpers.IsCollinear(v1.Normal.ToVector3d(), v2.Normal.ToVector3d()))
+                    if (!GeomHelpers.IsCollinear(v1.Normal, v2.Normal))
                     {
                         Editor.SetStatus($"plane to plane dist: not collinear");
                         Editor.ResetTool();
                         return;
                     }
-                    var p = new Plane() { Location = v1.Position.ToVector3d(), Normal = v1.Normal.ToVector3d() };
-                    var len = (v2.Position.ToVector3d() - p.GetProjPoint(v2.Position.ToVector3d())).Length;
+                    var p = new Plane() { Location = v1.Position, Normal = v1.Normal };
+                    var len = (v2.Position - p.GetProjPoint(v2.Position)).Length;
                     Editor.SetStatus($"plane to plane dist: {len}");
                     Editor.ResetTool();
                 }

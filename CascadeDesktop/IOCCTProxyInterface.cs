@@ -1,4 +1,5 @@
 ﻿using Cascade.Common;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 
@@ -8,10 +9,10 @@ namespace CascadeDesktop
     {
         void StartZoomAtPoint(int theX1, int theY1);
         void ZoomAtPoint(int theX1, int theY1, int theX2, int theY2);
-        Vector3 GetGravityPoint();
-        Vector3 GetCenter();
-        Vector3 GetEye();
-        Vector3 GetUp();
+        Vector3d? GetGravityPoint();
+        Vector3d? GetCenter();
+        Vector3d? GetEye();
+        Vector3d? GetUp();
         void ResetSelectionMode();
         ManagedObjHandle Text2Brep(string str, double fontSize, double bevelHeight);
         void SetSelectionMode(OCCTProxy.SelectionModeEnum f);
@@ -66,7 +67,7 @@ namespace CascadeDesktop
         ManagedObjHandle MakePipe(ManagedObjHandle so, double r);
         ManagedObjHandle Pipe(double x1, double y1, double z1, double x2, double y2, double z2, double size);
         ManagedObjHandle Sphere(double x1, double y1, double z1, double size);
-        ManagedObjHandle MirrorObject(ManagedObjHandle managedObjHandle, Vector3 dir, Vector3 pnt, bool axis2, bool rel);
+        ManagedObjHandle MirrorObject(ManagedObjHandle managedObjHandle, Vector3d dir, Vector3d pnt, bool axis2, bool rel);
         ManagedObjHandle MakeSphere(double r);
         ManagedObjHandle MakeCylinder(double r, double h);
         bool ExportStep(ManagedObjHandle managedObjHandle, string fileName);
@@ -81,10 +82,10 @@ namespace CascadeDesktop
         void Zoom(int v1, int v2, int v3, int v4);
         EdgeInfo GetEdgeInfoPosition( ManagedObjHandle obj);
         SurfInfo GetFaceInfo( ManagedObjHandle obj);
-        Vector3 GetVertexPosition( ManagedObjHandle obj);
+        Vector3d? GetVertexPosition( ManagedObjHandle obj);
         void StartRotation(int x, int y);
         void Select(bool v);
-        List<List<Vector3>> IteratePoly(ManagedObjHandle managedObjHandle);
+        List<List<Vector3d>> IteratePoly(ManagedObjHandle managedObjHandle);
         ManagedObjHandle AddWireDraft(double height);
         ManagedObjHandle ImportBlueprint(Blueprint blueprint);
         ManagedObjHandle ImportBlueprint(Blueprint3d blueprint);
