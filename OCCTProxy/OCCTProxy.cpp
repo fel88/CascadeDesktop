@@ -524,12 +524,7 @@ public:
 
 					h.bindId = _map_shape_int.Add(shape);
 				}
-				TopoDS_TShape* ptshape = shape.TShape().get();
 
-				Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
-				Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
-				//h.handle = (unsigned __int64)(self.get());
-				//h.handleT = (unsigned __int64)(ptshape);
 				ret.push_back(h);
 			}
 		}
@@ -550,10 +545,6 @@ public:
 			const TopoDS_Shape& shape = brepowner->Shape();
 			h.shapeType = shape.ShapeType();
 
-			TopoDS_TShape* ptshape = shape.TShape().get();
-
-			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
-			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
 
 			if (_map_shape_int.Contains(shape)) {
 				h.bindId = _map_shape_int.FindIndex(shape);
@@ -562,9 +553,7 @@ public:
 
 				h.bindId = _map_shape_int.Add(shape);
 			}
-			//h.handle = (unsigned __int64)(self.get());
-			//h.handleT = (unsigned __int64)(ptshape);
-			//h.handleF = (unsigned __int64)(&shape);
+
 			break;
 		}
 		return h;
@@ -582,13 +571,7 @@ public:
 
 			const TopoDS_Shape& shape = brepowner->Shape();
 
-			TopoDS_TShape* ptshape = shape.TShape().get();
 
-			Handle(AIS_InteractiveObject) selected = ctx->SelectedInteractive();
-			Handle(AIS_InteractiveObject) self = ctx->SelectedInteractive();
-			//	h.handle = (unsigned __int64)(self.get());
-			//	h.handleT = (unsigned __int64)(ptshape);
-			//	h.handleF = (unsigned __int64)(&shape);
 			break;
 		}
 		return h;
@@ -2183,13 +2166,40 @@ public:
 	};
 
 	void ResetSelectionMode() {
-		myAISContext()->Deactivate();
+		Handle(AIS_InteractiveContext) theCtx = myAISContext();
+		
+		AIS_ListOfInteractive aDispList;
+		theCtx->DisplayedObjects(aDispList);
+		for (const Handle(AIS_InteractiveObject)& aPrsIter : aDispList)
+		{
+			Handle(AIS_Shape) aShape = Handle(AIS_Shape)::DownCast(aPrsIter);
+			if (aShape.IsNull())
+				continue; 
+
+			theCtx->Deactivate(aShape);
+			
+		}
+		//myAISContext()->Deactivate();
 	}
 
 	void SetSelectionMode(SelectionModeEnum t) {
-		if (t != SelectionModeEnum::None) {
-			myAISContext()->Activate((int)t, true);
+		if (t == SelectionModeEnum::None)
+			return;
+		Handle(AIS_InteractiveContext) theCtx = myAISContext();
+		int aSelMode = (int)t;
+
+		AIS_ListOfInteractive aDispList;
+		theCtx->DisplayedObjects(aDispList);
+		for (const Handle(AIS_InteractiveObject)& aPrsIter : aDispList)
+		{
+			Handle(AIS_Shape) aShape = Handle(AIS_Shape)::DownCast(aPrsIter);
+			if (aShape.IsNull()) { continue; }
+
+			theCtx->Deactivate(aShape);
+			theCtx->Activate(aShape, aSelMode,true);
 		}
+			//myAISContext()->Activate((int)t, true);
+		
 		//currentMode=t;
 	}
 
@@ -2334,7 +2344,7 @@ public:
 
 	List<List<Vector3d>^>^ IteratePoly(ManagedObjHandle^ h) {
 
-		List<List<Vector3d>^>^ ret =			gcnew List<List<Vector3d>^>();
+		List<List<Vector3d>^>^ ret = gcnew List<List<Vector3d>^>();
 
 		List<Vector3d>^ verts = gcnew List<Vector3d>();
 		List<Vector3d>^ norms = gcnew List<Vector3d>();
@@ -2431,9 +2441,6 @@ public:
 			const auto ttt = aExpFace.Current();
 			const auto& edgee = TopoDS::Wire(ttt);
 			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
-			auto ttt4 = (unsigned __int64)(&ttt);
 
 			if (edgee.IsNull()) {
 				continue;
@@ -2504,10 +2511,7 @@ public:
 			ttt = ttt.Located(object1->LocalTransformation());
 
 			const auto& edgee = TopoDS::Face(ttt);
-			//auto tt = ttt.TShape();
-			//TopoDS_TShape* ptshape = tt.get();
-			//auto ttt3 = (unsigned __int64)(ptshape);
-			//auto ttt4 = (unsigned __int64)(&ttt);
+
 
 			if (edgee.IsNull()) {
 				continue;
@@ -2686,10 +2690,7 @@ public:
 			ttt = ttt.Located(object1->LocalTransformation());
 
 			const auto& edgee = TopoDS::Vertex(ttt);
-			//	auto tt = ttt.TShape();
-				//TopoDS_TShape* ptshape = tt.get();
-				//auto ttt3 = (unsigned __int64)(ptshape);
-				//auto ttt4 = (unsigned __int64)(&ttt);
+
 
 			if (edgee.IsNull()) {
 				continue;
@@ -2734,14 +2735,10 @@ public:
 			ttt = ttt.Located(object1->LocalTransformation());
 
 			const auto& edgee = TopoDS::Edge(ttt);
-			auto tt = ttt.TShape();
-			//TopoDS_TShape* ptshape = tt.get();
-			//auto ttt3 = (unsigned __int64)(ptshape);
-			//auto ttt4 = (unsigned __int64)(&ttt);
 
-			if (edgee.IsNull()) {
+			if (edgee.IsNull())
 				continue;
-			}
+
 			if (ind == hh.bindId) {
 
 				GProp_GProps massProps;
@@ -2780,7 +2777,7 @@ public:
 				ret->AisShapeBindId = parentId;
 				ret->Length = len;
 				ret->CurveType = (CurveType)curveType;
-			
+
 				ret->COM.X = gPt.X();
 				ret->COM.Y = gPt.Y();
 				ret->COM.Z = gPt.Z();
@@ -2859,7 +2856,7 @@ public:
 		pos.X = aPnt.X();
 		pos.Y = aPnt.Y();
 		pos.Z = aPnt.Z();
-		
+
 		ret->COM.X = gPt.X();
 		ret->COM.Y = gPt.Y();
 		ret->COM.Z = gPt.Z();
@@ -2911,7 +2908,7 @@ public:
 		pos.Y = aPnt.Y();
 		pos.Z = aPnt.Z();
 
-		
+
 		ret->COM.X = gPt.X();
 		ret->COM.Y = gPt.Y();
 		ret->COM.Z = gPt.Z();
@@ -2958,7 +2955,7 @@ public:
 		nrm.X = dir.X();
 		nrm.Y = dir.Y();
 		nrm.Z = dir.Z();
-	
+
 		ret->COM.X = gPt.X();
 		ret->COM.Y = gPt.Y();
 		ret->COM.Z = gPt.Z();
@@ -2997,13 +2994,11 @@ public:
 
 			GeomAdaptor_Surface theGASurface(aSurf);
 
-			//auto tt = ttt.TShape();
-			//TopoDS_TShape* ptshape = tt.get();
-			//auto ttt3 = (unsigned __int64)(ptshape);
 
-			if (aFace.IsNull()) {
+
+			if (aFace.IsNull())
 				continue;
-			}
+
 			if (ind == hh.bindId) {
 				switch (theGASurface.GetType())
 				{
@@ -3094,12 +3089,11 @@ public:
 			GeomAdaptor_Surface theGASurface(aSurf);
 
 			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
 
-			if (aFace.IsNull()) {
+
+			if (aFace.IsNull())
 				continue;
-			}
+
 
 			auto tp = theGASurface.GetType();
 			SurfInfo^ toAdd = nullptr;
@@ -3144,14 +3138,9 @@ public:
 			auto ttt = _ttt.Located(object1->LocalTransformation());
 
 			const auto& edgee = TopoDS::Edge(ttt);
-			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
-			auto ttt4 = (unsigned __int64)(&ttt);
 
-			if (edgee.IsNull()) {
+			if (edgee.IsNull())
 				continue;
-			}
 
 			GProp_GProps massProps;
 			BRepGProp::LinearProperties(ttt, massProps);
@@ -3162,6 +3151,10 @@ public:
 			//Analysis of Edge
 			Standard_Real First, Last;
 			Handle(Geom_Curve) curve = BRep_Tool::Curve(edgee, First, Last); //Extract the curve from the edge
+
+			if (curve.IsNull())
+				continue;
+
 			GeomAdaptor_Curve aAdaptedCurve(curve);
 			GeomAbs_CurveType curveType = aAdaptedCurve.GetType();
 
@@ -3192,7 +3185,7 @@ public:
 
 			ret->Length = len;
 			ret->CurveType = (CurveType)curveType;
-			
+
 			ret->COM.X = gPt.X();
 			ret->COM.Y = gPt.Y();
 			ret->COM.Z = gPt.Z();
@@ -3231,9 +3224,7 @@ public:
 			ttt = ttt.Located(object1->LocalTransformation());
 
 			const auto& edgee = TopoDS::Edge(ttt);
-			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
+
 
 			if (edgee.IsNull()) {
 				continue;
@@ -3458,8 +3449,6 @@ public:
 			const auto ttt = edgeExplorer.Current();
 			const auto& _vertex = TopoDS::Vertex(ttt);
 			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
 
 			if (_vertex.IsNull()) {
 				continue;
@@ -3533,9 +3522,7 @@ public:
 				for (TopExp_Explorer edgeExplorer(_edge, TopAbs_VERTEX); edgeExplorer.More(); edgeExplorer.Next()) {
 					const auto ttt = edgeExplorer.Current();
 					const auto& _vertex = TopoDS::Vertex(ttt);
-					auto tt = ttt.TShape();
-					TopoDS_TShape* ptshape = tt.get();
-					auto ttt3 = (unsigned __int64)(ptshape);
+
 
 					if (_vertex.IsNull())
 						continue;
@@ -3572,9 +3559,7 @@ public:
 		for (TopExp_Explorer edgeExplorer(shape0, TopAbs_VERTEX); edgeExplorer.More(); edgeExplorer.Next()) {
 			const auto ttt = edgeExplorer.Current();
 			const auto& _vertex = TopoDS::Vertex(ttt);
-			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
+
 
 			if (_vertex.IsNull()) {
 				continue;
@@ -3634,11 +3619,7 @@ public:
 			//auto ttt = _ttt.Located(object1->LocalTransformation());
 
 			const auto& edgee = TopoDS::Edge(_ttt);
-			/*
-			auto tt = ttt.TShape();
-			TopoDS_TShape* ptshape = tt.get();
-			auto ttt3 = (unsigned __int64)(ptshape);
-			*/
+
 			if (edgee.IsNull()) {
 				continue;
 			}
@@ -3909,11 +3890,7 @@ public:
 			h.bindId = impl->_map_shape_int.Add(shape);
 		}
 
-		TopoDS_TShape* ptshape = shape.TShape().get();
 
-		//h.handleF = (unsigned __int64)(&shape);
-		//h.handleT = (unsigned __int64)ptshape;
-		//h.handle = (unsigned __int64)(&ais_shape);
 		return h;
 	}
 
