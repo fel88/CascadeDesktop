@@ -2,12 +2,23 @@
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace CascadeDesktop
 {
     public interface IOCCTProxyInterface
     {
-        void StartZoomAtPoint(int theX1, int theY1);
+        void runOpenTk(IntPtr wnd, IntPtr glctx);
+        bool InitViewer2(IntPtr glctx);
+        void MouseMove(int x, int y);
+        void cleanup();
+        void Resize(int x, int y);
+        void MouseDown(int btn, int x, int y);
+
+        void MouseUp(int btn, int x, int y);
+        void MouseScroll(int x, int y, int offset);
+        void iterate();
+            void StartZoomAtPoint(int theX1, int theY1);
         void ZoomAtPoint(int theX1, int theY1, int theX2, int theY2);
         Vector3d? GetGravityPoint();
         Vector3d? GetCenter();

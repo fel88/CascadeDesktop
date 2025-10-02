@@ -1,21 +1,24 @@
-﻿using Cascade.Common;
+﻿using AutoDialog;
+using Cascade.Common;
+using CascadeDesktop.Interfaces;
+using CascadeDesktop.Tools;
+using CSPLib;
 using OpenTK;
+using OpenTK.GLControl;
+using OpenTK.Graphics.ES11;
+using OpenTK.Mathematics;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using AutoDialog;
-using CascadeDesktop.Tools;
-using System.IO.Compression;
 using System.Xml.Linq;
 using static CascadeDesktop.OccSceneObject;
-using CascadeDesktop.Interfaces;
-using CSPLib;
-using OpenTK.Graphics.ES11;
-using OpenTK.Mathematics;
 
 namespace CascadeDesktop
 {
@@ -29,14 +32,41 @@ namespace CascadeDesktop
             {
                 StaticHelpers.ShowError(this, t, Text);
             };
-            Load += Form1_Load;
+
+
+            glcontrol = new GLControl(new GLControlSettings()
+            {
+                NumberOfSamples = 4,
+                StencilBits = 8,
+
+            });
+            
+
+            glcontrol.MouseMove += gPanel1_MouseMove;
+            glcontrol.MouseUp += gPanel1_MouseUp;
+            glcontrol.MouseDown += gPanel1_MouseDown;
+
+
+            glcontrol.MouseWheel += gPanel1_MouseWheel;
             Shown += Form1_Shown;
+
+            panel1.Controls.Add(glcontrol);
+            glcontrol.Dock = DockStyle.Fill;
+            glcontrol.Paint += Glcontrol_Paint;
+            glcontrol.Load += Glcontrol_Load;
+            glcontrol.Resize += Panel1_Resize;
+            FormClosing += Form1_FormClosing;
+
+
+
+            Load += Form1_Load;
+
             SizeChanged += Form1_SizeChanged;
             Paint += Form1_Paint;
-            panel1.Paint += Panel1_Paint;
+            /*panel1.Paint += Panel1_Paint;
             panel1.MouseWheel += Panel1_MouseWheel;
             panel1.MouseDown += Panel1_MouseDown;
-            panel1.MouseUp += Panel1_MouseUp;
+            panel1.MouseUp += Panel1_MouseUp;*/
 
             toolStripStatusLabel3.Alignment = ToolStripItemAlignment.Right;
             toolStripStatusLabel3.Click += ToolStripStatusLabel3_Click;
@@ -45,6 +75,49 @@ namespace CascadeDesktop
 
             _currentTool = new Tools.SelectionTool(this);
         }
+        private void Panel1_Resize(object? sender, EventArgs e)
+        {
+            proxy?.Resize(panel1.Width, panel1.Height);
+        }
+        private void Glcontrol_Paint(object? sender, PaintEventArgs e)
+        {
+            //glcontrol.MakeCurrent();
+            // hglrc = wglGetCurrentContext();
+            //  init();
+            /*
+            GL.ClearColor(Color4.MidnightBlue);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            GL.Enable(EnableCap.DepthTest);
+
+          
+            glcontrol.SwapBuffers();*/
+        }
+        private void Panel1_MouseMove(object? sender, MouseEventArgs e)
+        {
+            Point cursorPosition = System.Windows.Forms.Cursor.Position;
+
+            var pos = glcontrol.PointToClient(cursorPosition);
+
+            Proxy?.MouseMove(pos.X, pos.Y);
+        }
+
+        [DllImport("opengl32.dll")]
+        public static extern IntPtr wglGetCurrentContext();
+
+        nint? hglrc;
+        bool inited = false;
+
+        private void Glcontrol_Load(object? sender, EventArgs e)
+        {
+
+        }
+        private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
+        {
+            proxy.cleanup();
+        }
+
+        GLControl glcontrol;
 
         private void ToolStripStatusLabel3_MouseLeave(object sender, EventArgs e)
         {
@@ -77,8 +150,58 @@ namespace CascadeDesktop
 
             toolStrip1.Visible = false;
         }
+        private void gPanel1_MouseWheel(object? sender, MouseEventArgs e)
+        {
+            Point cursorPosition = System.Windows.Forms.Cursor.Position;
 
+            var pos = panel1.PointToClient(cursorPosition);
+
+            proxy?.MouseScroll(pos.X, pos.Y, e.Delta);
+        }
         MessageFilter mf = null;
+        private void gPanel1_MouseDown(object? sender, MouseEventArgs e)
+        {
+            Point cursorPosition = System.Windows.Forms.Cursor.Position;
+
+            var pos = glcontrol.PointToClient(cursorPosition);
+            int btn = 1;
+            if (e.Button == MouseButtons.Right)
+                btn = 3;
+            if (e.Button == MouseButtons.Middle)
+                btn = 2;
+
+            proxy?.MouseDown(btn, pos.X, pos.Y);
+        }
+
+        private void gPanel1_MouseUp(object? sender, MouseEventArgs e)
+        {
+            Point cursorPosition = System.Windows.Forms.Cursor.Position;
+
+            var pos = glcontrol.PointToClient(cursorPosition);
+            int btn = 1;
+            if (e.Button == MouseButtons.Right)
+                btn = 3;
+            if (e.Button == MouseButtons.Middle)
+                btn = 2;
+
+            if (e.Button == MouseButtons.Left)
+            {
+                proxy.Select(ModifierKeys.HasFlag(Keys.Control));
+                SelectionChanged();
+                _currentTool.MouseUp(e);
+            }
+
+            proxy?.MouseUp(btn, pos.X, pos.Y);
+        }
+
+        private void gPanel1_MouseMove(object? sender, MouseEventArgs e)
+        {
+            Point cursorPosition = System.Windows.Forms.Cursor.Position;
+
+            var pos = glcontrol.PointToClient(cursorPosition);
+
+            proxy?.MouseMove(pos.X, pos.Y);
+        }
 
         private void Panel1_MouseUp(object sender, MouseEventArgs e)
         {
@@ -237,10 +360,18 @@ namespace CascadeDesktop
         private void Form1_Shown(object sender, EventArgs e)
         {
             proxy = new OCCTProxyWrapper();
-            proxy.InitOCCTProxy();
+
+            hglrc = wglGetCurrentContext();
+
+            Proxy.runOpenTk(glcontrol.Context.WindowPtr, hglrc.Value);
 
 
-            if (!proxy.InitViewer(panel1.Handle))
+            inited = true;
+
+            //  proxy.InitOCCTProxy();
+
+
+            // if (!proxy.InitViewer2(panel1.Handle))
             {
 
             }
@@ -1648,6 +1779,19 @@ namespace CascadeDesktop
 
             var cs = proxy.Text2Brep(text, fontSize, height);
             Objs.Add(new OccSceneObject(cs, proxy));
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (proxy != null && inited)
+            {
+                proxy.iterate();
+
+                
+                glcontrol.SwapBuffers();
+                //SwapBuffers(GetDC(panel1.Handle));
+
+            }
         }
 
         //private void timer1_Tick(object sender, EventArgs e)

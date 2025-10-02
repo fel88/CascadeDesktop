@@ -26,6 +26,24 @@
 //brep tools
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
+
+
+
+#include <AIS_ViewController.hxx>
+
+#include "imgui/imgui_impl_win32.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui_impl_glfw.h"
+
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
+#define GLFW_NATIVE_INCLUDE_NONE
+#include <GLFW/glfw3native.h>
+
+
+
+
 // iges I/E
 #include <IGESControl_Reader.hxx>
 #include <IGESControl_Controller.hxx>
@@ -310,10 +328,1011 @@ static NCollection_String toNString(String^ theString)
 
 
 
+struct GLFWwindow;
+
+//! GLFWwindow wrapper implementing Aspect_Window interface.
+class GlfwOcctWindow : public Aspect_Window
+{
+	DEFINE_STANDARD_RTTI_INLINE(GlfwOcctWindow, Aspect_Window)
+public:
+	//! Main constructor.
+	GlfwOcctWindow(int theWidth, int theHeight, const TCollection_AsciiString& theTitle);
+	GlfwOcctWindow(int theWidth, int theHeight, void* wnd, const TCollection_AsciiString& theTitle);
+
+	//! Close the window.
+	virtual ~GlfwOcctWindow() { Close(); }
+
+	//! Close the window.
+	void Close();
+
+	//! Return X Display connection.
+	const Handle(Aspect_DisplayConnection)& GetDisplay() const { return myDisplay; }
+
+	//! Return GLFW window.
+	GLFWwindow* getGlfwWindow() { return myGlfwWindow; }
+
+	//! Return native OpenGL context.
+	Aspect_RenderingContext NativeGlContext() const;
+
+	//! Return cursor position.
+	Graphic3d_Vec2i CursorPosition() const;
+
+public:
+
+	//! Returns native Window handle
+	virtual Aspect_Drawable NativeHandle() const Standard_OVERRIDE;
+
+	//! Returns parent of native Window handle.
+	virtual Aspect_Drawable NativeParentHandle() const Standard_OVERRIDE { return 0; }
+
+	//! Applies the resizing to the window <me>
+	virtual Aspect_TypeOfResize DoResize() Standard_OVERRIDE;
+
+	//! Returns True if the window <me> is opened and False if the window is closed.
+	virtual Standard_Boolean IsMapped() const Standard_OVERRIDE;
+
+	//! Apply the mapping change to the window <me> and returns TRUE if the window is mapped at screen.
+	virtual Standard_Boolean DoMapping() const Standard_OVERRIDE { return Standard_True; }
+
+	//! Opens the window <me>.
+	virtual void Map() const Standard_OVERRIDE;
+
+	//! Closes the window <me>.
+	virtual void Unmap() const Standard_OVERRIDE;
+
+	virtual void Position(Standard_Integer& theX1, Standard_Integer& theY1,
+		Standard_Integer& theX2, Standard_Integer& theY2) const Standard_OVERRIDE
+	{
+		theX1 = myXLeft;
+		theX2 = myXRight;
+		theY1 = myYTop;
+		theY2 = myYBottom;
+	}
+
+	//! Returns The Window RATIO equal to the physical WIDTH/HEIGHT dimensions.
+	virtual Standard_Real Ratio() const Standard_OVERRIDE
+	{
+		return Standard_Real(myXRight - myXLeft) / Standard_Real(myYBottom - myYTop);
+	}
+
+	//! Return window size.
+	virtual void Size(Standard_Integer& theWidth, Standard_Integer& theHeight) const Standard_OVERRIDE
+	{
+		theWidth = myXRight - myXLeft;
+		theHeight = myYBottom - myYTop;
+	}
+
+	virtual Aspect_FBConfig NativeFBConfig() const Standard_OVERRIDE { return NULL; }
+
+protected:
+	Handle(Aspect_DisplayConnection) myDisplay;
+	GLFWwindow* myGlfwWindow;
+	Standard_Integer myXLeft;
+	Standard_Integer myYTop;
+	Standard_Integer myXRight;
+	Standard_Integer myYBottom;
+};
+// ================================================================
+// Function : NativeGlContext
+// Purpose  :
+// ================================================================
+Aspect_RenderingContext GlfwOcctWindow::NativeGlContext() const
+{
+#if defined (__APPLE__)
+	return (NSOpenGLContext*)glfwGetNSGLContext(myGlfwWindow);
+#elif defined (_WIN32)
+	return glfwGetWGLContext(myGlfwWindow);
+#else
+	return glfwGetGLXContext(myGlfwWindow);
+#endif
+}
+GlfwOcctWindow::GlfwOcctWindow(int theWidth, int theHeight, void* wnd, const TCollection_AsciiString& theTitle)
+	: myGlfwWindow((GLFWwindow*)wnd),
+	myXLeft(0),
+	myYTop(0),
+	myXRight(0),
+	myYBottom(0)
+{
+	if (myGlfwWindow != nullptr)
+	{
+		int aWidth = 0, aHeight = 0;
+		glfwGetWindowPos(myGlfwWindow, &myXLeft, &myYTop);
+		glfwGetWindowSize(myGlfwWindow, &aWidth, &aHeight);
+		myXRight = myXLeft + aWidth;
+		myYBottom = myYTop + aHeight;
+
+	}
+}
+
+GlfwOcctWindow::GlfwOcctWindow(int theWidth, int theHeight, const TCollection_AsciiString& theTitle)
+	: myGlfwWindow(glfwCreateWindow(theWidth, theHeight, theTitle.ToCString(), NULL, NULL)),
+	myXLeft(0),
+	myYTop(0),
+	myXRight(0),
+	myYBottom(0)
+{
+	if (myGlfwWindow != nullptr)
+	{
+		int aWidth = 0, aHeight = 0;
+		glfwGetWindowPos(myGlfwWindow, &myXLeft, &myYTop);
+		glfwGetWindowSize(myGlfwWindow, &aWidth, &aHeight);
+		myXRight = myXLeft + aWidth;
+		myYBottom = myYTop + aHeight;
+
+#if !defined(_WIN32) && !defined(__APPLE__)
+		myDisplay = new Aspect_DisplayConnection((Aspect_XDisplay*)glfwGetX11Display());
+#endif
+	}
+}
+
+// ================================================================
+// Function : Close
+// Purpose  :
+// ================================================================
+void GlfwOcctWindow::Close()
+{
+	if (myGlfwWindow != nullptr)
+	{
+		glfwDestroyWindow(myGlfwWindow);
+		myGlfwWindow = nullptr;
+	}
+}
+
+
+// ================================================================
+// Function : IsMapped
+// Purpose  :
+// ================================================================
+Standard_Boolean GlfwOcctWindow::IsMapped() const
+{
+	return glfwGetWindowAttrib(myGlfwWindow, GLFW_VISIBLE) != 0;
+}
+
+
+// ================================================================
+// Function : DoResize
+// Purpose  :
+// ================================================================
+Aspect_TypeOfResize GlfwOcctWindow::DoResize()
+{
+	if (glfwGetWindowAttrib(myGlfwWindow, GLFW_VISIBLE) == 1)
+	{
+		int anXPos = 0, anYPos = 0, aWidth = 0, aHeight = 0;
+		glfwGetWindowPos(myGlfwWindow, &anXPos, &anYPos);
+		glfwGetWindowSize(myGlfwWindow, &aWidth, &aHeight);
+		myXLeft = anXPos;
+		myXRight = anXPos + aWidth;
+		myYTop = anYPos;
+		myYBottom = anYPos + aHeight;
+	}
+	return Aspect_TOR_UNKNOWN;
+}
+
+// ================================================================
+// Function : Map
+// Purpose  :
+// ================================================================
+void GlfwOcctWindow::Map() const
+{
+	glfwShowWindow(myGlfwWindow);
+}
+
+// ================================================================
+// Function : NativeHandle
+// Purpose  :
+// ================================================================
+Aspect_Drawable GlfwOcctWindow::NativeHandle() const
+{
+#if defined (__APPLE__)
+	return (Aspect_Drawable)glfwGetCocoaWindow(myGlfwWindow);
+#elif defined (_WIN32)
+	return (Aspect_Drawable)glfwGetWin32Window(myGlfwWindow);
+#else
+	return (Aspect_Drawable)glfwGetX11Window(myGlfwWindow);
+#endif
+}
+// ================================================================
+// Function : Unmap
+// Purpose  :
+// ================================================================
+void GlfwOcctWindow::Unmap() const
+{
+	glfwHideWindow(myGlfwWindow);
+}
+
+// ================================================================
+// Function : CursorPosition
+// Purpose  :
+// ================================================================
+Graphic3d_Vec2i GlfwOcctWindow::CursorPosition() const
+{
+	Graphic3d_Vec2d aPos;
+	glfwGetCursorPos(myGlfwWindow, &aPos.x(), &aPos.y());
+	return Graphic3d_Vec2i((int)aPos.x(), (int)aPos.y());
+}
+
+
+//! Sample class creating 3D Viewer within GLFW window.
+class GlfwOcctView : protected AIS_ViewController
+{
+public:
+	//! Default constructor.
+	GlfwOcctView();
+
+	//! Destructor.
+	~GlfwOcctView();
+
+	void setAisCtx(opencascade::handle<AIS_InteractiveContext> _ctx) {
+
+		myContext = opencascade::handle<AIS_InteractiveContext>(_ctx);
+	}
+	//! Clean up before .
+	void cleanup();
+	//! Main application entry point.
+	void run();
+
+	void run(void* wnd);
+	void runWnt(IntPtr wnd, IntPtr glctx);
+	void runOpenTk(IntPtr wnd, IntPtr glctx);
+	void iterate();
+	void MouseMove(double thePosX, double thePosY);
+	void MouseDown(int btn, double thePosX, double thePosY);
+	void MouseScroll(int x, int y, int offset);
+	void MouseUp(int btn, double thePosX, double thePosY);
+	//! Window resize event.
+	void onResize(int theWidth, int theHeight);
+	bool showTriangle;
+
+public:
+
+	//! Create GLFW window.
+	void initWindow(int theWidth, int theHeight, const char* theTitle);
+	void initWindow(int theWidth, int theHeight, void* wnd, const char* theTitle);
+
+	//! Create 3D Viewer.
+	void initViewer();
+	void initViewer(WNT_Window* wnd, void* glctx);
+	void initViewer(void* glctx);
+
+	//! Init ImGui.
+	void initGui();
+	void initGui(void* wnd);
+
+	//! Render ImGUI.
+	void renderGui();
+	//! Fill 3D Viewer with a DEMO items.
+	void initDemoScene();
+
+	//! Application event loop.
+	void mainloop();
 
 
 
+	//! Handle view redraw.
+	void handleViewRedraw(const Handle(AIS_InteractiveContext)& theCtx,
+		const Handle(V3d_View)& theView) override;
 
+	//! @name GLWF callbacks
+
+private:
+
+	//! Mouse scroll event.
+	void onMouseScroll(double theOffsetX, double theOffsetY);
+
+	//! Mouse click event.
+	void onMouseButton(int theButton, int theAction, int theMods);
+
+	//! Mouse move event.
+	void onMouseMove(int thePosX, int thePosY);
+
+	//! @name GLWF callbacks (static functions)
+private:
+
+	//! GLFW callback redirecting messages into Message::DefaultMessenger().
+	static void errorCallback(int theError, const char* theDescription);
+
+	//! Wrapper for glfwGetWindowUserPointer() returning this class instance.
+	static GlfwOcctView* toView(GLFWwindow* theWin);
+
+	//! Window resize callback.
+	static void onResizeCallback(GLFWwindow* theWin, int theWidth, int theHeight)
+	{
+		toView(theWin)->onResize(theWidth, theHeight);
+	}
+
+	//! Frame-buffer resize callback.
+	static void onFBResizeCallback(GLFWwindow* theWin, int theWidth, int theHeight)
+	{
+		toView(theWin)->onResize(theWidth, theHeight);
+	}
+
+	//! Mouse scroll callback.
+	static void onMouseScrollCallback(GLFWwindow* theWin, double theOffsetX, double theOffsetY)
+	{
+		toView(theWin)->onMouseScroll(theOffsetX, theOffsetY);
+	}
+
+	//! Mouse click callback.
+	static void onMouseButtonCallback(GLFWwindow* theWin, int theButton, int theAction, int theMods)
+	{
+		toView(theWin)->onMouseButton(theButton, theAction, theMods);
+	}
+
+	//! Mouse move callback.
+	static void onMouseMoveCallback(GLFWwindow* theWin, double thePosX, double thePosY)
+	{
+		toView(theWin)->onMouseMove((int)thePosX, (int)thePosY);
+	}
+
+public:
+
+	Handle(GlfwOcctWindow) myOcctWindow;
+	Handle(V3d_View) myView;
+	Handle(V3d_Viewer) myViewer;
+	Handle(AIS_InteractiveContext) myContext;
+	bool myToWaitEvents = true;
+
+};
+void GlfwOcctView::initWindow(int theWidth, int theHeight, const char* theTitle)
+{
+	return;
+
+	glfwSetErrorCallback(GlfwOcctView::errorCallback);
+	glfwInit();
+	const bool toAskCoreProfile = true;
+	if (toAskCoreProfile)
+	{
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#if defined (__APPLE__)
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		//glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
+		//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+	}
+	myOcctWindow = new GlfwOcctWindow(theWidth, theHeight, theTitle);
+	glfwSetWindowUserPointer(myOcctWindow->getGlfwWindow(), this);
+
+
+	// window callback
+	glfwSetWindowSizeCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onResizeCallback);
+	glfwSetFramebufferSizeCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onFBResizeCallback);
+	// mouse callback
+	glfwSetScrollCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onMouseScrollCallback);
+	glfwSetMouseButtonCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onMouseButtonCallback);
+	glfwSetCursorPosCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onMouseMoveCallback);
+}
+
+// ================================================================
+// Function : initWindow
+// Purpose  :
+// ================================================================
+void GlfwOcctView::initWindow(int theWidth, int theHeight, void* wnd, const char* theTitle)
+{
+	glfwSetErrorCallback(GlfwOcctView::errorCallback);
+	glfwInit();
+	const bool toAskCoreProfile = true;
+	if (toAskCoreProfile)
+	{
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#if defined (__APPLE__)
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		//glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
+		//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+	}
+	myOcctWindow = new GlfwOcctWindow(theWidth, theHeight, wnd, theTitle);
+	glfwSetWindowUserPointer(myOcctWindow->getGlfwWindow(), this);
+
+	// window callback
+	glfwSetWindowSizeCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onResizeCallback);
+	glfwSetFramebufferSizeCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onFBResizeCallback);
+
+	// mouse callback
+	glfwSetScrollCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onMouseScrollCallback);
+	glfwSetMouseButtonCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onMouseButtonCallback);
+	glfwSetCursorPosCallback(myOcctWindow->getGlfwWindow(), GlfwOcctView::onMouseMoveCallback);
+}
+
+
+
+// ================================================================
+// Function : GlfwOcctView
+// Purpose  :
+// ================================================================
+GlfwOcctView::GlfwOcctView()
+{
+}
+
+// ================================================================
+// Function : ~GlfwOcctView
+// Purpose  :
+// ================================================================
+GlfwOcctView::~GlfwOcctView()
+{
+}
+
+// ================================================================
+// Function : errorCallback
+// Purpose  :
+// ================================================================
+void GlfwOcctView::errorCallback(int theError, const char* theDescription)
+{
+	Message::DefaultMessenger()->Send(TCollection_AsciiString("Error") + theError + ": " + theDescription, Message_Fail);
+}
+// ================================================================
+// Function : toView
+// Purpose  :
+// ================================================================
+GlfwOcctView* GlfwOcctView::toView(GLFWwindow* theWin)
+{
+	return static_cast<GlfwOcctView*>(glfwGetWindowUserPointer(theWin));
+}
+// ================================================================
+// Function : run
+// Purpose  :
+// ================================================================
+void GlfwOcctView::run()
+{
+	initWindow(800, 600, "OCCT IMGUI");
+	initViewer();
+	initDemoScene();
+	if (myView.IsNull())
+	{
+		return;
+	}
+
+	myView->MustBeResized();
+	myOcctWindow->Map();
+	initGui();
+	//mainloop();
+	//cleanup();
+}
+
+void GlfwOcctView::run(void* wnd)
+{
+	initWindow(800, 600, wnd, "OCCT IMGUI");
+	initViewer();
+	initDemoScene();
+	if (myView.IsNull())
+	{
+		return;
+	}
+
+	myView->MustBeResized();
+	myOcctWindow->Map();
+	initGui();
+	//mainloop();
+	//cleanup();
+}
+
+void GlfwOcctView::runOpenTk(IntPtr wnd, IntPtr glctx)
+{
+	initWindow(800, 600, wnd.ToPointer(), "OCCT IMGUI");
+
+	initViewer(glctx.ToPointer());
+	initDemoScene();
+	if (myView.IsNull())
+		return;
+
+
+	myView->MustBeResized();
+	//myOcctWindow->Map();
+	initGui();
+	//mainloop();
+	//cleanup();
+}
+
+void GlfwOcctView::runWnt(IntPtr wnd, IntPtr glctx)
+{
+	initWindow(800, 600, "OCCT IMGUI");
+	Handle(WNT_Window) pWNTWindow = new WNT_Window(reinterpret_cast<HWND> (wnd.ToPointer()));
+
+	initViewer(pWNTWindow.get(), glctx.ToPointer());
+	initDemoScene();
+	if (myView.IsNull())
+		return;
+
+
+	myView->MustBeResized();
+	//myOcctWindow->Map();
+	initGui(wnd.ToPointer());
+	//mainloop();
+	//cleanup();
+}
+
+
+
+// ================================================================
+// Function : initViewer
+// Purpose  :
+// ================================================================
+void GlfwOcctView::initViewer()
+{
+	if (myOcctWindow.IsNull()
+		|| myOcctWindow->getGlfwWindow() == nullptr)
+	{
+		return;
+	}
+
+	Handle(OpenGl_GraphicDriver) aGraphicDriver
+		= new OpenGl_GraphicDriver(myOcctWindow->GetDisplay(), Standard_False);
+	aGraphicDriver->SetBuffersNoSwap(Standard_True);
+
+	Handle(V3d_Viewer) aViewer = new V3d_Viewer(aGraphicDriver);
+	aViewer->SetDefaultLights();
+	aViewer->SetLightOn();
+	aViewer->SetDefaultTypeOfView(V3d_PERSPECTIVE);
+	aViewer->ActivateGrid(Aspect_GT_Rectangular, Aspect_GDM_Lines);
+	myView = aViewer->CreateView();
+	//myView->SetImmediateUpdate(Standard_False);
+	auto ctx = myOcctWindow->NativeGlContext();
+	myView->SetWindow(myOcctWindow, ctx);
+	myView->ChangeRenderingParams().ToShowStats = Standard_True;
+
+	myContext = new AIS_InteractiveContext(aViewer);
+
+	Handle(AIS_ViewCube) aCube = new AIS_ViewCube();
+	aCube->SetSize(55);
+	aCube->SetFontHeight(12);
+	aCube->SetAxesLabels("", "", "");
+	aCube->SetTransformPersistence(new Graphic3d_TransformPers(Graphic3d_TMF_TriedronPers, Aspect_TOTP_LEFT_LOWER, Graphic3d_Vec2i(100, 100)));
+	aCube->SetViewAnimation(this->ViewAnimation());
+	aCube->SetFixedAnimationLoop(false);
+	myContext->Display(aCube, false);
+}
+
+void GlfwOcctView::initViewer(WNT_Window* wnd, void* glctx)
+{
+
+	Handle(Aspect_DisplayConnection) aDisplayConnection;
+	Handle(OpenGl_GraphicDriver) aGraphicDriver
+		= new OpenGl_GraphicDriver(aDisplayConnection);
+
+	aGraphicDriver->SetBuffersNoSwap(Standard_True);
+
+	Handle(V3d_Viewer) aViewer = new V3d_Viewer(aGraphicDriver);
+	aViewer->SetDefaultLights();
+	aViewer->SetLightOn();
+	aViewer->SetDefaultTypeOfView(V3d_PERSPECTIVE);
+	aViewer->ActivateGrid(Aspect_GT_Rectangular, Aspect_GDM_Lines);
+	myView = aViewer->CreateView();
+	//myView->SetImmediateUpd/ate(Standard_False);
+
+	myView->SetWindow(wnd, glctx);
+	myView->ChangeRenderingParams().ToShowStats = Standard_True;
+
+	myContext = new AIS_InteractiveContext(aViewer);
+
+	Handle(AIS_ViewCube) aCube = new AIS_ViewCube();
+	aCube->SetSize(55);
+	aCube->SetFontHeight(12);
+	aCube->SetAxesLabels("", "", "");
+	aCube->SetTransformPersistence(new Graphic3d_TransformPers(Graphic3d_TMF_TriedronPers, Aspect_TOTP_LEFT_LOWER, Graphic3d_Vec2i(100, 100)));
+	aCube->SetViewAnimation(this->ViewAnimation());
+	aCube->SetFixedAnimationLoop(false);
+	myContext->Display(aCube, false);
+}
+
+void GlfwOcctView::initViewer(void* glctx)
+{
+
+	Handle(Aspect_DisplayConnection) aDisplayConnection;
+	Handle(OpenGl_GraphicDriver) aGraphicDriver
+		= new OpenGl_GraphicDriver(aDisplayConnection);
+
+	aGraphicDriver->SetBuffersNoSwap(Standard_True);
+
+	Handle(V3d_Viewer) aViewer = new V3d_Viewer(aGraphicDriver);
+	myViewer = aViewer;
+	aViewer->SetDefaultLights();
+	aViewer->SetLightOn();
+	//aViewer->SetDefaultTypeOfView(V3d_PERSPECTIVE);
+	aViewer->ActivateGrid(Aspect_GT_Rectangular, Aspect_GDM_Lines);
+	myView = aViewer->CreateView();
+	//myView->SetImmediateUpd/ate(Standard_False);
+
+	myView->SetWindow(myOcctWindow, glctx);
+	myView->ChangeRenderingParams().ToShowStats = Standard_True;
+
+	myContext = new AIS_InteractiveContext(aViewer);
+
+	Handle(AIS_ViewCube) aCube = new AIS_ViewCube();
+	aCube->SetSize(55);
+	aCube->SetFontHeight(12);
+	aCube->SetAxesLabels("", "", "");
+	aCube->SetTransformPersistence(new Graphic3d_TransformPers(Graphic3d_TMF_TriedronPers, Aspect_TOTP_LEFT_LOWER, Graphic3d_Vec2i(100, 100)));
+	aCube->SetViewAnimation(this->ViewAnimation());
+	aCube->SetFixedAnimationLoop(false);
+	myContext->Display(aCube, false);
+}
+
+void GlfwOcctView::initGui(void* wnd)
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	ImGuiIO& aIO = ImGui::GetIO();
+	aIO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	//aIO.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+
+	ImGui_ImplWin32_Init(wnd);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
+	// Setup Dear ImGui style.
+	//ImGui::StyleColorsClassic();
+}
+
+void GlfwOcctView::initGui()
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	ImGuiIO& aIO = ImGui::GetIO();
+	aIO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+	ImGui_ImplGlfw_InitForOpenGL(myOcctWindow->getGlfwWindow(), Standard_True);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
+	// Setup Dear ImGui style.
+	//ImGui::StyleColorsClassic();
+}
+
+bool show_dialog = true;
+
+void GlfwOcctView::renderGui()
+{
+	ImGuiIO& aIO = ImGui::GetIO();
+
+	ImGui_ImplOpenGL3_NewFrame();
+	//ImGui_ImplWin32_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+
+	ImGui::NewFrame();
+
+	ImGui::ShowDemoWindow();
+
+	// Hello IMGUI.
+	ImGui::SetNextWindowSizeConstraints(ImVec2(220, 120), ImVec2(350, 200));
+	ImGui::Begin("Hello");
+	ImGui::Text("Hello ImGui!");
+
+	ImGui::Checkbox("show triangle", &showTriangle);
+
+	ImGui::Text("Hello OpenCASCADE!");
+	if (ImGui::Button("OK")) {
+		show_dialog = true;
+	}
+	ImGui::SameLine();
+	ImGui::Button("Cancel");
+	ImGui::End();
+	if (show_dialog)
+		// If using a regular window/dialog:
+		if (ImGui::Begin("My Dialog", &show_dialog, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("This is my dialog content.");
+			if (ImGui::Button("Cancel"))
+			{
+				show_dialog = false;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("OK"))
+			{
+				// Handle OK action
+				show_dialog = false;
+			}
+			ImGui::End();
+		}
+	ImGui::Render();
+
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	//glfwSwapBuffers(myOcctWindow->getGlfwWindow());
+}
+
+// ================================================================
+// Function : initDemoScene
+// Purpose  :
+// ================================================================
+void GlfwOcctView::initDemoScene()
+{
+	if (myContext.IsNull())
+	{
+		return;
+	}
+
+	myView->TriedronDisplay(Aspect_TOTP_LEFT_LOWER, Quantity_NOC_GOLD, 0.08, V3d_WIREFRAME);
+
+	gp_Ax2 anAxis;
+	anAxis.SetLocation(gp_Pnt(0.0, 0.0, 0.0));
+	Handle(AIS_Shape) aBox = new AIS_Shape(BRepPrimAPI_MakeBox(anAxis, 50, 50, 50).Shape());
+	myContext->Display(aBox, AIS_Shaded, 0, false);
+	anAxis.SetLocation(gp_Pnt(25.0, 125.0, 0.0));
+	Handle(AIS_Shape) aCone = new AIS_Shape(BRepPrimAPI_MakeCone(anAxis, 25, 0, 50).Shape());
+	myContext->Display(aCone, AIS_Shaded, 0, false);
+
+	TCollection_AsciiString aGlInfo;
+	{
+		TColStd_IndexedDataMapOfStringString aRendInfo;
+		myView->DiagnosticInformation(aRendInfo, Graphic3d_DiagnosticInfo_Basic);
+		for (TColStd_IndexedDataMapOfStringString::Iterator aValueIter(aRendInfo); aValueIter.More(); aValueIter.Next())
+		{
+			if (!aGlInfo.IsEmpty()) { aGlInfo += "\n"; }
+			aGlInfo += TCollection_AsciiString("  ") + aValueIter.Key() + ": " + aValueIter.Value();
+		}
+	}
+	Message::DefaultMessenger()->Send(TCollection_AsciiString("OpenGL info:\n") + aGlInfo, Message_Info);
+}
+
+// ================================================================
+// Function : handleViewRedraw
+// Purpose  :
+// ================================================================
+void GlfwOcctView::handleViewRedraw(const Handle(AIS_InteractiveContext)& theCtx,
+	const Handle(V3d_View)& theView)
+{
+	AIS_ViewController::handleViewRedraw(theCtx, theView);
+	myToWaitEvents = !myToAskNextFrame;
+}
+
+// ================================================================
+// Function : mainloop
+// Purpose  :
+// ================================================================
+void GlfwOcctView::mainloop()
+{
+	while (!glfwWindowShouldClose(myOcctWindow->getGlfwWindow()))
+	{
+		// glfwPollEvents() for continuous rendering (immediate return if there are no new events)
+		// and glfwWaitEvents() for rendering on demand (something actually happened in the viewer)
+		if (myToWaitEvents)
+		{
+			glfwWaitEvents();
+		}
+		else
+		{
+			glfwPollEvents();
+		}
+		if (!myView.IsNull())
+		{
+			myView->InvalidateImmediate(); // redraw view even if it wasn't modified
+			FlushViewEvents(myContext, myView, Standard_True);
+
+			//renderGui();
+		}
+	}
+}
+
+void GlfwOcctView::MouseMove(double x, double y)
+{
+	onMouseMove(x, y);
+}
+
+void GlfwOcctView::MouseScroll(int x, int y, int theOffsetY) {
+	ImGuiIO& aIO = ImGui::GetIO();
+	if (myView.IsNull() || aIO.WantCaptureMouse)
+	{
+		aIO.AddMouseWheelEvent(0, theOffsetY / 120);
+		return;
+	}
+
+	Graphic3d_Vec2i aPos(x, y);
+	UpdateZoom(Aspect_ScrollDelta(aPos, int(theOffsetY / 8.0)));
+
+}
+
+void GlfwOcctView::MouseDown(int btn, double x, double y)
+{
+	ImGuiIO& aIO = ImGui::GetIO();
+	if (myView.IsNull() || aIO.WantCaptureMouse)
+	{
+		aIO.AddMousePosEvent((float)x, (float)y);
+		aIO.AddMouseButtonEvent(btn - 1, true);
+
+		return;
+	}
+	Graphic3d_Vec2i aPos(x, y);
+	auto bb = Aspect_VKeyMouse_LeftButton;
+	switch (btn) {
+	case 1:
+		bb = Aspect_VKeyMouse_LeftButton;
+		break;
+	case 2:
+		bb = Aspect_VKeyMouse_RightButton;
+		break;
+	case 3:
+		bb = Aspect_VKeyMouse_MiddleButton;
+		break;
+	}
+	PressMouseButton(aPos, bb, Aspect_VKeyFlags_NONE, false);
+}
+
+void GlfwOcctView::MouseUp(int btn, double x, double y)
+{
+	ImGuiIO& aIO = ImGui::GetIO();
+	if (myView.IsNull() || aIO.WantCaptureMouse)
+	{
+		aIO.AddMousePosEvent((float)x, (float)y);
+		aIO.AddMouseButtonEvent(btn - 1, false);
+		return;
+	}
+	Graphic3d_Vec2i aPos(x, y);
+	auto bb = Aspect_VKeyMouse_LeftButton;
+
+	switch (btn) {
+	case 1:
+		bb = Aspect_VKeyMouse_LeftButton;
+		break;
+	case 2:
+		bb = Aspect_VKeyMouse_RightButton;
+		break;
+	case 3:
+		bb = Aspect_VKeyMouse_MiddleButton;
+		break;
+	}
+	ReleaseMouseButton(aPos, bb, Aspect_VKeyFlags_NONE, false);
+}
+
+void GlfwOcctView::iterate()
+{
+	// glfwPollEvents() for continuous rendering (immediate return if there are no new events)
+	// and glfwWaitEvents() for rendering on demand (something actually happened in the viewer)
+	if (myToWaitEvents)
+	{
+		//glfwWaitEvents();
+	}
+	else
+	{
+		//	glfwPollEvents();
+	}
+	if (!myView.IsNull())
+	{
+		myView->InvalidateImmediate(); // redraw view even if it wasn't modified
+		FlushViewEvents(myContext, myView, Standard_True);
+
+		renderGui();
+	}
+}
+
+// ================================================================
+// Function : cleanup
+// Purpose  :
+// ================================================================
+void GlfwOcctView::cleanup()
+{
+	// Cleanup IMGUI.
+	//ImGui_ImplOpenGL3_Shutdown();
+	//ImGui_ImplGlfw_Shutdown();
+	//ImGui::DestroyContext();
+
+	if (!myView.IsNull())
+	{
+		myView->Remove();
+	}
+	if (!myOcctWindow.IsNull())
+	{
+		myOcctWindow->Close();
+	}
+
+	glfwTerminate();
+}
+
+// ================================================================
+// Function : onResize
+// Purpose  :
+// ================================================================
+void GlfwOcctView::onResize(int theWidth, int theHeight)
+{
+	if (theWidth != 0
+		&& theHeight != 0
+		&& !myView.IsNull())
+	{
+		myView->Window()->DoResize();
+		myView->MustBeResized();
+		myView->Invalidate();
+		FlushViewEvents(myContext, myView, true);
+		renderGui();
+	}
+}
+
+// ================================================================
+// Function : onMouseScroll
+// Purpose  :
+// ================================================================
+void GlfwOcctView::onMouseScroll(double theOffsetX, double theOffsetY)
+{
+	ImGuiIO& aIO = ImGui::GetIO();
+	if (!myView.IsNull() && !aIO.WantCaptureMouse)
+	{
+		UpdateZoom(Aspect_ScrollDelta(myOcctWindow->CursorPosition(), int(theOffsetY * 8.0)));
+	}
+}
+
+//! Convert GLFW mouse button into Aspect_VKeyMouse.
+static Aspect_VKeyMouse mouseButtonFromGlfw(int theButton)
+{
+	switch (theButton)
+	{
+	case GLFW_MOUSE_BUTTON_LEFT:   return Aspect_VKeyMouse_LeftButton;
+	case GLFW_MOUSE_BUTTON_RIGHT:  return Aspect_VKeyMouse_RightButton;
+	case GLFW_MOUSE_BUTTON_MIDDLE: return Aspect_VKeyMouse_MiddleButton;
+	}
+	return Aspect_VKeyMouse_NONE;
+}
+
+//! Convert GLFW key modifiers into Aspect_VKeyFlags.
+static Aspect_VKeyFlags keyFlagsFromGlfw(int theFlags)
+{
+	Aspect_VKeyFlags aFlags = Aspect_VKeyFlags_NONE;
+	if ((theFlags & GLFW_MOD_SHIFT) != 0)
+	{
+		aFlags |= Aspect_VKeyFlags_SHIFT;
+	}
+	if ((theFlags & GLFW_MOD_CONTROL) != 0)
+	{
+		aFlags |= Aspect_VKeyFlags_CTRL;
+	}
+	if ((theFlags & GLFW_MOD_ALT) != 0)
+	{
+		aFlags |= Aspect_VKeyFlags_ALT;
+	}
+	if ((theFlags & GLFW_MOD_SUPER) != 0)
+	{
+		aFlags |= Aspect_VKeyFlags_META;
+	}
+	return aFlags;
+}
+// ================================================================
+// Function : onMouseButton
+// Purpose  :
+// ================================================================
+void GlfwOcctView::onMouseButton(int theButton, int theAction, int theMods)
+{
+	//ImGuiIO& aIO = ImGui::GetIO();
+	//if (myView.IsNull() || aIO.WantCaptureMouse)
+	{
+		//	return;
+	}
+
+	const Graphic3d_Vec2i aPos = myOcctWindow->CursorPosition();
+	if (theAction == GLFW_PRESS)
+	{
+		PressMouseButton(aPos, mouseButtonFromGlfw(theButton), keyFlagsFromGlfw(theMods), false);
+	}
+	else
+	{
+		ReleaseMouseButton(aPos, mouseButtonFromGlfw(theButton), keyFlagsFromGlfw(theMods), false);
+	}
+}
+
+// ================================================================
+// Function : onMouseMove
+// Purpose  :
+// ================================================================
+void GlfwOcctView::onMouseMove(int thePosX, int thePosY)
+{
+	if (myView.IsNull())
+	{
+		return;
+	}
+
+	ImGuiIO& aIO = ImGui::GetIO();
+	aIO.AddMousePosEvent((float)thePosX, (float)thePosY);
+
+	if (aIO.WantCaptureMouse)
+	{
+		myView->Redraw();
+	}
+	else
+	{
+		const Graphic3d_Vec2i aNewPos(thePosX, thePosY);
+		UpdateMousePosition(aNewPos, PressedMouseButtons(), LastMouseFlags(), Standard_False);
+	}
+}
 class OCCImpl {
 public:
 	OCCImpl() {
@@ -759,7 +1778,98 @@ public ref class OCCTProxy
 
 public:
 
+	void runOpenTk(IntPtr wnd, IntPtr glctx)
+	{
+		gview->initWindow(800, 600, wnd.ToPointer(), "OCCT IMGUI");
+
+		gview->initViewer(glctx.ToPointer());
+		initDemoScene();
+		myView() = gview->myView;
+		myViewer() = gview->myViewer;
+		myAISContext() = gview->myContext;
+		impl->setAisCtx(myAISContext());
+		if (myView().IsNull())
+			return;
+
+
+		myView()->MustBeResized();
+		//myOcctWindow->Map();
+		initGui();
+		//mainloop();
+		//cleanup();
+	}
+	void MouseMove(int x, int y) {
+		gview->MouseMove(x, y);
+	}
+	void Resize(int x, int y) {
+		gview->onResize(x, y);
+	}
+
+	void MouseDown(int btn, int x, int y) {
+		gview->MouseDown(btn, x, y);
+	}
+
+	void MouseUp(int btn, int x, int y) {
+		gview->MouseUp(btn, x, y);
+	}
+	void MouseScroll(int x, int y, int offset) {
+		gview->MouseScroll(x, y, offset);
+	}
+	void iterate() {
+		gview->iterate();
+	}
+	void cleanup()
+	{
+		gview->cleanup();
+
+	}
+	void initDemoScene()
+	{
+		if (myAISContext().IsNull())
+		{
+			return;
+		}
+
+		myView()->TriedronDisplay(Aspect_TOTP_LEFT_LOWER, Quantity_NOC_GOLD, 0.08, V3d_WIREFRAME);
+
+		gp_Ax2 anAxis;
+		anAxis.SetLocation(gp_Pnt(0.0, 0.0, 0.0));
+		Handle(AIS_Shape) aBox = new AIS_Shape(BRepPrimAPI_MakeBox(anAxis, 50, 50, 50).Shape());
+		myAISContext()->Display(aBox, AIS_Shaded, 0, false);
+		anAxis.SetLocation(gp_Pnt(25.0, 125.0, 0.0));
+		Handle(AIS_Shape) aCone = new AIS_Shape(BRepPrimAPI_MakeCone(anAxis, 25, 0, 50).Shape());
+		myAISContext()->Display(aCone, AIS_Shaded, 0, false);
+
+		TCollection_AsciiString aGlInfo;
+		{
+			TColStd_IndexedDataMapOfStringString aRendInfo;
+			myView()->DiagnosticInformation(aRendInfo, Graphic3d_DiagnosticInfo_Basic);
+			for (TColStd_IndexedDataMapOfStringString::Iterator aValueIter(aRendInfo); aValueIter.More(); aValueIter.Next())
+			{
+				if (!aGlInfo.IsEmpty()) { aGlInfo += "\n"; }
+				aGlInfo += TCollection_AsciiString("  ") + aValueIter.Key() + ": " + aValueIter.Value();
+			}
+		}
+		Message::DefaultMessenger()->Send(TCollection_AsciiString("OpenGL info:\n") + aGlInfo, Message_Info);
+	}
+
+	void initGui()
+	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+
+		ImGuiIO& aIO = ImGui::GetIO();
+		aIO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+		ImGui_ImplGlfw_InitForOpenGL(gview->myOcctWindow->getGlfwWindow(), Standard_True);
+		ImGui_ImplOpenGL3_Init("#version 330");
+
+		// Setup Dear ImGui style.
+		//ImGui::StyleColorsClassic();
+	}
+
 	static OCCImpl* impl = new OCCImpl();
+	static GlfwOcctView* gview = new GlfwOcctView();
 	// ============================================
 	// Viewer functionality
 	// ============================================
@@ -824,7 +1934,60 @@ public:
 		}
 
 		myAISContext() = new AIS_InteractiveContext(myViewer());
+
 		impl->setAisCtx(myAISContext());
+		gview->setAisCtx(myAISContext());
+
+		myAISContext()->UpdateCurrentViewer();
+		myView()->Redraw();
+		myView()->MustBeResized();
+		SetDefaultDrawerParams();
+		return true;
+	}
+	/// <summary>
+	///Initialize a viewer
+	/// </summary>
+	/// <param name="theWnd">System.IntPtr that contains the window handle (HWND) of the control</param>
+	bool InitViewer2(System::IntPtr glctx)
+	{
+		try
+		{
+			Handle(Aspect_DisplayConnection) aDisplayConnection;
+			myGraphicDriver() = new OpenGl_GraphicDriver(aDisplayConnection);
+		}
+		catch (Standard_Failure)
+		{
+			return false;
+		}
+
+		myViewer() = new V3d_Viewer(myGraphicDriver());
+		myViewer()->SetDefaultLights();
+
+		myViewer()->SetLightOn();
+		//myViewer()->DefaultShadingModel();
+		myView() = myViewer()->CreateView();
+
+
+
+		myView()->SetBgGradientColors(Quantity_Color(0.5, 0.5, 0.5, Quantity_TOC_RGB),
+			Quantity_Color(0.3, 0.3, 0.3, Quantity_TOC_RGB),
+			Aspect_GFM_VER,
+			Standard_True);
+
+		//add8e6
+		//f0f8ff
+		SetDefaultGradient();
+		myView()->SetLightOn();
+		myView()->SetLightOff();
+				
+		myView()->SetWindow(gview->myOcctWindow, glctx.ToPointer());
+		myView()->ChangeRenderingParams().ToShowStats = Standard_True;
+
+		myAISContext() = new AIS_InteractiveContext(myViewer());
+
+		impl->setAisCtx(myAISContext());
+		gview->setAisCtx(myAISContext());
+
 		myAISContext()->UpdateCurrentViewer();
 		myView()->Redraw();
 		myView()->MustBeResized();
