@@ -7,6 +7,8 @@ Simple debug tool based on OpenCASCADE for debugging purposes
 
 ![image](https://github.com/fel88/CascadeDesktop/assets/15663687/8bb3410f-2a6b-4073-853e-cea2172b46a4)
 
+ImGui (experimental)
+<img width="1504" height="910" alt="изображение" src="https://github.com/user-attachments/assets/09254067-0227-4ace-b0e8-9cc3924b1b23" />
 
 
 <img src="https://github.com/user-attachments/assets/86a773a3-632d-4f28-87d4-546db5710bc0" />
