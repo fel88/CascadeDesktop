@@ -1,5 +1,7 @@
 #include <iostream>
 #include <optional>
+#include <msclr/marshal_cppstd.h> // For marshal_as
+#include <string>
 // include required OCCT headers
 #include <Standard_Version.hxx>
 #include <Message_ProgressIndicator.hxx>
@@ -582,6 +584,14 @@ public:
 	//! Window resize event.
 	void onResize(int theWidth, int theHeight);
 	bool showTriangle;
+	void StartRenderGui();
+	void EndRenderGui();
+	void ShowDemoWindow();
+	void Begin(const char* text);
+	void Text(const char* text);
+	bool Button(const char* text);
+	bool Checkbox(const char* text, bool state);
+	void End();
 
 public:
 
@@ -600,6 +610,7 @@ public:
 
 	//! Render ImGUI.
 	void renderGui();
+
 	//! Fill 3D Viewer with a DEMO items.
 	void initDemoScene();
 
@@ -984,8 +995,9 @@ void GlfwOcctView::initGui()
 
 bool show_dialog = true;
 
-void GlfwOcctView::renderGui()
+void GlfwOcctView::StartRenderGui()
 {
+
 	ImGuiIO& aIO = ImGui::GetIO();
 
 	ImGui_ImplOpenGL3_NewFrame();
@@ -994,8 +1006,50 @@ void GlfwOcctView::renderGui()
 
 	ImGui::NewFrame();
 
-	ImGui::ShowDemoWindow();
+}
 
+void GlfwOcctView::EndRenderGui()
+{
+	ImGui::Render();
+
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	//glfwSwapBuffers(myOcctWindow->getGlfwWindow());
+}
+
+void GlfwOcctView::ShowDemoWindow()
+{
+	ImGui::ShowDemoWindow();
+}
+
+void GlfwOcctView::Begin(const char* text)
+{
+	ImGui::Begin(text);
+}
+
+bool GlfwOcctView::Button(const char* text)
+{
+	return ImGui::Button(text);
+}
+
+bool GlfwOcctView::Checkbox(const char* text, bool state)
+{
+	ImGui::Checkbox(text, &state);
+	return state;
+}
+
+void GlfwOcctView::Text(const char* text)
+{
+	ImGui::Text(text);
+}
+
+void GlfwOcctView::End()
+{
+	ImGui::End();
+
+}
+void GlfwOcctView::renderGui()
+{
 	// Hello IMGUI.
 	ImGui::SetNextWindowSizeConstraints(ImVec2(220, 120), ImVec2(350, 200));
 	ImGui::Begin("Hello");
@@ -1010,7 +1064,8 @@ void GlfwOcctView::renderGui()
 	ImGui::SameLine();
 	ImGui::Button("Cancel");
 	ImGui::End();
-	if (show_dialog)
+
+	if (show_dialog) {
 		// If using a regular window/dialog:
 		if (ImGui::Begin("My Dialog", &show_dialog, ImGuiWindowFlags_AlwaysAutoResize))
 		{
@@ -1025,13 +1080,11 @@ void GlfwOcctView::renderGui()
 				// Handle OK action
 				show_dialog = false;
 			}
-			ImGui::End();
+
 		}
-	ImGui::Render();
-
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-	//glfwSwapBuffers(myOcctWindow->getGlfwWindow());
+		ImGui::End();
+	}
+	
 }
 
 // ================================================================
@@ -1194,7 +1247,7 @@ void GlfwOcctView::iterate()
 		myView->InvalidateImmediate(); // redraw view even if it wasn't modified
 		FlushViewEvents(myContext, myView, Standard_True);
 
-		renderGui();
+		//renderGui();
 	}
 }
 
@@ -1235,7 +1288,7 @@ void GlfwOcctView::onResize(int theWidth, int theHeight)
 		myView->MustBeResized();
 		myView->Invalidate();
 		FlushViewEvents(myContext, myView, true);
-		renderGui();
+		//renderGui();
 	}
 }
 
@@ -1818,6 +1871,58 @@ public:
 	void iterate() {
 		gview->iterate();
 	}
+	void StartRenderGui() {
+		gview->StartRenderGui();
+	}
+	
+	void EndRenderGui() {
+		gview->EndRenderGui();
+	}
+	
+	void ShowDemoWindow() {
+		gview->ShowDemoWindow();
+	}
+
+	void Begin(System::String^ str) {
+
+		// Convert to std::string
+		std::string nativeString = msclr::interop::marshal_as<std::string>(str);
+
+		// Get const char*
+		const char* cstr_const = nativeString.c_str();
+		gview->Begin(cstr_const);
+	}
+
+	void Text(System::String^ str) {
+		// Convert to std::string
+		std::string nativeString = msclr::interop::marshal_as<std::string>(str);
+
+		// Get const char*
+		const char* cstr_const = nativeString.c_str();
+		gview->Text(cstr_const);
+	}
+
+	bool Button(System::String^ str) {
+		// Convert to std::string
+		std::string nativeString = msclr::interop::marshal_as<std::string>(str);
+
+		// Get const char*
+		const char* cstr_const = nativeString.c_str();
+		return gview->Button(cstr_const);
+	}
+
+	bool Checkbox(System::String^ str, bool state) {
+		// Convert to std::string
+		std::string nativeString = msclr::interop::marshal_as<std::string>(str);
+
+		// Get const char*
+		const char* cstr_const = nativeString.c_str();
+		return gview->Checkbox(cstr_const, state);
+	}
+
+	void End() {
+		gview->End();
+	}
 	void cleanup()
 	{
 		gview->cleanup();
@@ -1979,7 +2084,7 @@ public:
 		SetDefaultGradient();
 		myView()->SetLightOn();
 		myView()->SetLightOff();
-				
+
 		myView()->SetWindow(gview->myOcctWindow, glctx.ToPointer());
 		myView()->ChangeRenderingParams().ToShowStats = Standard_True;
 
@@ -2253,6 +2358,99 @@ aView->Update();
 		return {};
 	}
 
+	Nullable<float> ProjectionFOVy()
+	{
+		if (myView().IsNull())
+			return {};
+
+		return myView()->Camera()->FOVy();
+	}
+
+	Nullable<float> ProjectionAspect()
+	{
+		if (myView().IsNull())
+			return {};
+
+		return myView()->Camera()->Aspect();
+	}
+
+	Nullable<float> ProjectionZNear()
+	{
+		if (myView().IsNull())
+			return {};
+
+		return myView()->Camera()->ZNear();
+	}
+	
+	Nullable<float> ProjectionZFar()
+	{
+		if (myView().IsNull())
+			return {};
+
+		return myView()->Camera()->ZFar();
+	}
+
+	Nullable<float> ProjectionScale()
+	{
+		if (myView().IsNull())
+			return {};
+
+		return (int)myView()->Camera()->Scale();
+	}
+
+	Nullable<int> ProjectionType()
+	{
+		if (myView().IsNull())
+			return {};
+
+		return (int)myView()->Camera()->ProjectionType();
+	}
+
+	/*
+	Graphic3d_Camera::ProjectionType aProjectionType = aCamera->ProjectionType();
+	Standard_Real aFovY = aCamera->FOVy(); // For perspective
+	Standard_Real anAspect = aCamera->Aspect();
+	Standard_Real aZNear = aCamera->ZNear();
+	Standard_Real aZFar = aCamera->ZFar();*/
+
+	Nullable<Matrix4> ProjectionMatrix()
+	{
+		if (myView().IsNull())
+			return {};
+
+		auto ret = myView()->Camera()->ProjectionMatrix();
+		Matrix4 v;
+		auto row0 = ret.GetRow(0);
+		auto row1 = ret.GetRow(1);
+		auto row2 = ret.GetRow(2);
+		auto row3 = ret.GetRow(3);
+		v.Row0 = Vector4(row0.x(), row0.y(), row0.z(), row0.w());
+		v.Row1 = Vector4(row1.x(), row1.y(), row1.z(), row1.w());
+		v.Row2 = Vector4(row2.x(), row2.y(), row2.z(), row2.w());
+		v.Row3 = Vector4(row3.x(), row3.y(), row3.z(), row3.w());
+
+		return v;
+	}
+
+	Nullable<Matrix4> OrientationMatrix()
+	{
+		if (myView().IsNull())
+			return {};
+
+		auto ret = myView()->Camera()->OrientationMatrix();
+		Matrix4 v;
+		auto row0 = ret.GetRow(0);
+		auto row1 = ret.GetRow(1);
+		auto row2 = ret.GetRow(2);
+		auto row3 = ret.GetRow(3);
+		v.Row0 = Vector4(row0.x(), row0.y(), row0.z(), row0.w());
+		v.Row1 = Vector4(row1.x(), row1.y(), row1.z(), row1.w());
+		v.Row2 = Vector4(row2.x(), row2.y(), row2.z(), row2.w());
+		v.Row3 = Vector4(row3.x(), row3.y(), row3.z(), row3.w());
+
+		return v;
+	}
+
 	Nullable<Vector3d> GetEye()
 	{
 		if (!myView().IsNull())
@@ -2261,8 +2459,8 @@ aView->Update();
 			auto ret = myView()->Camera()->Eye();
 			Vector3d v;
 			v.X = ret.X();
-			v.X = ret.Y();
-			v.X = ret.Z();
+			v.Y = ret.Y();
+			v.Z = ret.Z();
 			return v;
 		}
 		return {};
@@ -2276,8 +2474,8 @@ aView->Update();
 			auto ret = myView()->Camera()->Center();
 			Vector3d v;
 			v.X = ret.X();
-			v.X = ret.Y();
-			v.X = ret.Z();
+			v.Y = ret.Y();
+			v.Z = ret.Z();
 			return v;
 		}
 
@@ -2292,12 +2490,13 @@ aView->Update();
 			auto ret = myView()->Camera()->Up();
 			Vector3d v;
 			v.X = ret.X();
-			v.X = ret.Y();
-			v.X = ret.Z();
+			v.Y = ret.Y();
+			v.Z = ret.Z();
 			return v;
 		}
-		return Nullable<Vector3d>();
+		return {};
 	}
+
 	/// <summary>
 	///Select by rectangle
 	/// </summary>
@@ -2919,7 +3118,7 @@ public:
 	List<ManagedObjHandle^>^ ImportStep(System::String^ name, List<System::Byte>^ bts)
 	{
 		auto buf = new uint8_t[bts->Count];
-		for (int i = 0;i < bts->Count;i++) {
+		for (int i = 0; i < bts->Count; i++) {
 			buf[i] = bts[i];
 		}
 		memstream s(buf, bts->Count);
@@ -3330,17 +3529,17 @@ public:
 
 	void ResetSelectionMode() {
 		Handle(AIS_InteractiveContext) theCtx = myAISContext();
-		
+
 		AIS_ListOfInteractive aDispList;
 		theCtx->DisplayedObjects(aDispList);
 		for (const Handle(AIS_InteractiveObject)& aPrsIter : aDispList)
 		{
 			Handle(AIS_Shape) aShape = Handle(AIS_Shape)::DownCast(aPrsIter);
 			if (aShape.IsNull())
-				continue; 
+				continue;
 
 			theCtx->Deactivate(aShape);
-			
+
 		}
 		//myAISContext()->Deactivate();
 	}
@@ -3359,11 +3558,11 @@ public:
 			if (aShape.IsNull()) { continue; }
 
 			theCtx->Deactivate(aShape);
-			theCtx->Activate(aShape, aSelMode,true);
+			theCtx->Activate(aShape, aSelMode, true);
 		}
-			//myAISContext()->Activate((int)t, true);
-		
-		//currentMode=t;
+		//myAISContext()->Activate((int)t, true);
+
+	//currentMode=t;
 	}
 
 	void Erase(ManagedObjHandle^ h, bool updateViewer) {
@@ -4617,7 +4816,7 @@ public:
 				continue;
 			}
 
-			for (int i = 0;i < vertices.size();i++)
+			for (int i = 0; i < vertices.size(); i++)
 			{
 				auto& vertex = vertices[i];
 				//todo fix
@@ -4690,7 +4889,7 @@ public:
 					if (_vertex.IsNull())
 						continue;
 
-					for (int i = 0;i < vertices.size();i++)
+					for (int i = 0; i < vertices.size(); i++)
 					{
 						auto& vertex = vertices[i];
 						//todo fix
@@ -4728,7 +4927,7 @@ public:
 				continue;
 			}
 
-			for (int i = 0;i < vertices.size();i++)
+			for (int i = 0; i < vertices.size(); i++)
 			{
 				auto& vertex = vertices[i];
 				//todo fix

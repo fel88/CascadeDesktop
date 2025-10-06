@@ -3,10 +3,12 @@ using Cascade.Common;
 using CascadeDesktop.Interfaces;
 using CascadeDesktop.Tools;
 using CSPLib;
+using MathNet.Numerics.Providers.LinearAlgebra;
 using OpenTK;
 using OpenTK.GLControl;
-using OpenTK.Graphics.ES11;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Platform.Windows;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -17,6 +19,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows.Media.Media3D;
 using System.Xml.Linq;
 using static CascadeDesktop.OccSceneObject;
 
@@ -36,11 +39,13 @@ namespace CascadeDesktop
 
             glcontrol = new GLControl(new GLControlSettings()
             {
+                Profile = OpenTK.Windowing.Common.ContextProfile.Compatability,
+
                 NumberOfSamples = 4,
                 StencilBits = 8,
 
             });
-            
+
 
             glcontrol.MouseMove += gPanel1_MouseMove;
             glcontrol.MouseUp += gPanel1_MouseUp;
@@ -107,10 +112,186 @@ namespace CascadeDesktop
 
         nint? hglrc;
         bool inited = false;
+        int vao;
+
+
+        private int VAO;
+        private int EBO;
+        private int PositionBuffer;
+        private int ColorBuffer;
+        Matrix4 projection;
+        int shaderProgram;
+        private static readonly int[] IndexData = new int[]
+     {
+             0,  1,  2,  2,  3,  0,
+             4,  5,  6,  6,  7,  4,
+             8,  9, 10, 10, 11,  8,
+            12, 13, 14, 14, 15, 12,
+            16, 17, 18, 18, 19, 16,
+            20, 21, 22, 22, 23, 20,
+     };
+        float[] vertices = {
+        -0.5f, -0.5f, 0.0f, // Bottom-left vertex
+         0.5f, -0.5f, 0.0f, // Bottom-right vertex
+         0.0f,  0.5f, 0.0f  // Top vertex
+    };
+        private const string FragmentShaderSource = @"#version 330 core
+
+in vec4 fColor;
+
+out vec4 oColor;
+
+void main()
+{
+    oColor = fColor;
+}
+"; private int CompileProgram(string vertexShader, string fragmentShader)
+        {
+            int program = GL.CreateProgram();
+
+            int vert = CompileShader(ShaderType.VertexShader, vertexShader);
+            int frag = CompileShader(ShaderType.FragmentShader, fragmentShader);
+
+            GL.AttachShader(program, vert);
+            GL.AttachShader(program, frag);
+
+            GL.LinkProgram(program);
+
+            GL.GetProgram(program, GetProgramParameterName.LinkStatus, out int success);
+            if (success == 0)
+            {
+                string log = GL.GetProgramInfoLog(program);
+                throw new Exception($"Could not link program: {log}");
+            }
+
+            GL.DetachShader(program, vert);
+            GL.DetachShader(program, frag);
+
+            GL.DeleteShader(vert);
+            GL.DeleteShader(frag);
+
+            return program;
+
+            static int CompileShader(ShaderType type, string source)
+            {
+                int shader = GL.CreateShader(type);
+
+                GL.ShaderSource(shader, source);
+                GL.CompileShader(shader);
+
+                GL.GetShader(shader, ShaderParameter.CompileStatus, out int status);
+                if (status == 0)
+                {
+                    string log = GL.GetShaderInfoLog(shader);
+                    throw new Exception($"Failed to compile {type}: {log}");
+                }
+
+                return shader;
+            }
+        }
+        private const string vertexShaderStr = @"  // Vertex Shader
+    #version 330 core
+layout (location = 0) in vec3 aPos;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+    //#layout (location = 0) in vec3 aPos;
+    void main()
+    {
+  gl_Position = projection * view * model * vec4(aPos, 1.0);
+      //gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+    }
+
+";
+
+        private const string fragmentShaderStr = @"  // Fragment  Shader
+    #version 330 core
+    out vec4 FragColor;
+    void main()
+    {
+        FragColor = vec4(1.0f, 0.5f, 0.5f, 1.0f); // Orange color
+    }
+";
+
+
+        private static readonly Color4[] ColorData = new Color4[]
+        {
+            Color4.Silver, Color4.Silver, Color4.Silver, Color4.Silver,
+            Color4.Honeydew, Color4.Honeydew, Color4.Honeydew, Color4.Honeydew,
+            Color4.Moccasin, Color4.Moccasin, Color4.Moccasin, Color4.Moccasin,
+            Color4.IndianRed, Color4.IndianRed, Color4.IndianRed, Color4.IndianRed,
+            Color4.PaleVioletRed, Color4.PaleVioletRed, Color4.PaleVioletRed, Color4.PaleVioletRed,
+            Color4.ForestGreen, Color4.ForestGreen, Color4.ForestGreen, Color4.ForestGreen,
+        };
+        private static readonly Vector3[] VertexData = new Vector3[]
+       {
+            new Vector3(-1.0f, -1.0f, -1.0f),
+            new Vector3(-1.0f, 1.0f, -1.0f),
+            new Vector3(1.0f, 1.0f, -1.0f),
+            new Vector3(1.0f, -1.0f, -1.0f),
+
+            new Vector3(-1.0f, -1.0f, -1.0f),
+            new Vector3(1.0f, -1.0f, -1.0f),
+            new Vector3(1.0f, -1.0f, 1.0f),
+            new Vector3(-1.0f, -1.0f, 1.0f),
+
+            new Vector3(-1.0f, -1.0f, -1.0f),
+            new Vector3(-1.0f, -1.0f, 1.0f),
+            new Vector3(-1.0f, 1.0f, 1.0f),
+            new Vector3(-1.0f, 1.0f, -1.0f),
+
+            new Vector3(-1.0f, -1.0f, 1.0f),
+            new Vector3(1.0f, -1.0f, 1.0f),
+            new Vector3(1.0f, 1.0f, 1.0f),
+            new Vector3(-1.0f, 1.0f, 1.0f),
+
+            new Vector3(-1.0f, 1.0f, -1.0f),
+            new Vector3(-1.0f, 1.0f, 1.0f),
+            new Vector3(1.0f, 1.0f, 1.0f),
+            new Vector3(1.0f, 1.0f, -1.0f),
+
+            new Vector3(1.0f, -1.0f, -1.0f),
+            new Vector3(1.0f, 1.0f, -1.0f),
+            new Vector3(1.0f, 1.0f, 1.0f),
+            new Vector3(1.0f, -1.0f, 1.0f),
+       };
 
         private void Glcontrol_Load(object? sender, EventArgs e)
         {
+            int vbo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+            vao = GL.GenVertexArray();
+            GL.BindVertexArray(vao);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
 
+            shaderProgram = CompileProgram(vertexShaderStr, fragmentShaderStr);
+
+            // Error checking for linking
+
+            VAO = GL.GenVertexArray();
+            GL.BindVertexArray(VAO);
+
+            EBO = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, IndexData.Length * sizeof(int), IndexData, BufferUsageHint.StaticDraw);
+
+            PositionBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, PositionBuffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, VertexData.Length * sizeof(float) * 3, VertexData, BufferUsageHint.StaticDraw);
+
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, sizeof(float) * 3, 0);
+
+            ColorBuffer = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, ColorBuffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, ColorData.Length * sizeof(float) * 4, ColorData, BufferUsageHint.StaticDraw);
+
+            GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, sizeof(float) * 4, 0);
+            inited = true;
         }
         private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
         {
@@ -376,7 +557,7 @@ namespace CascadeDesktop
 
             }
             proxy.ActivateGrid(true);
-            proxy.ShowCube();
+            //proxy.ShowCube();
             proxy.SetDisplayMode(1);
             proxy.SetMaterial(1);
             //proxy.SetDegenerateModeOff();
@@ -1780,19 +1961,196 @@ namespace CascadeDesktop
             var cs = proxy.Text2Brep(text, fontSize, height);
             Objs.Add(new OccSceneObject(cs, proxy));
         }
+        private float _angle = 0.0f;
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (proxy != null && inited)
+            if (proxy == null || !inited)
             {
-                proxy.iterate();
-
-                
-                glcontrol.SwapBuffers();
+                return;
                 //SwapBuffers(GetDC(panel1.Handle));
+            }
+
+
+            proxy.iterate();
+            var eye = proxy.GetEye().Value.ToVector3();
+            var center = proxy.GetCenter().Value.ToVector3();
+            var up = proxy.GetUp().Value.ToVector3();
+
+
+
+            if (showTriangle)
+            {
+                glcontrol.MakeCurrent();
+                var r = GL.GetBoolean(GetPName.DepthTest);
+                GL.Clear(ClearBufferMask.DepthBufferBit);
+                GL.Enable(EnableCap.DepthTest);
+                GL.Disable(EnableCap.Blend);
+                GL.DepthMask(true);
+                GL.DepthFunc(DepthFunction.Less);
+
+
+                Vector3 cameraPosition = new Vector3(10.0f, 10.0f, 10);
+                Vector3 cameraTarget = new Vector3(0.0f, 0.0f, 0.0f);
+                Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
+
+
+                Matrix4 view = Matrix4.LookAt(cameraPosition, cameraTarget, cameraUpVector);
+
+                view = Matrix4.LookAt(eye, center, up);
+                //Matrix4 model = Matrix4.Identity;
+                var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), (float)Width / Height, 0.1f, 100f);
+
+                //  projection = proxy.ProjectionMatrix().Value;
+                //view = proxy.OrientationMatrix().Value;
+
+                var anAspect = proxy.ProjectionAspect().Value;
+                var aZNear = proxy.ProjectionZNear().Value;
+                var aZFar = proxy.ProjectionZFar().Value;
+                var aScale = proxy.ProjectionScale().Value; // Or derive from view dimensions
+                ///aScale = 1;
+                var halfWidth = aScale * anAspect / 2.0f;
+                var halfHeight = aScale / 2.0f;
+                projection = Matrix4.CreateOrthographicOffCenter(-halfWidth, halfWidth, -halfHeight, halfHeight, aZNear, aZFar);
+                //projection = Matrix4.CreateOrthographic(halfWidth*2, halfHeight*2, aZNear, aZFar);
+                //projection = Matrix4.CreateOrthographic(glcontrol.Width, glcontrol.Height, aZNear, aZFar);
+
+                //projection = Matrix4.CreateOrthographic(20, 20 * anAspect, -100.1f, 100f);
+               
+                GL.MatrixMode(MatrixMode.Projection);
+
+                GL.LoadMatrix(ref projection);
+                GL.MatrixMode(MatrixMode.Modelview);
+                
+                GL.LoadMatrix(ref view);
+
+                if (depthRender)
+                {
+                    //render all in depth
+                    RenderDepthOnly();
+                }
+
+                GL.Begin(PrimitiveType.Lines);
+                GL.Vertex3(0, 0, 0);
+                GL.Vertex3(100, 0, 0);
+
+                GL.Vertex3(0, 0, 0);
+                GL.Vertex3(0, 100, 0);
+
+                GL.Vertex3(0, 0, 0);
+                GL.Vertex3(0, 0, 100);
+                GL.End();
+                
+                GL.UseProgram(shaderProgram);
+
+                int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
+                int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
+                int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
+
+                //GL.UniformMatrix4(modelLoc, false, ref model); // Model matrix (identity for a static object)
+                GL.UniformMatrix4(viewLoc, false, ref view);
+                GL.UniformMatrix4(projLoc, false, ref projection);
+                Matrix4 model = Matrix4.Identity;
+
+
+                /* model = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 1.0f, 0.0f), MathHelper.DegreesToRadians(_angle));
+              * */
+                model *= Matrix4.CreateScale(150, 150, 150);/*
+                    /*model *= Matrix4.CreateTranslation(-Width / 2 + 50, 0, 0);                
+                   */
+                
+                GL.UniformMatrix4(modelLoc, false, ref model);
+                GL.BindVertexArray(vao);
+                //GL.Color3(Color.Green);
+                GL.DrawArrays(PrimitiveType.Triangles, 0, 3); // Draw 3 vertices a
+                                                              //GL.UseProgram(0);
+                GL.BindVertexArray(0);
+                GL.UseProgram(0);
 
             }
+
+            if (showTriangleCamSpace)
+            {
+                glcontrol.MakeCurrent();
+                var r = GL.GetBoolean(GetPName.DepthTest);
+                GL.Disable(EnableCap.DepthTest);
+
+                Vector3 cameraPosition = new Vector3(0, 0, 10);
+                Vector3 cameraTarget = new Vector3(0.0f, 0.0f, 0.0f);
+                Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
+
+                Matrix4 view = Matrix4.LookAt(cameraPosition, cameraTarget, cameraUpVector);
+
+                //var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), (float)Width / Height, 0.1f, 100f);
+                var projection = Matrix4.CreateOrthographic(glcontrol.Width, glcontrol.Height, -111, 111);
+
+                Matrix4 model = Matrix4.Identity;
+                model = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 1.0f, 0.0f), MathHelper.DegreesToRadians(_angle));
+                model *= Matrix4.CreateScale(100, 100, 100);
+                model *= Matrix4.CreateTranslation(-glcontrol.Width / 2 + 50, 0, 0);
+
+                _angle += 2.51f;
+
+                GL.UseProgram(shaderProgram);
+
+                int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
+                int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
+                int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
+
+                GL.UniformMatrix4(modelLoc, false, ref model); // Model matrix (identity for a static object)
+                GL.UniformMatrix4(viewLoc, false, ref view);
+                GL.UniformMatrix4(projLoc, false, ref projection);
+                GL.BindVertexArray(vao);
+                //GL.Color3(Color.Green);
+                GL.DrawArrays(PrimitiveType.Triangles, 0, 3); // Draw 3 vertices a
+                GL.BindVertexArray(0);
+                GL.UseProgram(0);
+
+            }
+            proxy.StartRenderGui();
+            proxy.ShowDemoWindow();
+            proxy.Begin("info dialog");
+            proxy.Text($"eye: {eye.X}  {eye.Y}  {eye.Z}");
+            proxy.Text($"center: {center.X}  {center.Y}  {center.Z}");
+            proxy.Text($"up: {up.X}  {up.Y}  {up.Z}");
+            showTriangle = proxy.Checkbox($"show triangle", showTriangle);
+            depthRender = proxy.Checkbox($"depth render", depthRender);
+            showTriangleCamSpace = proxy.Checkbox($"show triangle cam space", showTriangleCamSpace);
+            proxy.Button($"ok");
+
+            proxy.End();
+            proxy.EndRenderGui();
+            glcontrol.SwapBuffers();
         }
+
+        private void RenderDepthOnly()
+        {
+            // Disable color writes
+            GL.ColorMask(false, false, false, false);
+            foreach (var item in Objs)
+            {
+                var poly = proxy.IteratePoly(item.Handle);
+                for (int i = 0; i < poly[0].Count; i += 3)
+                {
+                    Vector3d item1 = poly[0][i];
+                    GL.Begin(PrimitiveType.Triangles);
+                    for (int j = 0; j < 3; j++)
+                    {
+                        var v = poly[0][i+j];
+                        GL.Vertex3(v.X, v.Y, v.Z);
+                    }
+
+                    GL.End();
+                }
+            }
+            GL.ColorMask(true, true, true, true);
+
+
+        }
+
+        bool showTriangle = false;
+        bool depthRender = false;
+        bool showTriangleCamSpace = false;
 
         //private void timer1_Tick(object sender, EventArgs e)
         //{
