@@ -192,13 +192,16 @@ void main()
         private const string vertexShaderStr = @"  // Vertex Shader
     #version 330 core
 layout (location = 0) in vec3 aPos;
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-
+uniform vec4 color;
+ out vec4 vColor;
     //#layout (location = 0) in vec3 aPos;
     void main()
     {
+vColor = color;
   gl_Position = projection * view * model * vec4(aPos, 1.0);
       //gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
     }
@@ -207,10 +210,13 @@ uniform mat4 projection;
 
         private const string fragmentShaderStr = @"  // Fragment  Shader
     #version 330 core
+in vec4 vColor;
     out vec4 FragColor;
+
     void main()
     {
-        FragColor = vec4(1.0f, 0.5f, 0.5f, 1.0f); // Orange color
+               //FragColor = vec4(1.0f, 0.5f, 0.5f, 0.5f); // Orange color
+FragColor = vColor; 
     }
 ";
 
@@ -1979,77 +1985,84 @@ uniform mat4 projection;
 
 
 
-            if (showTriangle)
+
+            glcontrol.MakeCurrent();
+            var r = GL.GetBoolean(GetPName.DepthTest);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+            GL.Enable(EnableCap.DepthTest);
+            GL.Disable(EnableCap.Blend);
+            GL.DepthMask(true);
+            GL.DepthFunc(DepthFunction.Less);
+
+
+            Vector3 cameraPosition = new Vector3(10.0f, 10.0f, 10);
+            Vector3 cameraTarget = new Vector3(0.0f, 0.0f, 0.0f);
+            Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
+
+
+            Matrix4 view = Matrix4.LookAt(cameraPosition, cameraTarget, cameraUpVector);
+
+            view = Matrix4.LookAt(eye, center, up);
+            //Matrix4 model = Matrix4.Identity;
+            var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), (float)Width / Height, 0.1f, 100f);
+
+            //  projection = proxy.ProjectionMatrix().Value;
+            //view = proxy.OrientationMatrix().Value;
+
+            var anAspect = proxy.ProjectionAspect().Value;
+            var aZNear = proxy.ProjectionZNear().Value;
+            var aZFar = proxy.ProjectionZFar().Value;
+            var aScale = proxy.ProjectionScale().Value; // Or derive from view dimensions
+            ///aScale = 1;
+            var halfWidth = aScale * anAspect / 2.0f;
+            var halfHeight = aScale / 2.0f;
+            projection = Matrix4.CreateOrthographicOffCenter(-halfWidth, halfWidth, -halfHeight, halfHeight, -100000, 100000);
+            //projection = Matrix4.CreateOrthographic(halfWidth*2, halfHeight*2, aZNear, aZFar);
+            //projection = Matrix4.CreateOrthographic(glcontrol.Width, glcontrol.Height, aZNear, aZFar);
+
+            //projection = Matrix4.CreateOrthographic(20, 20 * anAspect, -100.1f, 100f);
+
+            GL.MatrixMode(MatrixMode.Projection);
+
+            GL.LoadMatrix(ref projection);
+            GL.MatrixMode(MatrixMode.Modelview);
+
+            GL.LoadMatrix(ref view);
+
+            if (depthRender)
             {
-                glcontrol.MakeCurrent();
-                var r = GL.GetBoolean(GetPName.DepthTest);
-                GL.Clear(ClearBufferMask.DepthBufferBit);
-                GL.Enable(EnableCap.DepthTest);
-                GL.Disable(EnableCap.Blend);
-                GL.DepthMask(true);
-                GL.DepthFunc(DepthFunction.Less);
-
-
-                Vector3 cameraPosition = new Vector3(10.0f, 10.0f, 10);
-                Vector3 cameraTarget = new Vector3(0.0f, 0.0f, 0.0f);
-                Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
-
-
-                Matrix4 view = Matrix4.LookAt(cameraPosition, cameraTarget, cameraUpVector);
-
-                view = Matrix4.LookAt(eye, center, up);
-                //Matrix4 model = Matrix4.Identity;
-                var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), (float)Width / Height, 0.1f, 100f);
-
-                //  projection = proxy.ProjectionMatrix().Value;
-                //view = proxy.OrientationMatrix().Value;
-
-                var anAspect = proxy.ProjectionAspect().Value;
-                var aZNear = proxy.ProjectionZNear().Value;
-                var aZFar = proxy.ProjectionZFar().Value;
-                var aScale = proxy.ProjectionScale().Value; // Or derive from view dimensions
-                ///aScale = 1;
-                var halfWidth = aScale * anAspect / 2.0f;
-                var halfHeight = aScale / 2.0f;
-                projection = Matrix4.CreateOrthographicOffCenter(-halfWidth, halfWidth, -halfHeight, halfHeight, aZNear, aZFar);
-                //projection = Matrix4.CreateOrthographic(halfWidth*2, halfHeight*2, aZNear, aZFar);
-                //projection = Matrix4.CreateOrthographic(glcontrol.Width, glcontrol.Height, aZNear, aZFar);
-
-                //projection = Matrix4.CreateOrthographic(20, 20 * anAspect, -100.1f, 100f);
-               
-                GL.MatrixMode(MatrixMode.Projection);
-
-                GL.LoadMatrix(ref projection);
-                GL.MatrixMode(MatrixMode.Modelview);
-                
-                GL.LoadMatrix(ref view);
-
-                if (depthRender)
-                {
-                    //render all in depth
-                    RenderDepthOnly();
-                }
-
+                //render all in depth
+                RenderDepthOnly();
+            }
+            if (showAxes)
+            {
                 GL.Begin(PrimitiveType.Lines);
+                GL.Color3(Color.Red);
                 GL.Vertex3(0, 0, 0);
                 GL.Vertex3(100, 0, 0);
 
+                GL.Color3(Color.Green);
                 GL.Vertex3(0, 0, 0);
                 GL.Vertex3(0, 100, 0);
 
+                GL.Color3(Color.Blue);
                 GL.Vertex3(0, 0, 0);
                 GL.Vertex3(0, 0, 100);
                 GL.End();
-                
+            }
+            if (showTriangle)
+            {
                 GL.UseProgram(shaderProgram);
 
                 int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
                 int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
                 int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
-
+                int colorLoc = GL.GetUniformLocation(shaderProgram, "color");
+                Vector4 colorVec = new Vector4(1f, 0.5f, 0.5f, 0.5f);
                 //GL.UniformMatrix4(modelLoc, false, ref model); // Model matrix (identity for a static object)
                 GL.UniformMatrix4(viewLoc, false, ref view);
                 GL.UniformMatrix4(projLoc, false, ref projection);
+                GL.Uniform4(colorLoc, colorVec);
                 Matrix4 model = Matrix4.Identity;
 
 
@@ -2058,31 +2071,38 @@ uniform mat4 projection;
                 model *= Matrix4.CreateScale(150, 150, 150);/*
                     /*model *= Matrix4.CreateTranslation(-Width / 2 + 50, 0, 0);                
                    */
-                
+
                 GL.UniformMatrix4(modelLoc, false, ref model);
+
+                if (blendEnabled)
+                    GL.Enable(EnableCap.Blend);
+
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
                 GL.BindVertexArray(vao);
                 //GL.Color3(Color.Green);
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 3); // Draw 3 vertices a
                                                               //GL.UseProgram(0);
                 GL.BindVertexArray(0);
                 GL.UseProgram(0);
+                GL.Disable(EnableCap.Blend);
+
 
             }
 
             if (showTriangleCamSpace)
             {
                 glcontrol.MakeCurrent();
-                var r = GL.GetBoolean(GetPName.DepthTest);
+
                 GL.Disable(EnableCap.DepthTest);
 
-                Vector3 cameraPosition = new Vector3(0, 0, 10);
-                Vector3 cameraTarget = new Vector3(0.0f, 0.0f, 0.0f);
-                Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
+                cameraPosition = new Vector3(0, 0, 10);
+                cameraTarget = new Vector3(0.0f, 0.0f, 0.0f);
+                cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
 
-                Matrix4 view = Matrix4.LookAt(cameraPosition, cameraTarget, cameraUpVector);
+                view = Matrix4.LookAt(cameraPosition, cameraTarget, cameraUpVector);
 
                 //var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), (float)Width / Height, 0.1f, 100f);
-                var projection = Matrix4.CreateOrthographic(glcontrol.Width, glcontrol.Height, -111, 111);
+                projection = Matrix4.CreateOrthographic(glcontrol.Width, glcontrol.Height, -111, 111);
 
                 Matrix4 model = Matrix4.Identity;
                 model = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 1.0f, 0.0f), MathHelper.DegreesToRadians(_angle));
@@ -2096,6 +2116,12 @@ uniform mat4 projection;
                 int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
                 int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
                 int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
+                int colorLoc = GL.GetUniformLocation(shaderProgram, "color");
+
+                Vector4 colorVec = new Vector4(0.5f, 0.5f, 1.0f, 0.5f);               
+                
+                GL.Uniform4(colorLoc, colorVec);
+
 
                 GL.UniformMatrix4(modelLoc, false, ref model); // Model matrix (identity for a static object)
                 GL.UniformMatrix4(viewLoc, false, ref view);
@@ -2114,6 +2140,8 @@ uniform mat4 projection;
             proxy.Text($"center: {center.X}  {center.Y}  {center.Z}");
             proxy.Text($"up: {up.X}  {up.Y}  {up.Z}");
             showTriangle = proxy.Checkbox($"show triangle", showTriangle);
+            showAxes = proxy.Checkbox($"show axes", showAxes);
+            blendEnabled = proxy.Checkbox($"blend enabled", blendEnabled);
             depthRender = proxy.Checkbox($"depth render", depthRender);
             showTriangleCamSpace = proxy.Checkbox($"show triangle cam space", showTriangleCamSpace);
             proxy.Button($"ok");
@@ -2136,7 +2164,7 @@ uniform mat4 projection;
                     GL.Begin(PrimitiveType.Triangles);
                     for (int j = 0; j < 3; j++)
                     {
-                        var v = poly[0][i+j];
+                        var v = poly[0][i + j];
                         GL.Vertex3(v.X, v.Y, v.Z);
                     }
 
@@ -2149,6 +2177,8 @@ uniform mat4 projection;
         }
 
         bool showTriangle = false;
+        bool showAxes = false;
+        bool blendEnabled = false;
         bool depthRender = false;
         bool showTriangleCamSpace = false;
 

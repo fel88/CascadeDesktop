@@ -591,6 +591,7 @@ public:
 	void Text(const char* text);
 	bool Button(const char* text);
 	bool Checkbox(const char* text, bool state);
+	void SetNextWindowSizeConstraints(int minx, int miny, int maxx, int maxy);
 	void End();
 
 public:
@@ -1038,6 +1039,12 @@ bool GlfwOcctView::Checkbox(const char* text, bool state)
 	return state;
 }
 
+void GlfwOcctView::SetNextWindowSizeConstraints(int minx,int miny, int maxx,int maxy)
+{
+	ImGui::SetNextWindowSizeConstraints(ImVec2(minx, miny), ImVec2(maxx, maxy));
+
+}
+
 void GlfwOcctView::Text(const char* text)
 {
 	ImGui::Text(text);
@@ -1084,7 +1091,7 @@ void GlfwOcctView::renderGui()
 		}
 		ImGui::End();
 	}
-	
+
 }
 
 // ================================================================
@@ -1423,7 +1430,7 @@ public:
 		}
 	}
 
-	std::vector<double> IteratePoly(ObjHandle h) {
+	std::vector<double> IteratePoly(ObjHandle h, bool useLocalTransform) {
 		auto obj = findObject(h);
 		const auto& shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
 
@@ -1447,8 +1454,11 @@ public:
 		for (TopExp_Explorer aExpFace(shape, TopAbs_FACE); aExpFace.More(); aExpFace.Next())
 
 		{
+			auto face = aExpFace.Current();
+			if (useLocalTransform)
+				face = face.Located(obj->LocalTransformation());
 
-			TopoDS_Face aFace = TopoDS::Face(aExpFace.Current());
+			TopoDS_Face aFace = TopoDS::Face(face);
 
 			TopAbs_Orientation faceOrientation = aFace.Orientation();
 
@@ -1460,6 +1470,7 @@ public:
 			{
 				//const TColgp_Array1OfPnt& aNodes = aTr->NbNodes();
 				const Poly_Array1OfTriangle& triangles = aTr->Triangles();
+
 				//const TColgp_Array1OfPnt2d& uvNodes = aTr->UVNodes();
 
 				TColgp_Array1OfPnt aPoints(1, aTr->NbNodes());
@@ -1874,11 +1885,11 @@ public:
 	void StartRenderGui() {
 		gview->StartRenderGui();
 	}
-	
+
 	void EndRenderGui() {
 		gview->EndRenderGui();
 	}
-	
+
 	void ShowDemoWindow() {
 		gview->ShowDemoWindow();
 	}
@@ -1918,6 +1929,10 @@ public:
 		// Get const char*
 		const char* cstr_const = nativeString.c_str();
 		return gview->Checkbox(cstr_const, state);
+	}
+	void SetNextWindowSizeConstraints(int minx, int miny, int maxx, int maxy) {
+		
+		return gview->SetNextWindowSizeConstraints(minx,miny,maxx,maxy);
 	}
 
 	void End() {
@@ -2381,7 +2396,7 @@ aView->Update();
 
 		return myView()->Camera()->ZNear();
 	}
-	
+
 	Nullable<float> ProjectionZFar()
 	{
 		if (myView().IsNull())
@@ -3704,7 +3719,7 @@ public:
 		return hhh;
 	}
 
-	List<List<Vector3d>^>^ IteratePoly(ManagedObjHandle^ h) {
+	List<List<Vector3d>^>^ IteratePoly(ManagedObjHandle^ h, bool useLocalTransform) {
 
 		List<List<Vector3d>^>^ ret = gcnew List<List<Vector3d>^>();
 
@@ -3712,7 +3727,7 @@ public:
 		List<Vector3d>^ norms = gcnew List<Vector3d>();
 		ObjHandle hc = h->ToObjHandle();
 
-		auto pp = impl->IteratePoly(hc);
+		auto pp = impl->IteratePoly(hc, useLocalTransform);
 		for (size_t i = 0; i < pp.size(); i += 6)
 		{
 			Vector3d v;

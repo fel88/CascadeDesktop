@@ -112,7 +112,9 @@ namespace CascadeDesktop
         Vector3d? GetVertexPosition(ManagedObjHandle obj);
         void StartRotation(int x, int y);
         void Select(bool v);
-        List<List<Vector3d>> IteratePoly(ManagedObjHandle managedObjHandle);
+        List<List<Vector3d>> IteratePoly(ManagedObjHandle managedObjHandle, bool useLocalTransform = true);
+        void SetNextWindowSizeConstraints(int minx, int miny, int maxx, int maxy);
+
         ManagedObjHandle AddWireDraft(double height);
         ManagedObjHandle ImportBlueprint(Blueprint blueprint);
         ManagedObjHandle ImportBlueprint(Blueprint3d blueprint);
