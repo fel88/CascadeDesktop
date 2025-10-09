@@ -8,6 +8,8 @@ namespace CascadeDesktop
 {
     public interface IOCCTProxyInterface
     {
+        bool ImGuiMouseUp(int btn, int x, int y);
+        bool ImGuiMouseDown(int btn, int x, int y);
         void runOpenTk(IntPtr wnd, IntPtr glctx);
         bool InitViewer2(IntPtr glctx);
         void MouseMove(int x, int y);

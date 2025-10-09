@@ -581,6 +581,8 @@ public:
 	void MouseDown(int btn, double thePosX, double thePosY);
 	void MouseScroll(int x, int y, int offset);
 	void MouseUp(int btn, double thePosX, double thePosY);
+	bool ImGuiMouseUp(int btn, double thePosX, double thePosY);
+	bool ImGuiMouseDown(int btn, double thePosX, double thePosY);
 	//! Window resize event.
 	void onResize(int theWidth, int theHeight);
 	bool showTriangle;
@@ -959,6 +961,9 @@ void GlfwOcctView::initViewer(void* glctx)
 	aCube->SetTransformPersistence(new Graphic3d_TransformPers(Graphic3d_TMF_TriedronPers, Aspect_TOTP_LEFT_LOWER, Graphic3d_Vec2i(100, 100)));
 	aCube->SetViewAnimation(this->ViewAnimation());
 	aCube->SetFixedAnimationLoop(false);
+
+
+	
 	myContext->Display(aCube, false);
 }
 
@@ -1185,16 +1190,23 @@ void GlfwOcctView::MouseScroll(int x, int y, int theOffsetY) {
 
 }
 
-void GlfwOcctView::MouseDown(int btn, double x, double y)
-{
+bool GlfwOcctView::ImGuiMouseDown(int btn, double x, double y) {
 	ImGuiIO& aIO = ImGui::GetIO();
 	if (myView.IsNull() || aIO.WantCaptureMouse)
 	{
 		aIO.AddMousePosEvent((float)x, (float)y);
 		aIO.AddMouseButtonEvent(btn - 1, true);
 
-		return;
+		return true;
 	}
+	return false;
+}
+
+void GlfwOcctView::MouseDown(int btn, double x, double y)
+{	
+	if (ImGuiMouseDown(btn,x,y))	
+		return;
+	
 	Graphic3d_Vec2i aPos(x, y);
 	auto bb = Aspect_VKeyMouse_LeftButton;
 	switch (btn) {
@@ -1211,15 +1223,23 @@ void GlfwOcctView::MouseDown(int btn, double x, double y)
 	PressMouseButton(aPos, bb, Aspect_VKeyFlags_NONE, false);
 }
 
-void GlfwOcctView::MouseUp(int btn, double x, double y)
+bool GlfwOcctView::ImGuiMouseUp(int btn, double x, double y)
 {
 	ImGuiIO& aIO = ImGui::GetIO();
 	if (myView.IsNull() || aIO.WantCaptureMouse)
 	{
 		aIO.AddMousePosEvent((float)x, (float)y);
 		aIO.AddMouseButtonEvent(btn - 1, false);
-		return;
+		return true;
 	}
+	return false;	
+}
+
+void GlfwOcctView::MouseUp(int btn, double x, double y)
+{	
+	if (ImGuiMouseUp(btn, x, y))
+		return;
+	
 	Graphic3d_Vec2i aPos(x, y);
 	auto bb = Aspect_VKeyMouse_LeftButton;
 
@@ -1847,11 +1867,14 @@ public:
 		gview->initWindow(800, 600, wnd.ToPointer(), "OCCT IMGUI");
 
 		gview->initViewer(glctx.ToPointer());
+		
 		initDemoScene();
 		myView() = gview->myView;
 		myViewer() = gview->myViewer;
 		myAISContext() = gview->myContext;
 		impl->setAisCtx(myAISContext());
+		SetDefaultDrawerParams();
+		SetDefaultGradient();
 		if (myView().IsNull())
 			return;
 
@@ -1876,6 +1899,15 @@ public:
 	void MouseUp(int btn, int x, int y) {
 		gview->MouseUp(btn, x, y);
 	}
+
+	bool ImGuiMouseUp(int btn, int x, int y) {
+		return gview->ImGuiMouseUp(btn, x, y);
+	}
+
+	bool ImGuiMouseDown(int btn, int x, int y) {
+		return gview->ImGuiMouseDown(btn, x, y);
+	}
+
 	void MouseScroll(int x, int y, int offset) {
 		gview->MouseScroll(x, y, offset);
 	}
@@ -2199,19 +2231,41 @@ aParams.IsTransparentShadowEnabled = true;
 // update the view
 aView->Update();
 		*/
-		Graphic3d_RenderingParams& rp = myView()->ChangeRenderingParams();
-		rp.RenderResolutionScale = 2;
-		rp.IsShadowEnabled = false;
+		Graphic3d_RenderingParams& aParams = myView()->ChangeRenderingParams();
+		aParams.RenderResolutionScale = 2;
+		aParams.IsShadowEnabled = false;
 		// enable specular reflections
-		rp.IsReflectionEnabled = false;
+		aParams.IsReflectionEnabled = false;
 		// enable adaptive anti-aliasing
-		rp.IsAntialiasingEnabled = false;
+		aParams.IsAntialiasingEnabled = false;
 		/*Graphic3d_RenderingParams& rayp = myView()->ChangeRenderingParams();
 		rayp.Method = Graphic3d_RM_RAYTRACING;
 		rayp.IsShadowEnabled = Standard_True;
 		rayp.IsReflectionEnabled = Standard_True;
 
 		myAISContext()->UpdateCurrentViewer();*/
+
+		//aParams.Method = Graphic3d_RM_RASTERIZATION;
+		//aParams.RaytracingDepth = 3;
+		//aParams.IsShadowEnabled = true;
+		//aParams.IsReflectionEnabled = true;
+		//aParams.IsAntialiasingEnabled = true;
+		//aParams.IsTransparentShadowEnabled = false;
+		//aParams.ToReverseStereo = true;
+		//aParams.StereoMode = Graphic3d_StereoMode::Graphic3d_StereoMode_QuadBuffer;
+		//aParams.AnaglyphFilter = Graphic3d_RenderingParams::Anaglyph::Anaglyph_RedCyan_Optimized;
+		//aParams.FrustumCullingState = Graphic3d_RenderingParams::FrustumCulling::FrustumCulling_On;
+		//aParams.LineFeather = 1.0;
+		//aParams.NbMsaaSamples = 4;
+		//auto IsSamplingOn = true;
+		//if (IsSamplingOn)
+		//	aParams.NbMsaaSamples = 32;
+		//else
+		//	aParams.NbMsaaSamples = 16;
+
+		//aParams.Method = Graphic3d_RM_RAYTRACING;
+		//aParams.IsShadowEnabled = true;
+		//aParams.IsReflectionEnabled = true;
 	}
 
 	/// <summary>

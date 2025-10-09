@@ -345,6 +345,7 @@ FragColor = vColor;
 
             proxy?.MouseScroll(pos.X, pos.Y, e.Delta);
         }
+
         MessageFilter mf = null;
         private void gPanel1_MouseDown(object? sender, MouseEventArgs e)
         {
@@ -357,7 +358,8 @@ FragColor = vColor;
             if (e.Button == MouseButtons.Middle)
                 btn = 2;
 
-            proxy?.MouseDown(btn, pos.X, pos.Y);
+            Panel1_MouseDown(sender, e);
+            proxy?.ImGuiMouseDown(btn, pos.X, pos.Y);
         }
 
         private void gPanel1_MouseUp(object? sender, MouseEventArgs e)
@@ -371,21 +373,25 @@ FragColor = vColor;
             if (e.Button == MouseButtons.Middle)
                 btn = 2;
 
-            if (e.Button == MouseButtons.Left)
+            /*if (e.Button == MouseButtons.Left)
             {
                 proxy.Select(ModifierKeys.HasFlag(Keys.Control));
                 SelectionChanged();
                 _currentTool.MouseUp(e);
-            }
+            }*/
+            Panel1_MouseUp(sender, e);
 
-            proxy?.MouseUp(btn, pos.X, pos.Y);
+            proxy?.ImGuiMouseUp(btn, pos.X, pos.Y);         
         }
+
 
         private void gPanel1_MouseMove(object? sender, MouseEventArgs e)
         {
             Point cursorPosition = System.Windows.Forms.Cursor.Position;
 
             var pos = glcontrol.PointToClient(cursorPosition);
+            //Panel1_MouseMove(sender, e);
+            panel1_MouseMove(sender, e);
 
             proxy?.MouseMove(pos.X, pos.Y);
         }
