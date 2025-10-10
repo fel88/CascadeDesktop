@@ -110,7 +110,7 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new System.Drawing.Size(1381, 829);
+            tableLayoutPanel1.Size = new System.Drawing.Size(1381, 853);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // panel1
@@ -119,7 +119,7 @@
             panel1.Location = new System.Drawing.Point(2, 3);
             panel1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             panel1.Name = "panel1";
-            panel1.Size = new System.Drawing.Size(1377, 823);
+            panel1.Size = new System.Drawing.Size(1377, 847);
             panel1.TabIndex = 0;
             panel1.MouseDown += panel1_MouseDown;
             panel1.MouseMove += panel1_MouseMove;
@@ -131,7 +131,7 @@
             propertyGrid1.Location = new System.Drawing.Point(1383, 3);
             propertyGrid1.Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             propertyGrid1.Name = "propertyGrid1";
-            propertyGrid1.Size = new System.Drawing.Size(1, 823);
+            propertyGrid1.Size = new System.Drawing.Size(1, 847);
             propertyGrid1.TabIndex = 1;
             // 
             // toolStrip1
@@ -601,9 +601,9 @@
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(1381, 878);
+            Controls.Add(statusStrip1);
             Controls.Add(tableLayoutPanel1);
             Controls.Add(toolStrip1);
-            Controls.Add(statusStrip1);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Margin = new System.Windows.Forms.Padding(2, 3, 2, 3);
             Name = "Form1";

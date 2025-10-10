@@ -381,7 +381,7 @@ FragColor = vColor;
             }*/
             Panel1_MouseUp(sender, e);
 
-            proxy?.ImGuiMouseUp(btn, pos.X, pos.Y);         
+            proxy?.ImGuiMouseUp(btn, pos.X, pos.Y);
         }
 
 
@@ -424,6 +424,7 @@ FragColor = vColor;
 
         ManagedObjHandle lastSelected = null;
 
+        EdgeInfo selectedEdge = null;
         private void UpdateStatus(ManagedObjHandle obj)
         {
             var fr = Objs.FirstOrDefault(z => obj.BindId == z.Handle.BindId || z.ChildsIds.Contains(obj.BindId));
@@ -434,7 +435,7 @@ FragColor = vColor;
             var v = proxy.GetVertexPosition(obj);
             var face = proxy.GetFaceInfo(obj);
             var edge = proxy.GetEdgeInfoPosition(obj);
-
+            selectedEdge = edge;
             if (edge != null)
             {
                 var vect = edge.Start;
@@ -504,6 +505,7 @@ FragColor = vColor;
             if (!proxy.IsObjectSelected())
             {
                 SetStatus3(string.Empty);
+                SetStatus2(string.Empty);
                 return;
             }
             var occ = GetSelectedOccObject();
@@ -668,19 +670,22 @@ FragColor = vColor;
             }
         }
 
+        string statusLabel3 = "";
+        string statusLabel2 = "";
         public void SetStatus3(string text)
         {
-            toolStripStatusLabel3.Text = text;
+            statusLabel3 = toolStripStatusLabel3.Text = text;
         }
 
         public void SetStatus2(string text)
         {
-            toolStripStatusLabel2.Text = text;
+            statusLabel2 = toolStripStatusLabel2.Text = text;
         }
 
         bool shortStatusOutputFormat = false;
         public void AppendStatus3(string text)
         {
+            statusLabel3 += text;
             toolStripStatusLabel3.Text += text;
         }
 
@@ -2124,8 +2129,8 @@ FragColor = vColor;
                 int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
                 int colorLoc = GL.GetUniformLocation(shaderProgram, "color");
 
-                Vector4 colorVec = new Vector4(0.5f, 0.5f, 1.0f, 0.5f);               
-                
+                Vector4 colorVec = new Vector4(0.5f, 0.5f, 1.0f, 0.5f);
+
                 GL.Uniform4(colorLoc, colorVec);
 
 
@@ -2137,22 +2142,35 @@ FragColor = vColor;
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 3); // Draw 3 vertices a
                 GL.BindVertexArray(0);
                 GL.UseProgram(0);
-
             }
             proxy.StartRenderGui();
-            proxy.ShowDemoWindow();
-            proxy.Begin("info dialog");
-            proxy.Text($"eye: {eye.X}  {eye.Y}  {eye.Z}");
-            proxy.Text($"center: {center.X}  {center.Y}  {center.Z}");
-            proxy.Text($"up: {up.X}  {up.Y}  {up.Z}");
+            //proxy.ShowDemoWindow();
+            if (!string.IsNullOrEmpty(statusLabel2) || !string.IsNullOrEmpty(statusLabel3))
+            {
+                proxy.Begin("info");
+                proxy.Text(statusLabel2);
+                proxy.Text(statusLabel3);
+                if (selectedEdge != null)
+                    proxy.Text($"Edge legnth: {Math.Round(selectedEdge.Length, 6)}");
+                proxy.End();
+            }
+            /*
+            proxy.Begin("camera");
+
+            proxy.Text($"eye X: {Math.Round(eye.X, 4)} Y: {Math.Round(eye.Y, 4)} Z: {Math.Round(eye.Z, 4)}");
+            proxy.Text($"center X: {Math.Round(center.X, 4)} Y: {Math.Round(center.Y, 4)} Z: {Math.Round(center.Z, 4)}");
+            proxy.Text($"up X: {Math.Round(up.X, 4)} Y: {Math.Round(up.Y, 4)} Z: {Math.Round(up.Z, 4)}");
+            proxy.Text($"glControl size: {glcontrol.Width}x{glcontrol.Height}");
+            proxy.End();
+
+            proxy.Begin("custom rendering");
             showTriangle = proxy.Checkbox($"show triangle", showTriangle);
             showAxes = proxy.Checkbox($"show axes", showAxes);
             blendEnabled = proxy.Checkbox($"blend enabled", blendEnabled);
             depthRender = proxy.Checkbox($"depth render", depthRender);
             showTriangleCamSpace = proxy.Checkbox($"show triangle cam space", showTriangleCamSpace);
             proxy.Button($"ok");
-
-            proxy.End();
+            proxy.End();*/
             proxy.EndRenderGui();
             glcontrol.SwapBuffers();
         }
