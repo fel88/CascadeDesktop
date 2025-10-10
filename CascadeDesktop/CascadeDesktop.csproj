@@ -11,10 +11,21 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="fonts\Antonio-Bold.ttf" />
+    <None Remove="fonts\Antonio-Light.ttf" />
+    <None Remove="fonts\Antonio-Regular.ttf" />
+    <None Remove="fonts\OCRAEXT.TTF" />
+    <None Remove="shaders\cam_space_shader.fs" />
+    <None Remove="shaders\cam_space_shader.vs" />
+    <None Remove="shaders\text.fs" />
+    <None Remove="shaders\text.vs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="AutoDialog" Version="1.0.0.7" />
     <PackageReference Include="IxMilia.Dxf" Version="0.8.3" />
     <PackageReference Include="OpenTK" Version="4.9.4" />
     <PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
+    <PackageReference Include="SpaceWizards.SharpFont" Version="1.0.2" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.9" />
   </ItemGroup>
   <ItemGroup>
@@ -121,12 +132,33 @@
     <Content Include="cube.ico" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="fonts\Antonio-Bold.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="fonts\Antonio-Light.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="fonts\Antonio-Regular.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="fonts\OCRAEXT.TTF">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="shaders\cam_space_shader.fs" />
+    <EmbeddedResource Include="shaders\cam_space_shader.vs" />
+    <EmbeddedResource Include="shaders\text.fs" />
+    <EmbeddedResource Include="shaders\text.vs" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Update="freetype6.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

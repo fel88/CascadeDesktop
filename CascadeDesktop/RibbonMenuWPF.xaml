@@ -140,7 +140,7 @@
 
                 </RibbonGroup>
                 <RibbonGroup x:Name="settings" Header="Settings ">
-                    <RibbonButton  Label="Settings" SmallImageSource="Icons/gear.png" />
+                    <RibbonButton  Label="Settings" Click="SettingsRibbonButton_Click" SmallImageSource="Icons/gear.png" />
                 </RibbonGroup>
                 
             </RibbonTab>

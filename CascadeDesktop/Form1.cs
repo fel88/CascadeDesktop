@@ -13,6 +13,7 @@ using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -97,7 +98,40 @@ namespace CascadeDesktop
 
           
             glcontrol.SwapBuffers();*/
+            //if (!loaded)
+            //  return;
+
+            if (!glcontrol.Context.IsCurrent)
+                glcontrol.MakeCurrent();
+
+            if (first)
+            {
+                var camera1 = new Camera() { IsOrtho = true };
+                gpuCtx = new GpuDrawingContext()
+                {
+                    Camera = camera1,
+                    ModelShader = new DefaultModelShader(),
+                    TextRenderer = textRenderer
+                };
+
+                //ViewManager = new DefaultCameraViewManager();
+                //  ViewManager.Attach(evwrapper, camera1);
+
+                // build and compile our shader zprogram
+                // ------------------------------------                
+                //lightingShader = new Shader("2.2.basic_lighting.vs", "2.2.basic_lighting.fs");
+                first = false;
+                textRenderer.Init(glcontrol.Width, glcontrol.Height);
+
+            }
+            //Redraw();
         }
+        GpuTextLabel hoverText = new GpuTextLabel();
+
+        TextRenderer textRenderer = new();
+        bool first = true;
+        GpuDrawingContext gpuCtx = new GpuDrawingContext();
+
         private void Panel1_MouseMove(object? sender, MouseEventArgs e)
         {
             Point cursorPosition = System.Windows.Forms.Cursor.Position;
@@ -345,7 +379,9 @@ FragColor = vColor;
 
             proxy?.MouseScroll(pos.X, pos.Y, e.Delta);
         }
-
+        IntersectInfo pick;
+        bool middleDrag = false;
+        IntersectInfo startMeasurePick = null;
         MessageFilter mf = null;
         private void gPanel1_MouseDown(object? sender, MouseEventArgs e)
         {
@@ -358,8 +394,20 @@ FragColor = vColor;
             if (e.Button == MouseButtons.Middle)
                 btn = 2;
 
+            if (e.Button == MouseButtons.Middle)
+            {
+                if (pick != null)
+                {
+                    middleDrag = true;
+                    startMeasurePick = pick;
+                }
+            }
+
+            if (proxy.ImGuiMouseDown(btn, pos.X, pos.Y))
+                return;
+
             Panel1_MouseDown(sender, e);
-            proxy?.ImGuiMouseDown(btn, pos.X, pos.Y);
+
         }
 
         private void gPanel1_MouseUp(object? sender, MouseEventArgs e)
@@ -373,15 +421,18 @@ FragColor = vColor;
             if (e.Button == MouseButtons.Middle)
                 btn = 2;
 
+            middleDrag = false;
+
             /*if (e.Button == MouseButtons.Left)
             {
                 proxy.Select(ModifierKeys.HasFlag(Keys.Control));
                 SelectionChanged();
                 _currentTool.MouseUp(e);
             }*/
-            Panel1_MouseUp(sender, e);
+            if (proxy.ImGuiMouseUp(btn, pos.X, pos.Y))
+                return;
 
-            proxy?.ImGuiMouseUp(btn, pos.X, pos.Y);
+            Panel1_MouseUp(sender, e);
         }
 
 
@@ -425,6 +476,8 @@ FragColor = vColor;
         ManagedObjHandle lastSelected = null;
 
         EdgeInfo selectedEdge = null;
+        Vector3d? selectedVertex = null;
+        Vector3d? hoveredVertex = null;
         private void UpdateStatus(ManagedObjHandle obj)
         {
             var fr = Objs.FirstOrDefault(z => obj.BindId == z.Handle.BindId || z.ChildsIds.Contains(obj.BindId));
@@ -1175,6 +1228,22 @@ FragColor = vColor;
                 PipeWithSplitting(occ, r);
             else
                 PipeAlongWire(occ, r);
+        }
+
+        bool showStat = false;
+
+        public void Settings()
+        {
+            var d = DialogHelpers.StartDialog();
+            d.Text = "settings";
+
+            d.AddBoolField("showStat", "Show stat", showStat);
+
+            if (!d.ShowDialog())
+                return;
+
+            showStat = d.GetBoolField("showStat");
+            proxy.ShowStats(showStat);
         }
 
         public void Helix()
@@ -1978,6 +2047,21 @@ FragColor = vColor;
             var cs = proxy.Text2Brep(text, fontSize, height);
             Objs.Add(new OccSceneObject(cs, proxy));
         }
+
+        Vector3d? SnapPoint(IntersectInfo inter)
+        {
+            float pickEps = 10;
+            var pp = new[] {
+                inter.Target.Vertices[0].Position,
+                inter.Target.Vertices[1].Position,
+                inter.Target.Vertices[2].Position}.ToArray();
+            if (pp.Any(uu => (uu - inter.Point).Length < pickEps))
+            {
+                return pp.OrderBy(uu => (uu - inter.Point).Length).First(uu => (uu - inter.Point).Length < pickEps);
+            }
+            return null;
+        }
+
         private float _angle = 0.0f;
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -2143,6 +2227,55 @@ FragColor = vColor;
                 GL.BindVertexArray(0);
                 GL.UseProgram(0);
             }
+
+            /* foreach (var obj in Objs)
+             {
+                 var v = proxy.GetVertexPosition(obj.Handle);
+             }*/
+
+            pick = null;
+            var verts = proxy.GetDetectedVertices();
+            if (verts.Any())
+            {
+                var pobj = Objs.First(z => z.ChildsIds.Contains(verts[0].BindId));
+                verts[0].AisShapeBindId = pobj.Handle.BindId;
+                var vpos = proxy.GetVertexPosition(verts[0]).Value;
+                pick = new IntersectInfo() { Point = vpos };
+            }
+            hoverText.Visible = middleDrag;
+
+            if (middleDrag)
+            {
+                if (hovered is MeshNode mn)
+                {
+                    var snap1 = SnapPoint(startMeasurePick);
+                    if (snap1 != null)
+                    {
+                        var p = mn.Triangles[0].Multiply(hoveredMatrix).GetPlane();
+                        var snap2 = p.ProjPoint(snap1.Value);
+                        DrawMeasureLine(snap1.Value, snap2);
+                        // hoverText.Text = $"{(snap1.Value - snap2).Length:0.####}mm";
+
+                    }
+                }
+                else if (pick != null)
+                {
+                    DrawMeasureLine(pick.Point, startMeasurePick.Point);
+
+                    //var snap2 = SnapPoint(pick);
+                    //   var snap1 = SnapPoint(startMeasurePick);
+                    //if (snap1 != null && snap2 != null)
+                    {
+                        // DrawMeasureLine(snap1.Value, snap2.Value);
+                        hoverText.Text = $"{(pick.Point - startMeasurePick.Point).Length:0.####}mm";
+                    }
+                }
+            }
+
+            GL.Disable(EnableCap.Lighting);
+
+            DrawTextOverlay();
+
             proxy.StartRenderGui();
             //proxy.ShowDemoWindow();
             if (!string.IsNullOrEmpty(statusLabel2) || !string.IsNullOrEmpty(statusLabel3))
@@ -2172,7 +2305,71 @@ FragColor = vColor;
             proxy.Button($"ok");
             proxy.End();*/
             proxy.EndRenderGui();
+
             glcontrol.SwapBuffers();
+        }
+        private void DrawTextOverlay()
+        {
+            GL.Enable(EnableCap.CullFace);
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            GL.Disable(EnableCap.DepthTest);
+
+            //textRenderer.RenderText("This is sample text", 25.0f, 25.0f, 1.0f, new Vector3(0.5f, 0.8f, 0.2f));
+            //textRenderer.RenderText("(C) LearnOpenGL.com", 10.0f, glControl.Height - 30, 0.5f, new Vector3(0.3f, 0.7f, 0.9f));
+            if (hovered != null)
+                textRenderer.RenderText(toolStripStatusLabel3.Text, 10.0f, glcontrol.Height - 30, 0.5f, new Vector3(0.3f, 0.7f, 0.9f));
+
+            var pos = glcontrol.PointToClient(Cursor.Position);
+            pos.X += Cursor.Size.Width;
+            hoverText.Scale = 0.4f;
+            hoverText.Position = new Vector2(pos.X, glcontrol.Height - pos.Y);
+            hoverText.Draw(gpuCtx);
+
+            GL.Enable(EnableCap.DepthTest);
+            GL.Disable(EnableCap.CullFace);
+            GL.Disable(EnableCap.Blend);
+        }
+
+        object hovered;
+        Matrix4d hoveredMatrix;
+
+        private void DrawMeasureLine(Vector3d snap1, Vector3d snap2)
+        {
+            GL.Disable(EnableCap.DepthTest);
+            GL.LineStipple(1, 0x3F07);
+            GL.LineWidth(3);
+            GL.Enable(EnableCap.LineStipple);
+
+            GL.Color3(Color.White);
+            GL.Begin(PrimitiveType.Lines);
+            GL.Vertex3(snap1);
+            GL.Vertex3(snap2);
+            GL.End();
+            GL.LineStipple(1, 0xf8);
+
+            GL.Color3(Color.Blue);
+            GL.Begin(PrimitiveType.Lines);
+            GL.Vertex3(snap1);
+            GL.Vertex3(snap2);
+            GL.End();
+
+            GL.PointSize(15);
+            GL.Color3(Color.Black);
+            GL.Begin(PrimitiveType.Points);
+            GL.Vertex3(snap1);
+            GL.Vertex3(snap2);
+            GL.End();
+
+            GL.PointSize(10);
+            GL.Color3(Color.White);
+            GL.Begin(PrimitiveType.Points);
+            GL.Vertex3(snap1);
+            GL.Vertex3(snap2);
+            GL.End();
+
+            GL.Disable(EnableCap.LineStipple);
+            GL.Enable(EnableCap.DepthTest);
         }
 
         private void RenderDepthOnly()
@@ -2246,5 +2443,13 @@ FragColor = vColor;
         //    GL.Vertex3(0, 110, 0);
         //    GL.End();*/
         //}
+    }
+    public class DefaultModelShader : Shader
+    {
+        public DefaultModelShader()
+        {
+            InitFromResources("cam_space_shader.vs", "cam_space_shader.fs");
+        }
+
     }
 }

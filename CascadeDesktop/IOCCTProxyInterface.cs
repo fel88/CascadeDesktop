@@ -49,9 +49,11 @@ namespace CascadeDesktop
         void FrontView();
         ManagedObjHandle GetSelectedObject();
         List<ManagedObjHandle> GetSelectedObjects();
+        List<ManagedObjHandle> GetDetectedVertices();
         ManagedObjHandle GetSelectedEdge();
         ManagedObjHandle GetDetectedObject();
         bool IsObjectSelected();
+        void ShowStats(bool status);
         void SetDisplayMode(int m);
         void Display(ManagedObjHandle m, bool wireframe);
         void InitOCCTProxy();

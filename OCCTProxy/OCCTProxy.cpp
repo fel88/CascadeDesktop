@@ -606,6 +606,7 @@ public:
 	void initViewer();
 	void initViewer(WNT_Window* wnd, void* glctx);
 	void initViewer(void* glctx);
+	void ShowStats(bool status);
 
 	//! Init ImGui.
 	void initGui();
@@ -931,6 +932,11 @@ void GlfwOcctView::initViewer(WNT_Window* wnd, void* glctx)
 	myContext->Display(aCube, false);
 }
 
+void GlfwOcctView::ShowStats(bool status)
+{
+	myView->ChangeRenderingParams().ToShowStats = status;
+}
+
 void GlfwOcctView::initViewer(void* glctx)
 {
 
@@ -950,7 +956,7 @@ void GlfwOcctView::initViewer(void* glctx)
 	//myView->SetImmediateUpd/ate(Standard_False);
 
 	myView->SetWindow(myOcctWindow, glctx);
-	myView->ChangeRenderingParams().ToShowStats = Standard_True;
+	//myView->ChangeRenderingParams().ToShowStats = Standard_True;
 
 	myContext = new AIS_InteractiveContext(aViewer);
 
@@ -963,7 +969,7 @@ void GlfwOcctView::initViewer(void* glctx)
 	aCube->SetFixedAnimationLoop(false);
 
 
-	
+
 	myContext->Display(aCube, false);
 }
 
@@ -1044,7 +1050,7 @@ bool GlfwOcctView::Checkbox(const char* text, bool state)
 	return state;
 }
 
-void GlfwOcctView::SetNextWindowSizeConstraints(int minx,int miny, int maxx,int maxy)
+void GlfwOcctView::SetNextWindowSizeConstraints(int minx, int miny, int maxx, int maxy)
 {
 	ImGui::SetNextWindowSizeConstraints(ImVec2(minx, miny), ImVec2(maxx, maxy));
 
@@ -1203,10 +1209,10 @@ bool GlfwOcctView::ImGuiMouseDown(int btn, double x, double y) {
 }
 
 void GlfwOcctView::MouseDown(int btn, double x, double y)
-{	
-	if (ImGuiMouseDown(btn,x,y))	
+{
+	if (ImGuiMouseDown(btn, x, y))
 		return;
-	
+
 	Graphic3d_Vec2i aPos(x, y);
 	auto bb = Aspect_VKeyMouse_LeftButton;
 	switch (btn) {
@@ -1232,14 +1238,14 @@ bool GlfwOcctView::ImGuiMouseUp(int btn, double x, double y)
 		aIO.AddMouseButtonEvent(btn - 1, false);
 		return true;
 	}
-	return false;	
+	return false;
 }
 
 void GlfwOcctView::MouseUp(int btn, double x, double y)
-{	
+{
 	if (ImGuiMouseUp(btn, x, y))
 		return;
-	
+
 	Graphic3d_Vec2i aPos(x, y);
 	auto bb = Aspect_VKeyMouse_LeftButton;
 
@@ -1450,6 +1456,14 @@ public:
 		}
 	}
 
+	void  GetDetectedVertices(std::vector<ObjHandle>& list) {
+		auto objs = getDetectedObjectsList(TopAbs_ShapeEnum::TopAbs_VERTEX);
+		for (auto item : objs) {
+
+			list.push_back(item);
+
+		}
+	}
 	std::vector<double> IteratePoly(ObjHandle h, bool useLocalTransform) {
 		auto obj = findObject(h);
 		const auto& shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
@@ -1599,6 +1613,37 @@ public:
 
 			}
 
+		}
+		return ret;
+	}
+
+	std::vector<ObjHandle> getDetectedObjectsList(std::optional<TopAbs_ShapeEnum> type = std::nullopt) {
+		std::vector<ObjHandle> ret;
+
+		for (ctx->InitDetected(); ctx->MoreDetected(); ctx->NextDetected())
+		{
+			ObjHandle h;
+			Handle(SelectMgr_EntityOwner) owner = ctx->DetectedOwner();
+
+			Handle(StdSelect_BRepOwner) brepowner = Handle(StdSelect_BRepOwner)::DownCast(owner);
+
+			if (brepowner.IsNull())
+				break;
+
+			const TopoDS_Shape& shape = brepowner->Shape();
+
+			if (!type.has_value() || shape.ShapeType() == type.value())
+			{
+				if (_map_shape_int.Contains(shape)) {
+					h.bindId = _map_shape_int.FindIndex(shape);
+				}
+				else {
+
+					h.bindId = _map_shape_int.Add(shape);
+				}
+
+				ret.push_back(h);
+			}
 		}
 		return ret;
 	}
@@ -1867,7 +1912,7 @@ public:
 		gview->initWindow(800, 600, wnd.ToPointer(), "OCCT IMGUI");
 
 		gview->initViewer(glctx.ToPointer());
-		
+
 		initDemoScene();
 		myView() = gview->myView;
 		myViewer() = gview->myViewer;
@@ -1890,6 +1935,10 @@ public:
 	}
 	void Resize(int x, int y) {
 		gview->onResize(x, y);
+	}
+
+	void ShowStats(bool status) {
+		gview->ShowStats(status);
 	}
 
 	void MouseDown(int btn, int x, int y) {
@@ -1963,8 +2012,8 @@ public:
 		return gview->Checkbox(cstr_const, state);
 	}
 	void SetNextWindowSizeConstraints(int minx, int miny, int maxx, int maxy) {
-		
-		return gview->SetNextWindowSizeConstraints(minx,miny,maxx,maxy);
+
+		return gview->SetNextWindowSizeConstraints(minx, miny, maxx, maxy);
 	}
 
 	void End() {
@@ -2175,6 +2224,17 @@ public:
 		return ret;
 	}
 
+	List<ManagedObjHandle^>^ GetDetectedObjects() {
+		auto objs = impl->getDetectedObjectsList();
+		List<ManagedObjHandle^>^ ret = gcnew List<ManagedObjHandle^>();
+		for (size_t i = 0; i < objs.size(); i++)
+		{
+			ManagedObjHandle^ hh = gcnew ManagedObjHandle();
+			hh->FromObjHandle(objs[i]);
+			ret->Add(hh);
+		}
+		return ret;
+	}
 
 	ManagedObjHandle^ GetSelectedEdge() {
 		auto ret = impl->getSelectedEdge();
@@ -2199,7 +2259,21 @@ public:
 
 		return ret;
 	}
+	List<ManagedObjHandle^>^ GetDetectedVertices() {
 
+		std::vector<ObjHandle> verts;
+		impl->GetDetectedVertices(verts);
+		List<ManagedObjHandle^>^ ret = gcnew List<ManagedObjHandle^>();
+		for (size_t i = 0; i < verts.size(); i++)
+		{
+			ManagedObjHandle^ hh = gcnew ManagedObjHandle();
+			hh->FromObjHandle(verts[i]);
+			ret->Add(hh);
+		}
+
+
+		return ret;
+	}
 	ManagedObjHandle^ GetDetectedObject() {
 		auto ret = impl->getDetectedObject(myAISContext().get());
 		ManagedObjHandle^ hh = gcnew ManagedObjHandle();

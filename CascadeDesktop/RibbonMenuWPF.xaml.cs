@@ -325,5 +325,11 @@ namespace CascadeDesktop
             Form.Helix();
 
         }
+
+        private void SettingsRibbonButton_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Settings();
+
+        }
     }
 }
