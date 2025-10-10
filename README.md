@@ -59,6 +59,7 @@ https://github.com/user-attachments/assets/db8478ee-192c-4962-8cb9-aa01b8007a7f
 > </div>
    
 ## How to build:
+- Install VC++ Redist 2013 (https://www.microsoft.com/ru-ru/download/details.aspx?id=40784)
 - Install OpenCASCADE 7.7 (https://dev.opencascade.org/system/files/occt/OCC_7.7.0_release/opencascade-7.7.0-vc14-64.exe or https://github.com/Open-Cascade-SAS/OCCT/releases/download/V7_7_0/opencascade-7.7.0-vc14-64.exe)
    - Installation path should be : C:\OpenCASCADE-7.7.0-vc14-64
 - Install Visual Studio Community edition (https://visualstudio.microsoft.com/ru/vs/community/), with next modules:
