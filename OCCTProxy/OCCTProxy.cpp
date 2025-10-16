@@ -1800,8 +1800,11 @@ public:
 	opencascade::handle<AIS_InteractiveObject> OCCImpl::findObject(int bindId) const {
 
 		AIS_ListOfInteractive aList;
+		AIS_ListOfInteractive aList2;
 		ctx->DisplayedObjects(aList);
+		ctx->ErasedObjects(aList2);
 		AIS_ListIteratorOfListOfInteractive it(aList);
+		AIS_ListIteratorOfListOfInteractive it2(aList2);
 		//iterate on list:
 		while (it.More())
 		{
@@ -1820,6 +1823,25 @@ public:
 
 			//do something with the current item : it.Value ()
 			it.Next();
+		}
+		
+		while (it2.More())
+		{
+			auto sin = it2.Value();
+
+			Handle(AIS_Shape) aAIS_Shape = Handle(AIS_Shape)::DownCast(sin);
+			if (!aAIS_Shape.IsNull()) {
+				TopoDS_Shape aTopoDS_Shape = aAIS_Shape->Shape();
+				// Use aTopoDS_Shape here
+
+				if (_map_shape_int.Contains(aTopoDS_Shape)) {
+					if (_map_shape_int.FindIndex(aTopoDS_Shape) == bindId)
+						return sin;
+				}
+			}
+
+			//do something with the current item : it.Value ()
+			it2.Next();
 		}
 		return {};
 		//return reinterpret_cast<AIS_InteractiveObject*> (handle.handle);
@@ -3710,7 +3732,7 @@ public:
 
 	void Erase(ManagedObjHandle^ h, bool updateViewer) {
 		auto o = impl->findObject(h->BindId);
-		myAISContext()->Erase(o, updateViewer);
+		myAISContext()->Erase(o, updateViewer);		
 	}
 
 	void Erase(ManagedObjHandle^ h) {

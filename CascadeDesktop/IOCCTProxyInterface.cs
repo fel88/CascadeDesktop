@@ -72,7 +72,7 @@ namespace CascadeDesktop
         ManagedObjHandle MakeCommon(ManagedObjHandle h1, ManagedObjHandle h2);
         void MoveObject(ManagedObjHandle h1, double x, double y, double z, bool rel);
         void RotateObject(ManagedObjHandle h1, double x, double y, double z, double rot, bool rel);
-        void Erase(ManagedObjHandle h1, bool updateViewer = true);
+        void Erase(ManagedObjHandle h1, bool updateViewer = true);        
         void Remove(ManagedObjHandle h1);
         void UpdateView();
         void UpdateCurrentViewer();

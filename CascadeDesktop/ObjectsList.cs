@@ -38,8 +38,11 @@ namespace CascadeDesktop
             if (listView1.SelectedItems.Count == 0)
                 return;
 
-            var occ = (listView1.SelectedItems[0].Tag as OccSceneObject);
-            occ.SwitchVisible();
+            for (int i = 0; i < listView1.SelectedItems.Count; i++)
+            {
+                var occ = (listView1.SelectedItems[i].Tag as OccSceneObject);
+                occ.SwitchVisible();
+            }
             UpdateList();
         }
 
@@ -53,8 +56,12 @@ namespace CascadeDesktop
             if (listView1.SelectedItems.Count == 0)
                 return;
 
-            var occ = (listView1.SelectedItems[0].Tag as OccSceneObject);
-            Editor.DeleteUI(occ);
+            for (int i = 0; i < listView1.SelectedItems.Count; i++)
+            {
+                var occ = (listView1.SelectedItems[i].Tag as OccSceneObject);
+                Editor.DeleteUI(occ);
+            }
+            
             UpdateList();
         }
 

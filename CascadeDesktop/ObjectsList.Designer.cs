@@ -28,91 +28,90 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.listView1 = new System.Windows.Forms.ListView();
-            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.switchVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.updateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.removeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.setNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.contextMenuStrip1.SuspendLayout();
-            this.SuspendLayout();
+            components = new System.ComponentModel.Container();
+            listView1 = new System.Windows.Forms.ListView();
+            columnHeader1 = new System.Windows.Forms.ColumnHeader();
+            columnHeader2 = new System.Windows.Forms.ColumnHeader();
+            contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(components);
+            switchVisibleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            updateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            removeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            setNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            contextMenuStrip1.SuspendLayout();
+            SuspendLayout();
             // 
             // listView1
             // 
-            this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnHeader1,
-            this.columnHeader2});
-            this.listView1.ContextMenuStrip = this.contextMenuStrip1;
-            this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.listView1.FullRowSelect = true;
-            this.listView1.GridLines = true;
-            this.listView1.HideSelection = false;
-            this.listView1.Location = new System.Drawing.Point(0, 0);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(368, 353);
-            this.listView1.TabIndex = 0;
-            this.listView1.UseCompatibleStateImageBehavior = false;
-            this.listView1.View = System.Windows.Forms.View.Details;
+            listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] { columnHeader1, columnHeader2 });
+            listView1.ContextMenuStrip = contextMenuStrip1;
+            listView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            listView1.FullRowSelect = true;
+            listView1.GridLines = true;
+            listView1.Location = new System.Drawing.Point(0, 0);
+            listView1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            listView1.Name = "listView1";
+            listView1.Size = new System.Drawing.Size(429, 407);
+            listView1.TabIndex = 0;
+            listView1.UseCompatibleStateImageBehavior = false;
+            listView1.View = System.Windows.Forms.View.Details;
             // 
             // columnHeader1
             // 
-            this.columnHeader1.Text = "Name";
+            columnHeader1.Text = "Name";
             // 
             // columnHeader2
             // 
-            this.columnHeader2.Text = "Visible";
+            columnHeader2.Text = "Visible";
             // 
             // contextMenuStrip1
             // 
-            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.switchVisibleToolStripMenuItem,
-            this.updateToolStripMenuItem,
-            this.removeToolStripMenuItem,
-            this.setNameToolStripMenuItem});
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(181, 114);
+            contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { switchVisibleToolStripMenuItem, updateToolStripMenuItem, removeToolStripMenuItem, setNameToolStripMenuItem });
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new System.Drawing.Size(181, 114);
             // 
             // switchVisibleToolStripMenuItem
             // 
-            this.switchVisibleToolStripMenuItem.Name = "switchVisibleToolStripMenuItem";
-            this.switchVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.switchVisibleToolStripMenuItem.Text = "switch visible";
-            this.switchVisibleToolStripMenuItem.Click += new System.EventHandler(this.switchVisibleToolStripMenuItem_Click);
+            switchVisibleToolStripMenuItem.Image = Properties.Resources.eye;
+            switchVisibleToolStripMenuItem.Name = "switchVisibleToolStripMenuItem";
+            switchVisibleToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            switchVisibleToolStripMenuItem.Text = "switch visible";
+            switchVisibleToolStripMenuItem.Click += switchVisibleToolStripMenuItem_Click;
             // 
             // updateToolStripMenuItem
             // 
-            this.updateToolStripMenuItem.Name = "updateToolStripMenuItem";
-            this.updateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.updateToolStripMenuItem.Text = "update";
-            this.updateToolStripMenuItem.Click += new System.EventHandler(this.updateToolStripMenuItem_Click);
+            updateToolStripMenuItem.Image = Properties.Resources.arrow_circle;
+            updateToolStripMenuItem.Name = "updateToolStripMenuItem";
+            updateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            updateToolStripMenuItem.Text = "update";
+            updateToolStripMenuItem.Click += updateToolStripMenuItem_Click;
             // 
             // removeToolStripMenuItem
             // 
-            this.removeToolStripMenuItem.Name = "removeToolStripMenuItem";
-            this.removeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.removeToolStripMenuItem.Text = "remove";
-            this.removeToolStripMenuItem.Click += new System.EventHandler(this.removeToolStripMenuItem_Click);
+            removeToolStripMenuItem.Image = Properties.Resources.cross;
+            removeToolStripMenuItem.Name = "removeToolStripMenuItem";
+            removeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            removeToolStripMenuItem.Text = "delete";
+            removeToolStripMenuItem.Click += removeToolStripMenuItem_Click;
             // 
             // setNameToolStripMenuItem
             // 
-            this.setNameToolStripMenuItem.Name = "setNameToolStripMenuItem";
-            this.setNameToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.setNameToolStripMenuItem.Text = "rename";
-            this.setNameToolStripMenuItem.Click += new System.EventHandler(this.setNameToolStripMenuItem_Click);
+            setNameToolStripMenuItem.Image = Properties.Resources.infocard;
+            setNameToolStripMenuItem.Name = "setNameToolStripMenuItem";
+            setNameToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            setNameToolStripMenuItem.Text = "rename";
+            setNameToolStripMenuItem.Click += setNameToolStripMenuItem_Click;
             // 
             // ObjectsList
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(368, 353);
-            this.Controls.Add(this.listView1);
-            this.Name = "ObjectsList";
-            this.Text = "Objects list";
-            this.contextMenuStrip1.ResumeLayout(false);
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(429, 407);
+            Controls.Add(listView1);
+            Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            Name = "ObjectsList";
+            Text = "Objects list";
+            contextMenuStrip1.ResumeLayout(false);
+            ResumeLayout(false);
 
         }
 
