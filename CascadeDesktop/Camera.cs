@@ -9,72 +9,61 @@ using System.Linq;
 namespace CascadeDesktop
 {
     public class Camera
-    {
-
-        public Vector3d CamFrom = new Vector3d(250, 250, 250);
-        public Vector3d CamTo = new Vector3d(0, 0, 0);
-        public Vector3d CamUp = new Vector3d(0, 0, 1);
-
+    {       
         public Vector3d Dir
         {
-            get { return (CamFrom - CamTo).Normalized(); }
+            get { return (CameraFrom - CameraTo).Normalized(); }
         }
         public double DirLen
         {
             get { return Dir.Length; }
         }
 
-        public Vector3d CameraFrom
-        {
-            get { return CamFrom; }
-        }
-        public Vector3d CameraTo
-        {
-            get { return CamTo; }
-        }
-        public Vector3d CameraUp
-        {
-            get { return CamUp; }
-        }
+        public Vector3d CameraFrom = new Vector3d(250, 250, 250);
+        
+        public Vector3d CameraTo = new Vector3d(0, 0, 0);
+     
+        public Vector3d CameraUp = new Vector3d(0, 0, 1);
+     
 
         public Matrix4d ProjectionMatrix { get; set; }
         public Matrix4d ViewMatrix { get; set; }
         public int[] viewport = new int[4];
+
         public void MoveForw(float ang)
         {
-
-            var vect = CamFrom - CamTo;
-            CamTo += new Vector3d(ang, 0, 0);
-            CamFrom = vect + CamTo;
+            var vect = CameraFrom - CameraTo;
+            CameraTo += new Vector3d(ang, 0, 0);
+            CameraFrom = vect + CameraTo;
         }
 
         public void RotateFromZ(float ang)
         {
-            var vect = CamFrom - CamTo;
-            var m = Matrix4d.CreateFromAxisAngle(CamUp, ang);
-            CamFrom = Vector3d.TransformVector(vect, m) + CamTo;
-            CamUp = Vector3d.TransformVector(CamUp, m);
+            var vect = CameraFrom - CameraTo;
+            var m = Matrix4d.CreateFromAxisAngle(CameraUp, ang);
+            CameraFrom = Vector3d.TransformVector(vect, m) + CameraTo;
+            CameraUp = Vector3d.TransformVector(CameraUp, m);
         }
 
         public void RotateFromX(float ang)
         {
-            var vect = CamFrom - CamTo;
+            var vect = CameraFrom - CameraTo;
             var m = Matrix4d.CreateFromAxisAngle(Vector3d.UnitX, ang);
 
-            CamFrom = Vector3d.TransformVector(vect, m) + CamTo;
-            CamUp = Vector3d.TransformVector(CamUp, m);
+            CameraFrom = Vector3d.TransformVector(vect, m) + CameraTo;
+            CameraUp = Vector3d.TransformVector(CameraUp, m);
         }
 
         public void RotateFromY(float ang)
         {
-            var vect = CamFrom - CamTo;
+            var vect = CameraFrom - CameraTo;
 
-            var cross1 = Vector3d.Cross(vect, CamUp);
+            var cross1 = Vector3d.Cross(vect, CameraUp);
             var m = Matrix4d.CreateFromAxisAngle(cross1, ang);
             //var m = Matrix4.CreateRotationY(ang);
 
-            CamFrom = Vector3d.TransformVector(vect, m) + CamTo;
-            CamUp = Vector3d.TransformVector(CamUp, m);
+            CameraFrom = Vector3d.TransformVector(vect, m) + CameraTo;
+            CameraUp = Vector3d.TransformVector(CameraUp, m);
         }
 
         public float zoom = 1;
@@ -110,7 +99,7 @@ namespace CascadeDesktop
                 ProjectionMatrix = mp;
             }
 
-            Matrix4d modelview = Matrix4d.LookAt(CamFrom, CamTo, CamUp);
+            Matrix4d modelview = Matrix4d.LookAt(CameraFrom, CameraTo, CameraUp);
             ViewMatrix = modelview;
         }
         public void Setup(GLControl glControl)
@@ -138,7 +127,7 @@ namespace CascadeDesktop
                 GL.LoadMatrix(ref mp);
             }
 
-            Matrix4d modelview = Matrix4d.LookAt(CamFrom, CamTo, CamUp);
+            Matrix4d modelview = Matrix4d.LookAt(CameraFrom, CameraTo, CameraUp);
             //modelview = WorldMatrix * modelview;
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
@@ -151,16 +140,16 @@ namespace CascadeDesktop
 
         public void Shift(Vector3d vector3)
         {
-            CamFrom += vector3;
-            CamTo += vector3;
+            CameraFrom += vector3;
+            CameraTo += vector3;
         }
 
         public Vector3d GetSide()
         {
-            var dirr = CamFrom - CamTo;
+            var dirr = CameraFrom - CameraTo;
             var forw = new Vector3d(dirr.X, dirr.Y, 0);
             forw.Normalize();
-            var crs = Vector3d.Cross(forw, CamUp);
+            var crs = Vector3d.Cross(forw, CameraUp);
             var side = new Vector3d(crs.X, crs.Y, 0);
             side.Normalize();
             return side;
@@ -187,14 +176,14 @@ namespace CascadeDesktop
 
             var cx = dx / 2;
             var cy = dy / 2;
-            var dir = CamTo - CamFrom;
+            var dir = CameraTo - CameraFrom;
             //center back to 3d
 
             var mr = new MouseRay(cx + minx, cy + miny, this);
             var v0 = mr.Start;
 
-            CamFrom = v0;
-            CamTo = CamFrom + dir;
+            CameraFrom = v0;
+            CameraTo = CameraFrom + dir;
 
             var aspect = w / (float)(h);
 

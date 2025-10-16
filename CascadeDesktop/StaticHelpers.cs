@@ -12,15 +12,19 @@ namespace CascadeDesktop
     public static class StaticHelpers
     {
 
-        public static double ParseDouble(this string z)
+        public static double ParseDouble(this string z) => double.Parse(z.Replace(",", "."), CultureInfo.InvariantCulture);
+        public static double ToDouble(this string z) => double.Parse(z.Replace(",", "."), CultureInfo.InvariantCulture);
+        public static Matrix4d ToMatrix4d(this Matrix4 z)
         {
-            return double.Parse(z.Replace(",", "."), CultureInfo.InvariantCulture);
+            Matrix4d ret = new Matrix4d();
+            ret.Row0 = z.Row0;
+            ret.Row1 = z.Row1;
+            ret.Row2 = z.Row2;
+            ret.Row3 = z.Row3;
+            return ret;
         }
 
-        public static float ParseFloat(this string z)
-        {
-            return float.Parse(z.Replace(",", "."), CultureInfo.InvariantCulture);
-        }
+        public static float ParseFloat(this string z) => float.Parse(z.Replace(",", "."), CultureInfo.InvariantCulture);
 
         public static double signed_area(PointF[] polygon)
         {

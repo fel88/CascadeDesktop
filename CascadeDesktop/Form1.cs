@@ -299,6 +299,7 @@ FragColor = vColor;
 
         private void Glcontrol_Load(object? sender, EventArgs e)
         {
+
             int vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
@@ -659,6 +660,10 @@ FragColor = vColor;
         {
             ZoomAll();
         }
+        public List<ISceneObject> Parts => Scene.Parts;
+
+
+        public bool MeshModelsEnabled = true;//experimental
 
         public void ImportModel()
         {
@@ -669,18 +674,43 @@ FragColor = vColor;
                 Filter = "BREP models (step; iges)|*.stp;*.step;*.iges;*.igs"
             };
 
+            if (MeshModelsEnabled)
+                ofd.Filter += "|All mesh formats (*.obj, *.stl)|*.obj;*.stl";
+
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
 
-            if (ofd.FileName.ToLower().EndsWith(".stp") || ofd.FileName.ToLower().EndsWith(".step"))
+            var ext = Path.GetExtension(ofd.FileName).ToLower();
+            switch (ext)
             {
-                var bts = File.ReadAllBytes(ofd.FileName).ToList();
-                Objs.AddRange(proxy.ImportStep(ofd.FileName, bts).Select(z => new ImportedOccSceneObject(ofd.FileName, z, proxy) { Name = Path.GetFileNameWithoutExtension(ofd.FileName) }));
+                case ".obj":
+                    {
+                        var gpuObj = ObjFileModelLoader.Parse(File.ReadAllText(ofd.FileName)).ToGpuObject();
+                        Parts.Add(new GpuMeshSceneObject(gpuObj));
+                        break;
+                    }
+                case ".stl":
+                    {
+                        var gpuObj = StlFileModelLoader.ParseFile(ofd.FileName).ToGpuObject();
+                        Parts.Add(new GpuMeshSceneObject(gpuObj));
+                        break;
+                    }
+                case ".stp":
+                case ".step":
+                    {
+                        var bts = File.ReadAllBytes(ofd.FileName).ToList();
+                        Objs.AddRange(proxy.ImportStep(ofd.FileName, bts).Select(z => new ImportedOccSceneObject(ofd.FileName, z, proxy) { Name = Path.GetFileNameWithoutExtension(ofd.FileName) }));
+                    }
+                    break;
+                case ".igs":
+                case ".iges":
+                    {
+                        Objs.AddRange(proxy.ImportIges(ofd.FileName).Select(z => new OccSceneObject(z, proxy)));
+                    }
+                    break;
             }
-            if (ofd.FileName.ToLower().EndsWith(".igs") || ofd.FileName.ToLower().EndsWith(".iges"))
-            {
-                Objs.AddRange(proxy.ImportIges(ofd.FileName).Select(z => new OccSceneObject(z, proxy)));
-            }
+
+
             proxy.SetDisplayMode(1);
             proxy.RedrawView();
             proxy.UpdateView();
@@ -2145,6 +2175,22 @@ FragColor = vColor;
                 GL.Vertex3(0, 0, 100);
                 GL.End();
             }
+
+            if (MeshModelsEnabled)
+            {
+                gpuCtx.Camera.CameraFrom = eye;
+                gpuCtx.Camera.CameraTo = center;
+                gpuCtx.Camera.CameraUp = up;
+
+                gpuCtx.Camera.ProjectionMatrix = projection.ToMatrix4d();
+                gpuCtx.Camera.ViewMatrix = view.ToMatrix4d();
+
+                foreach (var item in Scene.Parts)
+                {
+                    item.Draw(gpuCtx);                 
+                }
+            }
+
             if (showTriangle)
             {
                 GL.UseProgram(shaderProgram);
@@ -2443,13 +2489,5 @@ FragColor = vColor;
         //    GL.Vertex3(0, 110, 0);
         //    GL.End();*/
         //}
-    }
-    public class DefaultModelShader : Shader
-    {
-        public DefaultModelShader()
-        {
-            InitFromResources("cam_space_shader.vs", "cam_space_shader.fs");
-        }
-
     }
 }

@@ -55,7 +55,7 @@ namespace CascadeDesktop
         {
             if (pickedPoint != null)
             {
-                camera1.CamTo = pickedPoint.Value;
+                camera1.CameraTo = pickedPoint.Value;
             }
         }
         public CameraViewManager ViewManager;

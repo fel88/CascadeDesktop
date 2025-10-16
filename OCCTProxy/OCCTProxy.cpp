@@ -475,8 +475,8 @@ void GlfwOcctWindow::Close()
 {
 	if (myGlfwWindow != nullptr)
 	{
-		glfwDestroyWindow(myGlfwWindow);
-		myGlfwWindow = nullptr;
+		//glfwDestroyWindow(myGlfwWindow);
+		//myGlfwWindow = nullptr;
 	}
 }
 
