@@ -212,7 +212,7 @@ namespace CascadeDesktop
                 return shader;
             }
         }
-        
+
 
 
         private void Glcontrol_Load(object? sender, EventArgs e)
@@ -232,7 +232,7 @@ namespace CascadeDesktop
             */
             triangleShader.InitFromResources("shader1.vs", "shader1.fs");
             var vShader = Shader.ReadResourceTxt("shader1.vs");
-            var fShader = Shader.ReadResourceTxt("shader1.fs");
+            var fShader = Shader.ReadResourceTxt("shader1.fs");// todo: make different shader for cam space trinagle
 
             shaderProgram = CompileProgram(vShader, fShader);
 
@@ -568,7 +568,7 @@ namespace CascadeDesktop
 
 
         public bool MeshModelsEnabled = true;//experimental
-                
+
         public void ImportMeshModel()
         {
             OpenFileDialog ofd = new OpenFileDialog
@@ -601,26 +601,26 @@ namespace CascadeDesktop
                         Parts.Add(new GpuMeshSceneObject(gpuObj));
                         break;
                     }
-              
+
             }
 
 
         }
         public void ImportModel()
-        {            
+        {
             OpenFileDialog ofd = new OpenFileDialog
             {
                 Filter = "BREP models (step; iges)|*.stp;*.step;*.iges;*.igs"
             };
 
-            
+
 
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
 
             var ext = Path.GetExtension(ofd.FileName).ToLower();
             switch (ext)
-            {                
+            {
                 case ".stp":
                 case ".step":
                     {
@@ -2117,129 +2117,8 @@ namespace CascadeDesktop
                 }
             }
 
-            if (showTriangle)
-            {
-                //GL.UseProgram(shaderProgram);
-                triangleShader.use();
-                Vector3 lightPos = new Vector3(1000f, 1000f, 400.0f);
-                Color ModelColor = Color.FromArgb(255, 128, 64);
-                Color LightColor = Color.FromArgb(255, 255, 255);
-                float _diffuseValue = 0.8f;
-                float _ambientValue = 0.8f;
-                triangleShader.setVec3("light.position", lightPos);
-                triangleShader.setVec3("viewPos", eye);
-
-                // light properties
-                Vector3 lightColor = new Vector3
-                {
-                    X = LightColor.R / 255.0f,
-                    Y = LightColor.G / 255.0f,
-                    Z = LightColor.B / 255.0f
-                };
-
-                Vector3 diffuseColor = lightColor * new Vector3(_diffuseValue); // decrease the influence
-                Vector3 ambientColor = diffuseColor * new Vector3(_ambientValue); // low influence
-
-                triangleShader.setVec3("light.ambient", ambientColor);
-                triangleShader.setVec3("light.diffuse", diffuseColor);
-                triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-                // material properties
-                var modelColor = new Vector3
-                {
-                    X = ModelColor.R / 255.0f,
-                    Y = ModelColor.G / 255.0f,
-                    Z = ModelColor.B / 255.0f
-                };
-
-                triangleShader.setVec3("material.ambient", modelColor.X, modelColor.Y, modelColor.Z);
-                triangleShader.setVec3("material.diffuse", modelColor.X, modelColor.Y, modelColor.Z);
-
-                triangleShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
-                triangleShader.setFloat("material.shininess", 32.0f);
-
-                // view/projection transformations       
-                //triangleShader.setMat4("projection", Camera.ProjectionMatrix);
-               // triangleShader.setMat4("view", Camera.ViewMatrix);
-
-                // world transformation
-                Matrix4 model = Matrix4.Identity;
-               // triangleShader.setMat4("model", model);
-
-
-                /*     int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
-                     int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
-                     int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
-                     int colorLoc = GL.GetUniformLocation(shaderProgram, "color");*/
-                Vector4 colorVec = new Vector4(1f, 0.5f, 0.5f, 0.5f);
-                //GL.UniformMatrix4(modelLoc, false, ref model); // Model matrix (identity for a static object)
-                //GL.UniformMatrix4(viewLoc, false, ref view);
-                
-               // GL.UniformMatrix4(projLoc, false, ref projection);
-              //  GL.Uniform4(colorLoc, colorVec);
-                
-                triangleShader.setMat4("view", view);
-                triangleShader.setMat4("projection", projection);
-                triangleShader.setVec4("color", colorVec);
-
-                //Matrix4 model = Matrix4.Identity;
-
-
-                /* model = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 1.0f, 0.0f), MathHelper.DegreesToRadians(_angle));
-              * */
-                //model *= Matrix4.CreateScale(150, 150, 150);/*
-                /*model *= Matrix4.CreateTranslation(-Width / 2 + 50, 0, 0);                
-               */
-                triangleShader.setMat4("model", model);
-
-                //GL.UniformMatrix4(modelLoc, false, ref model);
-
-                if (blendEnabled)
-                    GL.Enable(EnableCap.Blend);
-
-                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-                //GL.Color3(Color.Green);
-
-                
-                foreach (var item in Parts.OfType<GpuMeshSceneObject>())
-                {                    
-                    item.gpuObject.Draw();
-                }
-                /*    GL.Begin(PrimitiveType.Triangles);
-
-                    foreach (var item in MeshModels)
-                    {
-                        foreach (var face in item.Faces)
-                        {
-                            for (int i = 0; i < face.Points.Length; i++)
-                            {
-                                Vector3d fitem = face.Points[i];
-                                GL.Vertex3(fitem);
-                                GL.Normal3(face.Normals[i]);
-                            }
-                        }
-                    }
-
-                    for (int i = 0; i < vertices.Length; i += 3)
-                    {
-                        GL.Vertex3(new Vector3d(vertices[i], vertices[i + 1], vertices[i + 2]));
-                    }
-                    GL.End();*/
-                /*if (vao != null)
-                {
-                    
-                    GL.BindVertexArray(vao.Value);
-                    GL.DrawArrays(PrimitiveType.Triangles, 0, vaoNumTriangles); // Draw 3 vertices a
-                }*/
-
-
-                GL.BindVertexArray(0);
-                GL.UseProgram(0);
-                GL.Disable(EnableCap.Blend);
-
-
-            }
+            if (renderMeshesEnabled)
+                RenderMeshes(eye, projection, view);
 
             if (showTriangleCamSpace)
             {
@@ -2356,17 +2235,151 @@ namespace CascadeDesktop
             if (CustomRenderingDialogEnabled)
             {
                 proxy.Begin("custom rendering");
-                showTriangle = proxy.Checkbox($"show triangle", showTriangle);
+                renderMeshesEnabled = proxy.Checkbox($"render meshes", renderMeshesEnabled);
                 showAxes = proxy.Checkbox($"show axes", showAxes);
-                blendEnabled = proxy.Checkbox($"blend enabled", blendEnabled);
+                //blendEnabled = proxy.Checkbox($"blend enabled", blendEnabled);
                 depthRender = proxy.Checkbox($"depth render", depthRender);
-                showTriangleCamSpace = proxy.Checkbox($"show triangle cam space", showTriangleCamSpace);
-                proxy.Button($"ok");
+                //showTriangleCamSpace = proxy.Checkbox($"show triangle cam space", showTriangleCamSpace);
+          
+                if (proxy.Button($"clear meshes"))
+                {
+                    Parts.Clear();
+                }
+                if (proxy.Button($"close"))
+                {
+                    CustomRenderingDialogEnabled = false;
+                }
                 proxy.End();
             }
             proxy.EndRenderGui();
 
             glcontrol.SwapBuffers();
+        }
+
+        private void RenderMeshes(Vector3 eye, Matrix4 projection, Matrix4 view)
+        {
+            GL.Disable(EnableCap.FramebufferSrgb);
+            //GL.UseProgram(shaderProgram);
+            triangleShader.use();
+            Vector3 lightPos = new Vector3(1000f, 1000f, 400.0f);
+            Color ModelColor = Color.FromArgb(255, 128, 64);
+            Color LightColor = Color.FromArgb(255, 255, 255);
+            float _diffuseValue = 0.8f;
+            float _ambientValue = 0.8f;
+            triangleShader.setVec3("light.position", lightPos);
+            triangleShader.setVec3("viewPos", eye);
+
+            // light properties
+            Vector3 lightColor = new Vector3
+            {
+                X = LightColor.R / 255.0f,
+                Y = LightColor.G / 255.0f,
+                Z = LightColor.B / 255.0f
+            };
+
+            Vector3 diffuseColor = lightColor * new Vector3(_diffuseValue); // decrease the influence
+            Vector3 ambientColor = diffuseColor * new Vector3(_ambientValue); // low influence
+
+            triangleShader.setVec3("light.ambient", ambientColor);
+            triangleShader.setVec3("light.diffuse", diffuseColor);
+            triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+            // material properties
+            var modelColor = new Vector3
+            {
+                X = ModelColor.R / 255.0f,
+                Y = ModelColor.G / 255.0f,
+                Z = ModelColor.B / 255.0f
+            };
+
+            triangleShader.setVec3("material.ambient", modelColor.X, modelColor.Y, modelColor.Z);
+            triangleShader.setVec3("material.diffuse", modelColor.X, modelColor.Y, modelColor.Z);
+
+            triangleShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
+            triangleShader.setFloat("material.shininess", 32.0f);
+
+            // view/projection transformations       
+            //triangleShader.setMat4("projection", Camera.ProjectionMatrix);
+            // triangleShader.setMat4("view", Camera.ViewMatrix);
+
+            // world transformation
+            Matrix4 model = Matrix4.Identity;
+            // triangleShader.setMat4("model", model);
+
+
+            /*     int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
+                 int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
+                 int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
+                 int colorLoc = GL.GetUniformLocation(shaderProgram, "color");*/
+            Vector4 colorVec = new Vector4(1f, 0.5f, 0.5f, 0.5f);
+            //GL.UniformMatrix4(modelLoc, false, ref model); // Model matrix (identity for a static object)
+            //GL.UniformMatrix4(viewLoc, false, ref view);
+
+            // GL.UniformMatrix4(projLoc, false, ref projection);
+            //  GL.Uniform4(colorLoc, colorVec);
+
+            triangleShader.setMat4("view", view);
+            triangleShader.setMat4("projection", projection);
+            triangleShader.setVec4("color", colorVec);
+
+            //Matrix4 model = Matrix4.Identity;
+
+
+            /* model = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 1.0f, 0.0f), MathHelper.DegreesToRadians(_angle));
+          * */
+            //model *= Matrix4.CreateScale(150, 150, 150);/*
+            /*model *= Matrix4.CreateTranslation(-Width / 2 + 50, 0, 0);                
+           */
+            triangleShader.setMat4("model", model);
+
+            //GL.UniformMatrix4(modelLoc, false, ref model);
+
+            if (blendEnabled)
+                GL.Enable(EnableCap.Blend);
+
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+            //GL.Color3(Color.Green);
+
+
+            foreach (var item in Parts.OfType<GpuMeshSceneObject>())
+            {
+                item.gpuObject.Draw();
+            }
+            /*    GL.Begin(PrimitiveType.Triangles);
+
+                foreach (var item in MeshModels)
+                {
+                    foreach (var face in item.Faces)
+                    {
+                        for (int i = 0; i < face.Points.Length; i++)
+                        {
+                            Vector3d fitem = face.Points[i];
+                            GL.Vertex3(fitem);
+                            GL.Normal3(face.Normals[i]);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < vertices.Length; i += 3)
+                {
+                    GL.Vertex3(new Vector3d(vertices[i], vertices[i + 1], vertices[i + 2]));
+                }
+                GL.End();*/
+            /*if (vao != null)
+            {
+
+                GL.BindVertexArray(vao.Value);
+                GL.DrawArrays(PrimitiveType.Triangles, 0, vaoNumTriangles); // Draw 3 vertices a
+            }*/
+
+
+            GL.BindVertexArray(0);
+            GL.UseProgram(0);
+            GL.Disable(EnableCap.Blend);
+
+
+
         }
 
         bool CustomRenderingDialogEnabled = false;
@@ -2463,7 +2476,7 @@ namespace CascadeDesktop
             CustomRenderingDialogEnabled = !CustomRenderingDialogEnabled;
         }
 
-        bool showTriangle = true;
+        bool renderMeshesEnabled = true;
         bool showAxes = false;
         bool blendEnabled = false;
         bool depthRender = false;

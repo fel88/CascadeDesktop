@@ -893,7 +893,7 @@ void GlfwOcctView::initViewer()
 	Handle(AIS_ViewCube) aCube = new AIS_ViewCube();
 	aCube->SetSize(55);
 	aCube->SetFontHeight(12);
-	aCube->SetAxesLabels("", "", "");
+	aCube->SetAxesLabels("X", "Y", "Z");
 	aCube->SetTransformPersistence(new Graphic3d_TransformPers(Graphic3d_TMF_TriedronPers, Aspect_TOTP_LEFT_LOWER, Graphic3d_Vec2i(100, 100)));
 	aCube->SetViewAnimation(this->ViewAnimation());
 	aCube->SetFixedAnimationLoop(false);
@@ -925,7 +925,7 @@ void GlfwOcctView::initViewer(WNT_Window* wnd, void* glctx)
 	Handle(AIS_ViewCube) aCube = new AIS_ViewCube();
 	aCube->SetSize(55);
 	aCube->SetFontHeight(12);
-	aCube->SetAxesLabels("", "", "");
+	aCube->SetAxesLabels("X", "Y", "Z");
 	aCube->SetTransformPersistence(new Graphic3d_TransformPers(Graphic3d_TMF_TriedronPers, Aspect_TOTP_LEFT_LOWER, Graphic3d_Vec2i(100, 100)));
 	aCube->SetViewAnimation(this->ViewAnimation());
 	aCube->SetFixedAnimationLoop(false);
@@ -963,7 +963,7 @@ void GlfwOcctView::initViewer(void* glctx)
 	Handle(AIS_ViewCube) aCube = new AIS_ViewCube();
 	aCube->SetSize(55);
 	aCube->SetFontHeight(12);
-	aCube->SetAxesLabels("", "", "");
+	aCube->SetAxesLabels("X", "Y", "Z");
 	aCube->SetTransformPersistence(new Graphic3d_TransformPers(Graphic3d_TMF_TriedronPers, Aspect_TOTP_LEFT_LOWER, Graphic3d_Vec2i(100, 100)));
 	aCube->SetViewAnimation(this->ViewAnimation());
 	aCube->SetFixedAnimationLoop(false);
