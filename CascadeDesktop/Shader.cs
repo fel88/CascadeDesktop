@@ -109,6 +109,10 @@ namespace CascadeDesktop
         {
             GL.Uniform3(GL.GetUniformLocation(ID, v), ref newPos);
         }
+        public void setVec4(string v, Vector4 newPos)
+        {
+            GL.Uniform4(GL.GetUniformLocation(ID, v), ref newPos);
+        }
         public void setVec3(string v, Vector3d newPos)
         {
             setVec3(v, newPos.ToVector3());

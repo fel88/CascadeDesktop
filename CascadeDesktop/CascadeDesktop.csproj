@@ -148,6 +148,8 @@
     <EmbeddedResource Include="fonts\OCRAEXT.TTF">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="shaders\shader1.vs" />
+    <EmbeddedResource Include="shaders\shader1.fs" />
     <EmbeddedResource Include="shaders\cam_space_shader.fs" />
     <EmbeddedResource Include="shaders\cam_space_shader.vs" />
     <EmbeddedResource Include="shaders\text.fs" />

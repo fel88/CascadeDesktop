@@ -1,5 +1,10 @@
-﻿#version 330 core
-out vec4 FragColor;
+﻿ // Fragment  Shader
+#version 330 core
+//in vec4 vColor;
+in vec3 FragPos;  
+
+in vec3 Normal;  
+    out vec4 FragColor;
 
 struct Material {
     vec3 ambient;
@@ -15,17 +20,15 @@ struct Light {
     vec3 diffuse;
     vec3 specular;
 };
-
-in vec3 FragPos;    
-in vec3 Normal;  
-  
 uniform vec3 viewPos;
 uniform Material material;
 uniform Light light;
 
-void main()
-{
-    // ambient
+    void main()
+    {
+               //FragColor = vec4(1.0f, 0.5f, 0.5f, 0.5f); // Orange color
+//FragColor = vColor; 
+ // ambient
     vec3 ambient = light.ambient * material.ambient;
   	
     // diffuse 
@@ -42,5 +45,4 @@ void main()
         
     vec3 result = ambient + diffuse + specular;
     FragColor = vec4(result, 1.0);
-} 
-
+    }

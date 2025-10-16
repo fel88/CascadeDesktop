@@ -22,6 +22,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Windows.Media.Media3D;
 using System.Xml.Linq;
+using TriangleNet.IO;
 using static CascadeDesktop.OccSceneObject;
 
 namespace CascadeDesktop
@@ -156,6 +157,7 @@ namespace CascadeDesktop
         private int ColorBuffer;
         Matrix4 projection;
         int shaderProgram;
+        Shader triangleShader = new Shader();
 
         float[] vertices = {
         -0.5f, -0.5f, 0.0f, // Bottom-left vertex
@@ -210,40 +212,7 @@ namespace CascadeDesktop
                 return shader;
             }
         }
-        private const string vertexShaderStr = @"  // Vertex Shader
-    #version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-uniform vec4 color;
- out vec4 vColor;
-out vec3 Normal;
-    
-    void main()
-    {
-vColor = color;
-  gl_Position = projection * view * model * vec4(aPos, 1.0);
-    Normal = mat3(transpose(inverse(view * model))) * aNormal;
-      //gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-    }
-
-";
-
-        private const string fragmentShaderStr = @"  // Fragment  Shader
-    #version 330 core
-in vec4 vColor;
-in vec3 Normal;  
-    out vec4 FragColor;
-
-    void main()
-    {
-               //FragColor = vec4(1.0f, 0.5f, 0.5f, 0.5f); // Orange color
-FragColor = vColor; 
-    }
-";
+        
 
 
         private void Glcontrol_Load(object? sender, EventArgs e)
@@ -261,7 +230,11 @@ FragColor = vColor;
 
             GL.BindVertexArray(0);
             */
-            shaderProgram = CompileProgram(vertexShaderStr, fragmentShaderStr);
+            triangleShader.InitFromResources("shader1.vs", "shader1.fs");
+            var vShader = Shader.ReadResourceTxt("shader1.vs");
+            var fShader = Shader.ReadResourceTxt("shader1.fs");
+
+            shaderProgram = CompileProgram(vShader, fShader);
 
             inited = true;
         }
@@ -2146,19 +2119,70 @@ FragColor = vColor;
 
             if (showTriangle)
             {
-                GL.UseProgram(shaderProgram);
-                
+                //GL.UseProgram(shaderProgram);
+                triangleShader.use();
+                Vector3 lightPos = new Vector3(1000f, 1000f, 400.0f);
+                Color ModelColor = Color.FromArgb(255, 128, 64);
+                Color LightColor = Color.FromArgb(255, 255, 255);
+                float _diffuseValue = 0.8f;
+                float _ambientValue = 0.8f;
+                triangleShader.setVec3("light.position", lightPos);
+                triangleShader.setVec3("viewPos", eye);
 
-                int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
-                int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
-                int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
-                int colorLoc = GL.GetUniformLocation(shaderProgram, "color");
+                // light properties
+                Vector3 lightColor = new Vector3
+                {
+                    X = LightColor.R / 255.0f,
+                    Y = LightColor.G / 255.0f,
+                    Z = LightColor.B / 255.0f
+                };
+
+                Vector3 diffuseColor = lightColor * new Vector3(_diffuseValue); // decrease the influence
+                Vector3 ambientColor = diffuseColor * new Vector3(_ambientValue); // low influence
+
+                triangleShader.setVec3("light.ambient", ambientColor);
+                triangleShader.setVec3("light.diffuse", diffuseColor);
+                triangleShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+                // material properties
+                var modelColor = new Vector3
+                {
+                    X = ModelColor.R / 255.0f,
+                    Y = ModelColor.G / 255.0f,
+                    Z = ModelColor.B / 255.0f
+                };
+
+                triangleShader.setVec3("material.ambient", modelColor.X, modelColor.Y, modelColor.Z);
+                triangleShader.setVec3("material.diffuse", modelColor.X, modelColor.Y, modelColor.Z);
+
+                triangleShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
+                triangleShader.setFloat("material.shininess", 32.0f);
+
+                // view/projection transformations       
+                //triangleShader.setMat4("projection", Camera.ProjectionMatrix);
+               // triangleShader.setMat4("view", Camera.ViewMatrix);
+
+                // world transformation
+                Matrix4 model = Matrix4.Identity;
+               // triangleShader.setMat4("model", model);
+
+
+                /*     int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
+                     int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
+                     int projLoc = GL.GetUniformLocation(shaderProgram, "projection");
+                     int colorLoc = GL.GetUniformLocation(shaderProgram, "color");*/
                 Vector4 colorVec = new Vector4(1f, 0.5f, 0.5f, 0.5f);
                 //GL.UniformMatrix4(modelLoc, false, ref model); // Model matrix (identity for a static object)
-                GL.UniformMatrix4(viewLoc, false, ref view);
-                GL.UniformMatrix4(projLoc, false, ref projection);
-                GL.Uniform4(colorLoc, colorVec);
-                Matrix4 model = Matrix4.Identity;
+                //GL.UniformMatrix4(viewLoc, false, ref view);
+                
+               // GL.UniformMatrix4(projLoc, false, ref projection);
+              //  GL.Uniform4(colorLoc, colorVec);
+                
+                triangleShader.setMat4("view", view);
+                triangleShader.setMat4("projection", projection);
+                triangleShader.setVec4("color", colorVec);
+
+                //Matrix4 model = Matrix4.Identity;
 
 
                 /* model = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 1.0f, 0.0f), MathHelper.DegreesToRadians(_angle));
@@ -2166,8 +2190,9 @@ FragColor = vColor;
                 //model *= Matrix4.CreateScale(150, 150, 150);/*
                 /*model *= Matrix4.CreateTranslation(-Width / 2 + 50, 0, 0);                
                */
+                triangleShader.setMat4("model", model);
 
-                GL.UniformMatrix4(modelLoc, false, ref model);
+                //GL.UniformMatrix4(modelLoc, false, ref model);
 
                 if (blendEnabled)
                     GL.Enable(EnableCap.Blend);
@@ -2178,7 +2203,7 @@ FragColor = vColor;
 
                 
                 foreach (var item in Parts.OfType<GpuMeshSceneObject>())
-                {
+                {                    
                     item.gpuObject.Draw();
                 }
                 /*    GL.Begin(PrimitiveType.Triangles);
