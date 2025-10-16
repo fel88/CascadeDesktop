@@ -13,6 +13,10 @@ Measure tool
 ImGui (experimental)
 <img width="1504" height="910" alt="изображение" src="https://github.com/user-attachments/assets/09254067-0227-4ace-b0e8-9cc3924b1b23" />
 
+Custom meshes (obj, stl) rendering
+<img width="1384" height="910" alt="изображение" src="https://github.com/user-attachments/assets/0031cca2-e5d6-48f6-96e7-1861807fa966" />
+
+
 
 <img src="https://github.com/user-attachments/assets/86a773a3-632d-4f28-87d4-546db5710bc0" />
 
