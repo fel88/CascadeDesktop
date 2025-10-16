@@ -956,8 +956,9 @@ namespace CascadeDesktop
             var x = d.GetNumericField("x");
             var y = d.GetNumericField("y");
             var z = d.GetNumericField("z");
-
+            
             var sob = GetSelectedOccObject().Handle;
+            var sobwp = GetSelectedObjectWithParent();
 
             switch (d.GetOptionsFieldIdx("mode"))
             {
@@ -968,11 +969,13 @@ namespace CascadeDesktop
                     proxy.MoveObject(sob, x, y, z, false);
                     break;
                 case 2:
-                    var com = proxy.GetFaceInfo(sob).COM;
+                    var com = proxy.GetFaceInfo(sobwp).COM;
                     var shift = new Vector3d(x, y, z) - com;
-                    proxy.MoveObject(proxy.GetSelectedObject(), shift.X, shift.Y, shift.Z, true);
+                    proxy.MoveObject(sob, shift.X, shift.Y, shift.Z, true);
                     break;
             }
+
+            proxy.UpdateCurrentViewer();
         }
 
         private void intersectToolStripMenuItem_Click(object sender, EventArgs e)
