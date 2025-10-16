@@ -146,7 +146,8 @@ namespace CascadeDesktop
 
         nint? hglrc;
         bool inited = false;
-        int vao;
+        int? vao;
+        int vaoNumTriangles = 3;
 
 
         private int VAO;
@@ -155,31 +156,17 @@ namespace CascadeDesktop
         private int ColorBuffer;
         Matrix4 projection;
         int shaderProgram;
-        private static readonly int[] IndexData = new int[]
-     {
-             0,  1,  2,  2,  3,  0,
-             4,  5,  6,  6,  7,  4,
-             8,  9, 10, 10, 11,  8,
-            12, 13, 14, 14, 15, 12,
-            16, 17, 18, 18, 19, 16,
-            20, 21, 22, 22, 23, 20,
-     };
+
         float[] vertices = {
         -0.5f, -0.5f, 0.0f, // Bottom-left vertex
          0.5f, -0.5f, 0.0f, // Bottom-right vertex
          0.0f,  0.5f, 0.0f  // Top vertex
+    }; float[] verticesWithNormals = {
+        -0.5f*150, -0.5f*150, 0.0f   ,0,0,1, // Bottom-left vertex
+         0.5f*150, -0.5f*150, 0.0f   ,0,0,1, // Bottom-right vertex
+         0.0f*150,  0.5f*150, 0.0f   ,0,0,1,// Top vertex
     };
-        private const string FragmentShaderSource = @"#version 330 core
-
-in vec4 fColor;
-
-out vec4 oColor;
-
-void main()
-{
-    oColor = fColor;
-}
-"; private int CompileProgram(string vertexShader, string fragmentShader)
+        private int CompileProgram(string vertexShader, string fragmentShader)
         {
             int program = GL.CreateProgram();
 
@@ -226,17 +213,20 @@ void main()
         private const string vertexShaderStr = @"  // Vertex Shader
     #version 330 core
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform vec4 color;
  out vec4 vColor;
-    //#layout (location = 0) in vec3 aPos;
+out vec3 Normal;
+    
     void main()
     {
 vColor = color;
   gl_Position = projection * view * model * vec4(aPos, 1.0);
+    Normal = mat3(transpose(inverse(view * model))) * aNormal;
       //gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
     }
 
@@ -245,6 +235,7 @@ vColor = color;
         private const string fragmentShaderStr = @"  // Fragment  Shader
     #version 330 core
 in vec4 vColor;
+in vec3 Normal;  
     out vec4 FragColor;
 
     void main()
@@ -255,83 +246,23 @@ FragColor = vColor;
 ";
 
 
-        private static readonly Color4[] ColorData = new Color4[]
-        {
-            Color4.Silver, Color4.Silver, Color4.Silver, Color4.Silver,
-            Color4.Honeydew, Color4.Honeydew, Color4.Honeydew, Color4.Honeydew,
-            Color4.Moccasin, Color4.Moccasin, Color4.Moccasin, Color4.Moccasin,
-            Color4.IndianRed, Color4.IndianRed, Color4.IndianRed, Color4.IndianRed,
-            Color4.PaleVioletRed, Color4.PaleVioletRed, Color4.PaleVioletRed, Color4.PaleVioletRed,
-            Color4.ForestGreen, Color4.ForestGreen, Color4.ForestGreen, Color4.ForestGreen,
-        };
-        private static readonly Vector3[] VertexData = new Vector3[]
-       {
-            new Vector3(-1.0f, -1.0f, -1.0f),
-            new Vector3(-1.0f, 1.0f, -1.0f),
-            new Vector3(1.0f, 1.0f, -1.0f),
-            new Vector3(1.0f, -1.0f, -1.0f),
-
-            new Vector3(-1.0f, -1.0f, -1.0f),
-            new Vector3(1.0f, -1.0f, -1.0f),
-            new Vector3(1.0f, -1.0f, 1.0f),
-            new Vector3(-1.0f, -1.0f, 1.0f),
-
-            new Vector3(-1.0f, -1.0f, -1.0f),
-            new Vector3(-1.0f, -1.0f, 1.0f),
-            new Vector3(-1.0f, 1.0f, 1.0f),
-            new Vector3(-1.0f, 1.0f, -1.0f),
-
-            new Vector3(-1.0f, -1.0f, 1.0f),
-            new Vector3(1.0f, -1.0f, 1.0f),
-            new Vector3(1.0f, 1.0f, 1.0f),
-            new Vector3(-1.0f, 1.0f, 1.0f),
-
-            new Vector3(-1.0f, 1.0f, -1.0f),
-            new Vector3(-1.0f, 1.0f, 1.0f),
-            new Vector3(1.0f, 1.0f, 1.0f),
-            new Vector3(1.0f, 1.0f, -1.0f),
-
-            new Vector3(1.0f, -1.0f, -1.0f),
-            new Vector3(1.0f, 1.0f, -1.0f),
-            new Vector3(1.0f, 1.0f, 1.0f),
-            new Vector3(1.0f, -1.0f, 1.0f),
-       };
-
         private void Glcontrol_Load(object? sender, EventArgs e)
         {
-
-            int vbo = GL.GenBuffer();
+            /*int vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, verticesWithNormals.Length * sizeof(float), verticesWithNormals, BufferUsageHint.StaticDraw);
             vao = GL.GenVertexArray();
-            GL.BindVertexArray(vao);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.BindVertexArray(vao.Value);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
 
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
+            GL.EnableVertexAttribArray(1);
+
+            GL.BindVertexArray(0);
+            */
             shaderProgram = CompileProgram(vertexShaderStr, fragmentShaderStr);
 
-            // Error checking for linking
-
-            VAO = GL.GenVertexArray();
-            GL.BindVertexArray(VAO);
-
-            EBO = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, EBO);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, IndexData.Length * sizeof(int), IndexData, BufferUsageHint.StaticDraw);
-
-            PositionBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, PositionBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, VertexData.Length * sizeof(float) * 3, VertexData, BufferUsageHint.StaticDraw);
-
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, sizeof(float) * 3, 0);
-
-            ColorBuffer = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, ColorBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, ColorData.Length * sizeof(float) * 4, ColorData, BufferUsageHint.StaticDraw);
-
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, sizeof(float) * 4, 0);
             inited = true;
         }
         private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
@@ -664,18 +595,13 @@ FragColor = vColor;
 
 
         public bool MeshModelsEnabled = true;//experimental
-
-        public void ImportModel()
+                
+        public void ImportMeshModel()
         {
-            //curForm.ImportModel(ModelFormat.STEP);
-            // return;
             OpenFileDialog ofd = new OpenFileDialog
             {
-                Filter = "BREP models (step; iges)|*.stp;*.step;*.iges;*.igs"
+                Filter = "All mesh formats (*.obj, *.stl)|*.obj;*.stl"
             };
-
-            if (MeshModelsEnabled)
-                ofd.Filter += "|All mesh formats (*.obj, *.stl)|*.obj;*.stl";
 
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
@@ -685,16 +611,43 @@ FragColor = vColor;
             {
                 case ".obj":
                     {
-                        var gpuObj = ObjFileModelLoader.Parse(File.ReadAllText(ofd.FileName)).ToGpuObject();
+                        var model = ObjFileModelLoader.Parse(File.ReadAllText(ofd.FileName));
+                        var gpuObj = model.ToGpuObject();
+
                         Parts.Add(new GpuMeshSceneObject(gpuObj));
                         break;
                     }
                 case ".stl":
                     {
-                        var gpuObj = StlFileModelLoader.ParseFile(ofd.FileName).ToGpuObject();
+                        var model = StlFileModelLoader.ParseFile(ofd.FileName);
+
+                        var gpuObj = model.ToGpuObject();
+                        //  vao = gpuObj.VAO;
+                        //  vaoNumTriangles = gpuObj.numTriangles;
+
                         Parts.Add(new GpuMeshSceneObject(gpuObj));
                         break;
                     }
+              
+            }
+
+
+        }
+        public void ImportModel()
+        {            
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Filter = "BREP models (step; iges)|*.stp;*.step;*.iges;*.igs"
+            };
+
+            
+
+            if (ofd.ShowDialog() != DialogResult.OK)
+                return;
+
+            var ext = Path.GetExtension(ofd.FileName).ToLower();
+            switch (ext)
+            {                
                 case ".stp":
                 case ".step":
                     {
@@ -2187,13 +2140,14 @@ FragColor = vColor;
 
                 foreach (var item in Scene.Parts)
                 {
-                    item.Draw(gpuCtx);                 
+                    //item.Draw(gpuCtx);
                 }
             }
 
             if (showTriangle)
             {
                 GL.UseProgram(shaderProgram);
+                
 
                 int modelLoc = GL.GetUniformLocation(shaderProgram, "model");
                 int viewLoc = GL.GetUniformLocation(shaderProgram, "view");
@@ -2209,9 +2163,9 @@ FragColor = vColor;
 
                 /* model = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 1.0f, 0.0f), MathHelper.DegreesToRadians(_angle));
               * */
-                model *= Matrix4.CreateScale(150, 150, 150);/*
-                    /*model *= Matrix4.CreateTranslation(-Width / 2 + 50, 0, 0);                
-                   */
+                //model *= Matrix4.CreateScale(150, 150, 150);/*
+                /*model *= Matrix4.CreateTranslation(-Width / 2 + 50, 0, 0);                
+               */
 
                 GL.UniformMatrix4(modelLoc, false, ref model);
 
@@ -2219,10 +2173,42 @@ FragColor = vColor;
                     GL.Enable(EnableCap.Blend);
 
                 GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-                GL.BindVertexArray(vao);
+
                 //GL.Color3(Color.Green);
-                GL.DrawArrays(PrimitiveType.Triangles, 0, 3); // Draw 3 vertices a
-                                                              //GL.UseProgram(0);
+
+                
+                foreach (var item in Parts.OfType<GpuMeshSceneObject>())
+                {
+                    item.gpuObject.Draw();
+                }
+                /*    GL.Begin(PrimitiveType.Triangles);
+
+                    foreach (var item in MeshModels)
+                    {
+                        foreach (var face in item.Faces)
+                        {
+                            for (int i = 0; i < face.Points.Length; i++)
+                            {
+                                Vector3d fitem = face.Points[i];
+                                GL.Vertex3(fitem);
+                                GL.Normal3(face.Normals[i]);
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < vertices.Length; i += 3)
+                    {
+                        GL.Vertex3(new Vector3d(vertices[i], vertices[i + 1], vertices[i + 2]));
+                    }
+                    GL.End();*/
+                /*if (vao != null)
+                {
+                    
+                    GL.BindVertexArray(vao.Value);
+                    GL.DrawArrays(PrimitiveType.Triangles, 0, vaoNumTriangles); // Draw 3 vertices a
+                }*/
+
+
                 GL.BindVertexArray(0);
                 GL.UseProgram(0);
                 GL.Disable(EnableCap.Blend);
@@ -2267,7 +2253,7 @@ FragColor = vColor;
                 GL.UniformMatrix4(modelLoc, false, ref model); // Model matrix (identity for a static object)
                 GL.UniformMatrix4(viewLoc, false, ref view);
                 GL.UniformMatrix4(projLoc, false, ref projection);
-                GL.BindVertexArray(vao);
+                GL.BindVertexArray(vao.Value);
                 //GL.Color3(Color.Green);
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 3); // Draw 3 vertices a
                 GL.BindVertexArray(0);
@@ -2341,19 +2327,25 @@ FragColor = vColor;
             proxy.Text($"up X: {Math.Round(up.X, 4)} Y: {Math.Round(up.Y, 4)} Z: {Math.Round(up.Z, 4)}");
             proxy.Text($"glControl size: {glcontrol.Width}x{glcontrol.Height}");
             proxy.End();
-
-            proxy.Begin("custom rendering");
-            showTriangle = proxy.Checkbox($"show triangle", showTriangle);
-            showAxes = proxy.Checkbox($"show axes", showAxes);
-            blendEnabled = proxy.Checkbox($"blend enabled", blendEnabled);
-            depthRender = proxy.Checkbox($"depth render", depthRender);
-            showTriangleCamSpace = proxy.Checkbox($"show triangle cam space", showTriangleCamSpace);
-            proxy.Button($"ok");
-            proxy.End();*/
+            */
+            if (CustomRenderingDialogEnabled)
+            {
+                proxy.Begin("custom rendering");
+                showTriangle = proxy.Checkbox($"show triangle", showTriangle);
+                showAxes = proxy.Checkbox($"show axes", showAxes);
+                blendEnabled = proxy.Checkbox($"blend enabled", blendEnabled);
+                depthRender = proxy.Checkbox($"depth render", depthRender);
+                showTriangleCamSpace = proxy.Checkbox($"show triangle cam space", showTriangleCamSpace);
+                proxy.Button($"ok");
+                proxy.End();
+            }
             proxy.EndRenderGui();
 
             glcontrol.SwapBuffers();
         }
+
+        bool CustomRenderingDialogEnabled = false;
+
         private void DrawTextOverlay()
         {
             GL.Enable(EnableCap.CullFace);
@@ -2439,11 +2431,14 @@ FragColor = vColor;
                 }
             }
             GL.ColorMask(true, true, true, true);
-
-
         }
 
-        bool showTriangle = false;
+        internal void CustomRenderingDialogVisibleSwitch()
+        {
+            CustomRenderingDialogEnabled = !CustomRenderingDialogEnabled;
+        }
+
+        bool showTriangle = true;
         bool showAxes = false;
         bool blendEnabled = false;
         bool depthRender = false;

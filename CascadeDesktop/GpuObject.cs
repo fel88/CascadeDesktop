@@ -8,8 +8,8 @@ namespace CascadeDesktop
     {
         bool deleted = false;
 
-        int numTriangles;
-        int VBO, VAO;
+        public int numTriangles;
+        public int VBO, VAO;
         public GpuObject(Vector3d[] verts, Vector3d[] normals)
         {
             int idx = 0;
@@ -25,20 +25,20 @@ namespace CascadeDesktop
                 vertices[idx++] = (float)normals[i].Z;
             }
 
-            numTriangles = verts.Length;
+            numTriangles = verts.Length;    
 
             GL.GenVertexArrays(1, out VAO);
             GL.GenBuffers(1, out VBO);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBO);
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
-
             GL.BindVertexArray(VAO);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
 
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
+            GL.BindVertexArray(0);
         }
 
         public void Draw()

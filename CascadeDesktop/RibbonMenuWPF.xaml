@@ -50,7 +50,8 @@
                     <!--<RibbonButton  Label="Format Painter" KeyTip="FP" />-->
                 </RibbonGroup>
                 <RibbonGroup x:Name="model" Header="Model">
-                    <RibbonButton x:Name="import" Click="Import_Click"  Label="Import"  KeyTip="X"  SmallImageSource="Icons/fill-270.png" />                    
+                    <RibbonButton x:Name="import" Click="Import_Click"  Label="Import"  KeyTip="X"  SmallImageSource="Icons/fill-270.png" />
+                    <RibbonButton x:Name="importMesh" Click="ImportMesh_Click"  Label="Import mesh"  KeyTip="X"  SmallImageSource="Icons/block.png" />                    
                     <RibbonMenuButton  Label="Export as"  SmallImageSource="Icons/blue-document-export.png" KeyTip="V">
                         <RibbonMenuItem  Header="Step" Click="StepExport_Click" KeyTip="T"/>
                         <RibbonMenuItem  Header="Mesh" Click="ObjExport_Click" KeyTip="T"/>
@@ -141,6 +142,7 @@
                 </RibbonGroup>
                 <RibbonGroup x:Name="settings" Header="Settings ">
                     <RibbonButton  Label="Settings" Click="SettingsRibbonButton_Click" SmallImageSource="Icons/gear.png" />
+                    <RibbonButton  Label="Custom render" Click="SettingsCustomRenderingDialog_Click" SmallImageSource="Icons/application-blue.png" />
                 </RibbonGroup>
                 
             </RibbonTab>

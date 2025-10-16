@@ -331,5 +331,17 @@ namespace CascadeDesktop
             Form.Settings();
 
         }
+
+        private void ImportMesh_Click(object sender, RoutedEventArgs e)
+        {
+            Form.ImportMeshModel();
+
+        }
+
+        private void SettingsCustomRenderingDialog_Click(object sender, RoutedEventArgs e)
+        {
+            Form.CustomRenderingDialogVisibleSwitch();
+
+        }
     }
 }

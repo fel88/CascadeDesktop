@@ -15,6 +15,8 @@
     <None Remove="fonts\Antonio-Light.ttf" />
     <None Remove="fonts\Antonio-Regular.ttf" />
     <None Remove="fonts\OCRAEXT.TTF" />
+    <None Remove="Icons\application-blue.png" />
+    <None Remove="Icons\block.png" />
     <None Remove="shaders\cam_space_shader.fs" />
     <None Remove="shaders\cam_space_shader.vs" />
     <None Remove="shaders\text.fs" />
@@ -50,10 +52,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\anchor.png" />
+    <Resource Include="Icons\application-blue.png" />
     <Resource Include="Icons\application-tile.png" />
     <Resource Include="Icons\arrow-curve-180-left.ico" />
     <Resource Include="Icons\arrow-resize.ico" />
     <Resource Include="Icons\arrow-skip-090.ico" />
+    <Resource Include="Icons\block.png" />
     <Resource Include="Icons\blue-document-export.png" />
     <Resource Include="Icons\blue-document.png" />
     <Resource Include="Icons\cross-button.ico" />

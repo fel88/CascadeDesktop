@@ -13,7 +13,7 @@ namespace CascadeDesktop
 
       
 
-        protected GpuObject gpuObject;
+        public GpuObject gpuObject;
         public GpuMeshSceneObject()
         {
 
