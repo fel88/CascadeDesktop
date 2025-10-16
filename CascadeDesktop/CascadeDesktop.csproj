@@ -17,6 +17,9 @@
     <None Remove="fonts\OCRAEXT.TTF" />
     <None Remove="Icons\application-blue.png" />
     <None Remove="Icons\block.png" />
+    <None Remove="Icons\sql-join-inner.png" />
+    <None Remove="Icons\sql-join-left-exclude.png" />
+    <None Remove="Icons\sql-join.png" />
     <None Remove="shaders\cam_space_shader.fs" />
     <None Remove="shaders\cam_space_shader.vs" />
     <None Remove="shaders\text.fs" />
@@ -131,6 +134,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\layer-shape-curve.png" />
+    <Resource Include="Icons\sql-join-inner.png" />
+    <Resource Include="Icons\sql-join-left-exclude.png" />
+    <Resource Include="Icons\sql-join.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="cube.ico" />

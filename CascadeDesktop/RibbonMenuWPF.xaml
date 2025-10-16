@@ -107,9 +107,9 @@
                     <RibbonButton  Label="Pipe" Click="Pipe_Click"  KeyTip="P"  SmallImageSource="Icons/layer-shape-curve.png" />
                 </RibbonGroup>
                 <RibbonGroup x:Name="bool" Header="Bool">
-                    <RibbonButton  Label="Fuse" Click="Fuse_Click" KeyTip="M"   />
-                    <RibbonButton  Label="Diff" Click="Diff_Click" KeyTip="M"   />
-                    <RibbonButton  Label="Intersect" Click="Intersect_Click" KeyTip="M"   />
+                    <RibbonButton  Label="Fuse" Click="Fuse_Click" KeyTip="M"   SmallImageSource="Icons/sql-join.png"  />
+                    <RibbonButton  Label="Diff" Click="Diff_Click" KeyTip="M"   SmallImageSource="Icons/sql-join-left-exclude.png"  />
+                    <RibbonButton  Label="Intersect" Click="Intersect_Click" KeyTip="M"  SmallImageSource="Icons/sql-join-inner.png"  />
                 </RibbonGroup>
 
                 <RibbonGroup x:Name="mode" Header="Selection mode">

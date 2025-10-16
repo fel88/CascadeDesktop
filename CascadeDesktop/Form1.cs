@@ -1290,11 +1290,20 @@ namespace CascadeDesktop
 
         public void ExportSelectedToObj()
         {
+
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.Filter = "Obj mesh|*.obj";
 
             if (sfd.ShowDialog() != DialogResult.OK)
                 return;
+
+            var d = AutoDialog.DialogHelpers.StartDialog();
+            d.AddBoolField("optimize", "Optimize vertices");
+
+            if (!d.ShowDialog())
+                return;
+
+            var optimize = d.GetBoolField("optimize");
 
             var poly = proxy.IteratePoly(proxy.GetSelectedObject());
             var res1 = poly[0].Select(z => new Vector3d(z.X, z.Y, z.Z)).ToArray();
@@ -1303,56 +1312,86 @@ namespace CascadeDesktop
             const float tolerance = 1e-8f;
             StringBuilder sb = new StringBuilder();
             List<Vector3d> vvv = new List<Vector3d>();
-
-            for (int i = 0; i < res1.Length; i += 3)
+            if (optimize)
             {
-                var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
-                foreach (var v in verts)
+                //todo fix here (optimize normals and vertices together)
+                for (int i = 0; i < res1.Length; i += 3)
                 {
-                    if (vvv.Any(z => (z - v).Length < tolerance))
-                        continue;
-
-                    vvv.Add(v);
-                    sb.AppendLine($"v {v.X} {v.Y} {v.Z}".Replace(",", "."));
-                }
-            }
-            for (int i = 0; i < res2.Length; i += 3)
-            {
-                var verts = new[] { res2[i], res2[i + 1], res2[i + 2] };
-                foreach (var v in verts)
-                {
-                    if (vvv.Any(z => (z - v).Length < tolerance))
-                        continue;
-
-                    vvv.Add(v);
-                    sb.AppendLine($"vn {v.X} {v.Y} {v.Z}".Replace(",", "."));
-                }
-            }
-            int counter = 1;
-            for (int i = 0; i < res1.Length; i += 3)
-            {
-                var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
-                List<int> indc = new List<int>();
-
-                foreach (var vitem in verts)
-                {
-                    for (int k = 0; k < vvv.Count; k++)
+                    var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
+                    foreach (var v in verts)
                     {
-                        if ((vvv[k] - vitem).Length < tolerance)
-                        {
-                            indc.Add(k + 1);
-                        }
-                        else
+                        if (vvv.Any(z => (z - v).Length < tolerance))
                             continue;
+
+                        vvv.Add(v);
+                        sb.AppendLine($"v {v.X} {v.Y} {v.Z}".Replace(",", "."));
                     }
                 }
-                if (indc.GroupBy(z => z).Any(z => z.Count() > 1))
+                for (int i = 0; i < res2.Length; i += 3)
                 {
-                    continue;
-                    //throw duplicate face vertex
+                    var verts = new[] { res2[i], res2[i + 1], res2[i + 2] };
+                    foreach (var v in verts)
+                    {
+                        if (vvv.Any(z => (z - v).Length < tolerance))
+                            continue;
+
+                        vvv.Add(v);
+                        sb.AppendLine($"vn {v.X} {v.Y} {v.Z}".Replace(",", "."));
+                    }
                 }
-                sb.AppendLine($"f {indc[0]} {indc[1]} {indc[2]}");
+                int counter = 1;
+                for (int i = 0; i < res1.Length; i += 3)
+                {
+                    var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
+                    List<int> indc = new List<int>();
+
+                    foreach (var vitem in verts)
+                    {
+                        for (int k = 0; k < vvv.Count; k++)
+                        {
+                            if ((vvv[k] - vitem).Length < tolerance)
+                            {
+                                indc.Add(k + 1);
+                            }
+                            else
+                                continue;
+                        }
+                    }
+                    if (indc.GroupBy(z => z).Any(z => z.Count() > 1))
+                    {
+                        continue;
+                        //throw duplicate face vertex
+                    }
+                    sb.AppendLine($"f {indc[0]} {indc[1]} {indc[2]}");
+                }
             }
+            else
+            {
+                for (int i = 0; i < res1.Length; i += 3)
+                {
+                    var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
+                    foreach (var v in verts)
+                    {
+                        vvv.Add(v);
+                        sb.AppendLine($"v {v.X} {v.Y} {v.Z}".Replace(",", "."));
+                    }
+                }
+                for (int i = 0; i < res2.Length; i += 3)
+                {
+                    var verts = new[] { res2[i], res2[i + 1], res2[i + 2] };
+                    foreach (var v in verts)
+                    {
+                        vvv.Add(v);
+                        sb.AppendLine($"vn {v.X} {v.Y} {v.Z}".Replace(",", "."));
+                    }
+                }
+
+                for (int i = 0; i < res1.Length; i += 3)
+                {
+                    sb.AppendLine($"f {i + 1} {i + 2} {i + 3}");
+                }
+            }
+
 
             File.WriteAllText(sfd.FileName, sb.ToString());
             SetStatus($"saved to {sfd.FileName} successfully");
@@ -2240,7 +2279,7 @@ namespace CascadeDesktop
                 //blendEnabled = proxy.Checkbox($"blend enabled", blendEnabled);
                 depthRender = proxy.Checkbox($"depth render", depthRender);
                 //showTriangleCamSpace = proxy.Checkbox($"show triangle cam space", showTriangleCamSpace);
-          
+
                 if (proxy.Button($"clear meshes"))
                 {
                     Parts.Clear();
