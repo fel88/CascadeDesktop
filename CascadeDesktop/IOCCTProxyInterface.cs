@@ -27,6 +27,7 @@ namespace CascadeDesktop
         bool Button(string str);
         bool Checkbox(string str, bool state);
         void Text(string str);
+        int GetTotalShapes();
         void End();
         void StartZoomAtPoint(int theX1, int theY1);
         void ZoomAtPoint(int theX1, int theY1, int theX2, int theY2);
@@ -72,7 +73,7 @@ namespace CascadeDesktop
         ManagedObjHandle MakeCommon(ManagedObjHandle h1, ManagedObjHandle h2);
         void MoveObject(ManagedObjHandle h1, double x, double y, double z, bool rel);
         void RotateObject(ManagedObjHandle h1, double x, double y, double z, double rot, bool rel);
-        void Erase(ManagedObjHandle h1, bool updateViewer = true);        
+        void Erase(ManagedObjHandle h1, bool updateViewer = true);
         void Remove(ManagedObjHandle h1);
         void UpdateView();
         void UpdateCurrentViewer();
@@ -87,6 +88,7 @@ namespace CascadeDesktop
         void RightView();
         void SetColor(ManagedObjHandle h, int red, int green, int blue);
         List<double> GetObjectMatrixValues(ManagedObjHandle h);
+        List<double> GetShapeMatrixValues(ManagedObjHandle h);
         void SetMatrixValues(ManagedObjHandle h, List<double> m);
         ManagedObjHandle MakeCone(double r1, double r2, double h);
         ManagedObjHandle MakeChamfer(ManagedObjHandle so, double r);
@@ -116,7 +118,7 @@ namespace CascadeDesktop
         Vector3d? GetVertexPosition(ManagedObjHandle obj);
         void StartRotation(int x, int y);
         void Select(bool v);
-        List<List<Vector3d>> IteratePoly(ManagedObjHandle managedObjHandle, bool useLocalTransform = true);
+        List<List<Vector3d>> IteratePoly(ManagedObjHandle managedObjHandle, bool useLocalTransform = true, bool useWholeShapeTransform = true);
         void SetNextWindowSizeConstraints(int minx, int miny, int maxx, int maxy);
 
         ManagedObjHandle AddWireDraft(double height);

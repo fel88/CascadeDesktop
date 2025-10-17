@@ -46,23 +46,42 @@ namespace CascadeDesktop
             UpdateList();
         }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Delete)
+            {
+                RemoveSelected();
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         private void updateToolStripMenuItem_Click(object sender, EventArgs e)
         {
             UpdateList();
         }
 
-        private void removeToolStripMenuItem_Click(object sender, EventArgs e)
+        private void RemoveSelected()
         {
             if (listView1.SelectedItems.Count == 0)
+                return;
+
+            if (!StaticHelpers.ShowQuestion($"Are you sure to delete: {listView1.SelectedItems.Count} objects?", Text))
                 return;
 
             for (int i = 0; i < listView1.SelectedItems.Count; i++)
             {
                 var occ = (listView1.SelectedItems[i].Tag as OccSceneObject);
-                Editor.DeleteUI(occ);
+                Editor.Remove(occ);
             }
-            
+
+            Editor.Proxy.UpdateCurrentViewer();
+
             UpdateList();
+        }
+
+        private void removeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RemoveSelected();
         }
 
         private void setNameToolStripMenuItem_Click(object sender, EventArgs e)

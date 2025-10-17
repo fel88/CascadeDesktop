@@ -25,10 +25,11 @@
 #include <TopoDS_TEdge.hxx>
 #include <TopoDS_Compound.hxx>
 #include <TopExp_Explorer.hxx>
+
 //brep tools
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
-
+#include <BRepTools_History.hxx>
 
 
 #include <AIS_ViewController.hxx>
@@ -1464,9 +1465,9 @@ public:
 
 		}
 	}
-	std::vector<double> IteratePoly(ObjHandle h, bool useLocalTransform) {
+	std::vector<double> IteratePoly(ObjHandle h, bool useLocalTransform, bool useWholeShapeTransform) {
 		auto obj = findObject(h);
-		const auto& shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
+		auto shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
 
 		//std::vector<QVector3D> vertices;
 		std::vector<double> ret;
@@ -1482,15 +1483,16 @@ public:
 		//auto shape2 = bm.Shape();
 
 		Standard_Integer aIndex = 1, nbNodes = 0;
-
+		if (useWholeShapeTransform && useLocalTransform)
+			shape = shape.Located(obj->LocalTransformation());
 		//TColgp_SequenceOfPnt aPoints, aPoints1;
 
 		for (TopExp_Explorer aExpFace(shape, TopAbs_FACE); aExpFace.More(); aExpFace.Next())
-
 		{
 			auto face = aExpFace.Current();
-			if (useLocalTransform)
-				face = face.Located(obj->LocalTransformation());
+
+			if (!useWholeShapeTransform && useLocalTransform)
+				face = face.Located(obj->Transformation());
 
 			TopoDS_Face aFace = TopoDS::Face(face);
 
@@ -1801,6 +1803,7 @@ public:
 
 		AIS_ListOfInteractive aList;
 		AIS_ListOfInteractive aList2;
+
 		ctx->DisplayedObjects(aList);
 		ctx->ErasedObjects(aList2);
 		AIS_ListIteratorOfListOfInteractive it(aList);
@@ -1824,7 +1827,7 @@ public:
 			//do something with the current item : it.Value ()
 			it.Next();
 		}
-		
+
 		while (it2.More())
 		{
 			auto sin = it2.Value();
@@ -2234,6 +2237,26 @@ public:
 
 	}
 
+	int GetTotalShapes() {
+
+		Handle(AIS_InteractiveContext) theCtx = myAISContext();
+
+		int counter = 0;
+		AIS_ListOfInteractive aDispList;
+		theCtx->DisplayedObjects(aDispList);
+		for (const Handle(AIS_InteractiveObject)& aPrsIter : aDispList)
+		{
+			Handle(AIS_Shape) aShape = Handle(AIS_Shape)::DownCast(aPrsIter);
+			if (aShape.IsNull())
+				continue;
+			counter++;
+
+
+		}
+		//myAISContext()->Deactivate();
+		return counter;
+
+	}
 	List<ManagedObjHandle^>^ GetSelectedObjects() {
 		auto objs = impl->getSelectedObjectsList();
 		List<ManagedObjHandle^>^ ret = gcnew List<ManagedObjHandle^>();
@@ -3732,7 +3755,7 @@ public:
 
 	void Erase(ManagedObjHandle^ h, bool updateViewer) {
 		auto o = impl->findObject(h->BindId);
-		myAISContext()->Erase(o, updateViewer);		
+		myAISContext()->Erase(o, updateViewer);
 	}
 
 	void Erase(ManagedObjHandle^ h) {
@@ -3750,11 +3773,62 @@ public:
 		myAISContext()->SetDisplayMode(o, wireframe ? AIS_WireFrame : AIS_Shaded, true);
 	}
 
-	gp_Trsf GetObjectMatrix(ManagedObjHandle^ h) {
+	gp_Trsf GetObjectMatrix(ManagedObjHandle^ h) {//AIS matrix
 		auto p = impl->findObject(h->BindId);
 		auto trans = p->Transformation();
 		return trans;
 	}
+
+	gp_Trsf GetShapeMatrix(ManagedObjHandle^ h) {
+		auto p = impl->findObject(h->BindId);
+		Handle(AIS_Shape) shapeObject = Handle(AIS_Shape)::DownCast(p);
+		if (!shapeObject.IsNull()) {
+			TopoDS_Shape aShape = shapeObject->Shape();
+
+
+			// Get the location of the shape
+			TopLoc_Location shapeLocation = aShape.Location();
+
+			// Get the transformation matrix from the location
+			gp_Trsf transformation = shapeLocation.Transformation();
+
+			return transformation;
+		}
+		return {};
+	}
+
+
+
+
+	List<double>^ GetShapeMatrixValues(ManagedObjHandle^ h) {
+		List<double>^ ret = gcnew List<double>();
+		auto p = impl->findObject(h->BindId);
+		Handle(AIS_Shape) shapeObject = Handle(AIS_Shape)::DownCast(p);
+		if (!shapeObject.IsNull()) {
+			TopoDS_Shape aShape = shapeObject->Shape();
+
+
+			// Get the location of the shape
+			TopLoc_Location shapeLocation = aShape.Location();
+
+			// Get the transformation matrix from the location
+			gp_Trsf transformation = shapeLocation.Transformation();
+
+			for (size_t i = 1; i <= 3; i++)
+			{
+				for (size_t j = 1; j <= 4; j++)
+				{
+					ret->Add(transformation.Value(i, j));
+				}
+			}
+		}
+
+
+
+		return ret;
+	}
+
+
 
 	List<double>^ GetObjectMatrixValues(ManagedObjHandle^ h) {
 		List<double>^ ret = gcnew List<double>();
@@ -3869,7 +3943,7 @@ public:
 		return hhh;
 	}
 
-	List<List<Vector3d>^>^ IteratePoly(ManagedObjHandle^ h, bool useLocalTransform) {
+	List<List<Vector3d>^>^ IteratePoly(ManagedObjHandle^ h, bool useLocalTransform, bool useWholeShapeTransform) {
 
 		List<List<Vector3d>^>^ ret = gcnew List<List<Vector3d>^>();
 
@@ -3877,7 +3951,7 @@ public:
 		List<Vector3d>^ norms = gcnew List<Vector3d>();
 		ObjHandle hc = h->ToObjHandle();
 
-		auto pp = impl->IteratePoly(hc, useLocalTransform);
+		auto pp = impl->IteratePoly(hc, useLocalTransform, useWholeShapeTransform);
 		for (size_t i = 0; i < pp.size(); i += 6)
 		{
 			Vector3d v;
@@ -4504,12 +4578,44 @@ public:
 			return nullptr;
 		}
 		TopoDS_Shape shape0 = temp1->Shape();
+		BRepTools_History htool;
+		auto modified = shape0.Located(object1->Transformation());
+
+		//// Create a map to store the extracted sub-shapes
+		//TopTools_IndexedMapOfShape myFacesMap;
+
+		//// Map all edges from 'myShape' into 'myEdgesMap'
+		//TopExp::MapShapes(shape0, TopAbs_FACE, myFacesMap);
+		//myFacesMap.
+		//// Now, 'myEdgesMap' contains all the edges found within 'myShape'.
+		//// You can iterate through 'myEdgesMap' to access each edge:
+		//for (Standard_Integer i = 1; i <= myFacesMap.Extent(); ++i) {
+		//	const TopoDS_Shape& anFace = myFacesMap(i);
+		//	// Do something with 'anEdge'
+		//}
 
 		for (TopExp_Explorer exp(shape0, TopAbs_FACE); exp.More(); exp.Next())
 		{
 			auto ttt = exp.Current();
+
+			for (TopExp_Explorer exp2(modified, TopAbs_FACE); exp2.More(); exp2.Next())
+			{
+				auto ttt2 = exp2.Current();
+				if (ttt.IsPartner(ttt2)) {
+					htool.AddModified(ttt, ttt2);
+					break;
+				}
+			}
+		}
+
+		for (TopExp_Explorer exp(shape0, TopAbs_FACE); exp.More(); exp.Next())
+		{
+			auto ttt = exp.Current();
+			TopTools_ListOfShape modifiedFaces = htool.Modified(ttt);
+
 			auto ind = GetShapeIndex(ttt);
-			ttt = ttt.Located(object1->LocalTransformation());
+			ttt = modifiedFaces.First();
+			//ttt = ttt.Located(object1->LocalTransformation());
 
 			auto loc = ttt.Location();
 
@@ -4520,8 +4626,6 @@ public:
 			Handle(Geom_Surface) aSurf = BRep_Tool::Surface(aFace, aLocation);
 
 			GeomAdaptor_Surface theGASurface(aSurf);
-
-
 
 			if (aFace.IsNull())
 				continue;

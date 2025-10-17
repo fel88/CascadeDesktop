@@ -956,7 +956,7 @@ namespace CascadeDesktop
             var x = d.GetNumericField("x");
             var y = d.GetNumericField("y");
             var z = d.GetNumericField("z");
-            
+
             var sob = GetSelectedOccObject().Handle;
             var sobwp = GetSelectedObjectWithParent();
 
@@ -1293,22 +1293,25 @@ namespace CascadeDesktop
 
         public void ExportSelectedToObj()
         {
-
-            SaveFileDialog sfd = new SaveFileDialog();
-            sfd.Filter = "Obj mesh|*.obj";
-
-            if (sfd.ShowDialog() != DialogResult.OK)
-                return;
-
             var d = AutoDialog.DialogHelpers.StartDialog();
             d.AddBoolField("optimize", "Optimize vertices");
+            d.AddBoolField("localTransform", "Apply local transform");
+            d.AddBoolField("wholeShapeTransform", "Whole shape transform");
 
             if (!d.ShowDialog())
                 return;
 
             var optimize = d.GetBoolField("optimize");
+            var wholeShapeTransform = d.GetBoolField("wholeShapeTransform");
+            var applyLocalTransform = d.GetBoolField("localTransform");
 
-            var poly = proxy.IteratePoly(proxy.GetSelectedObject());
+            SaveFileDialog sfd = new();
+            sfd.Filter = "Obj mesh|*.obj";
+
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
+
+            var poly = proxy.IteratePoly(proxy.GetSelectedObject(), applyLocalTransform, wholeShapeTransform);
             var res1 = poly[0].Select(z => new Vector3d(z.X, z.Y, z.Z)).ToArray();
             var res2 = poly[1].Select(z => new Vector3d(z.X, z.Y, z.Z)).ToArray();
 
@@ -2121,11 +2124,15 @@ namespace CascadeDesktop
             GL.MatrixMode(MatrixMode.Modelview);
 
             GL.LoadMatrix(ref view);
-
+         
             if (depthRender)
             {
                 //render all in depth
                 RenderDepthOnly();
+            }
+            if (polyRender)
+            {
+                PolyRender();
             }
             if (showAxes)
             {
@@ -2281,12 +2288,15 @@ namespace CascadeDesktop
                 showAxes = proxy.Checkbox($"show axes", showAxes);
                 //blendEnabled = proxy.Checkbox($"blend enabled", blendEnabled);
                 depthRender = proxy.Checkbox($"depth render", depthRender);
+                polyRender = proxy.Checkbox($"poly render", polyRender);
                 //showTriangleCamSpace = proxy.Checkbox($"show triangle cam space", showTriangleCamSpace);
 
+                proxy.Text($"total shapes: {proxy.GetTotalShapes()}");
                 if (proxy.Button($"clear meshes"))
                 {
                     Parts.Clear();
                 }
+
                 if (proxy.Button($"close"))
                 {
                     CustomRenderingDialogEnabled = false;
@@ -2383,7 +2393,7 @@ namespace CascadeDesktop
 
             //GL.Color3(Color.Green);
 
-
+         
             foreach (var item in Parts.OfType<GpuMeshSceneObject>())
             {
                 item.gpuObject.Draw();
@@ -2513,6 +2523,30 @@ namespace CascadeDesktop
             GL.ColorMask(true, true, true, true);
         }
 
+        private void PolyRender()
+        {
+            // Disable color writes
+            
+            foreach (var item in Objs)
+            {
+                var poly = proxy.IteratePoly(item.Handle);
+                for (int i = 0; i < poly[0].Count; i += 3)
+                {
+                    Vector3d item1 = poly[0][i];
+                    GL.Begin(PrimitiveType.Triangles);
+                    for (int j = 0; j < 3; j++)
+                    {
+                        var v = poly[0][i + j];
+                        var n = poly[1][i + j];
+                        GL.Normal3(n.X, n.Y, n.Z);
+                        GL.Vertex3(v.X, v.Y, v.Z);
+                    }
+
+                    GL.End();
+                }
+            }
+            
+        }
         internal void CustomRenderingDialogVisibleSwitch()
         {
             CustomRenderingDialogEnabled = !CustomRenderingDialogEnabled;
@@ -2522,6 +2556,7 @@ namespace CascadeDesktop
         bool showAxes = false;
         bool blendEnabled = false;
         bool depthRender = false;
+        bool polyRender = false;
         bool showTriangleCamSpace = false;
 
         //private void timer1_Tick(object sender, EventArgs e)
