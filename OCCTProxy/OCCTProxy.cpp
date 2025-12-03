@@ -3534,6 +3534,8 @@ public:
 
 		Handle(AIS_Shape) anIS = Handle(AIS_Shape)::DownCast(anIO);
 		TopoDS_Shape aShape = anIS->Shape();
+		
+		aShape = aShape.Located(anIS->LocalTransformation());
 		aStatus = aWriter.Transfer(aShape, aType);
 		if (aStatus != IFSelect_RetDone)
 		{
