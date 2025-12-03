@@ -3,13 +3,9 @@ using Cascade.Common;
 using CascadeDesktop.Interfaces;
 using CascadeDesktop.Tools;
 using CSPLib;
-using MathNet.Numerics.Providers.LinearAlgebra;
-using OpenTK;
 using OpenTK.GLControl;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using OpenTK.Platform.Windows;
-using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -20,9 +16,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using System.Windows.Media.Media3D;
 using System.Xml.Linq;
-using TriangleNet.IO;
 using static CascadeDesktop.OccSceneObject;
 
 namespace CascadeDesktop
@@ -1303,6 +1297,12 @@ namespace CascadeDesktop
             proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
         }
 
+        public class VecArrayPosInfo
+        {
+            public Vector3d Position;
+            public int Index;
+        }
+
         public void ExportSelectedToObj()
         {
             var d = AutoDialog.DialogHelpers.StartDialog();
@@ -1331,17 +1331,29 @@ namespace CascadeDesktop
             List<Vector3d> vvn = new List<Vector3d>();
 
             //todo fix here (optimize normals and vertices together)
-
+            Dictionary<string, List<VecArrayPosInfo>> bucket1 = new Dictionary<string, List<VecArrayPosInfo>>();
+            Dictionary<string, List<VecArrayPosInfo>> bucket2 = new Dictionary<string, List<VecArrayPosInfo>>();
+            List<int> indices = new List<int>();
+            List<int> nindices = new List<int>();
             for (int i = 0; i < res1.Length; i += 3)
             {
                 var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
                 foreach (var v in verts)
                 {
+                    string key = $"{(int)(v.X * 1000)};{(int)(v.Y * 1000)};{(int)(v.Z * 1000)}";
+                    if (!bucket1.ContainsKey(key))
+                        bucket1.Add(key, new List<VecArrayPosInfo>());
 
-                    if (vvv.Any(z => (z - v).Length < tolerance))
+                    var fr = bucket1[key].FirstOrDefault(z => (z.Position - v).Length < tolerance);
+                    if (fr != null)
+                    {
+                        indices.Add(fr.Index);
                         continue;
+                    }
 
                     vvv.Add(v);
+                    bucket1[key].Add(new VecArrayPosInfo() { Position = v, Index = vvv.Count });
+                    indices.Add(vvv.Count);
                     sb.AppendLine($"v {v.X} {v.Y} {v.Z}".Replace(",", "."));
                 }
             }
@@ -1350,14 +1362,24 @@ namespace CascadeDesktop
                 var verts = new[] { res2[i], res2[i + 1], res2[i + 2] };
                 foreach (var v in verts)
                 {
-                    if (vvn.Any(z => (z - v).Length < tolerance))
+                    string key = $"{(int)(v.X * 1000)};{(int)(v.Y * 1000)};{(int)(v.Z * 1000)}";
+                    if (!bucket2.ContainsKey(key))
+                        bucket2.Add(key, new List<VecArrayPosInfo>());
+
+                    var fr = bucket2[key].FirstOrDefault(z => (z.Position - v).Length < tolerance);
+                    if (fr != null)
+                    {
+                        nindices.Add(fr.Index);
                         continue;
+                    }
 
                     vvn.Add(v);
+                    bucket2[key].Add(new VecArrayPosInfo() { Position = v, Index = vvn.Count });
+                    nindices.Add(vvn.Count);
                     sb.AppendLine($"vn {v.X} {v.Y} {v.Z}".Replace(",", "."));
                 }
             }
-            int counter = 1;
+            
             for (int i = 0; i < res1.Length; i += 3)
             {
                 var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
@@ -1365,29 +1387,10 @@ namespace CascadeDesktop
                 List<int> indc = new List<int>();
                 List<int> indcn = new List<int>();
 
-                foreach (var vitem in verts)
+                for (int j = 0; j < 3; j++)
                 {
-                    for (int k = 0; k < vvv.Count; k++)
-                    {
-                        if ((vvv[k] - vitem).Length < tolerance)
-                        {
-                            indc.Add(k + 1);
-                        }
-                        else
-                            continue;
-                    }
-                }
-                foreach (var vitem in normals)
-                {
-                    for (int k = 0; k < vvn.Count; k++)
-                    {
-                        if ((vvn[k] - vitem).Length < tolerance)
-                        {
-                            indcn.Add(k + 1);
-                        }
-                        else
-                            continue;
-                    }
+                    indc.Add(indices[i + j]);
+                    indcn.Add(nindices[i + j]);
                 }
                 if (indc.GroupBy(z => z).Any(z => z.Count() > 1))
                 {
@@ -1396,8 +1399,6 @@ namespace CascadeDesktop
                 }
                 sb.AppendLine($"f {indc[0]}//{indcn[0]} {indc[1]}//{indcn[1]} {indc[2]}//{indcn[2]}");
             }
-
-
 
             File.WriteAllText(sfd.FileName, sb.ToString());
             SetStatus($"saved to {sfd.FileName} successfully");
