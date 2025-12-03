@@ -13,12 +13,22 @@ namespace CascadeDesktop
                 Indices = indices;
                 Parent = parent;
                 Points = indices.Select(z => parent.Points[z]).ToArray();
-                Normals = indices.Select(z => parent.Normals[z]).ToArray();
+                
+            }
+
+            public Face(MeshModel parent, int[] indices, int[] nindices)
+            {
+                Indices = indices;
+                NIndices = nindices;
+                Parent = parent;
+                Points = indices.Select(z => parent.Points[z]).ToArray();
+                Normals = nindices.Select(z => parent.Normals[z]).ToArray();
             }
 
             public Vector3d[] Points { get; private set; }
             public Vector3d[] Normals { get; private set; }
             public int[] Indices;
+            public int[] NIndices;
             public MeshModel Parent;
         }
 
@@ -35,7 +45,7 @@ namespace CascadeDesktop
                 for (int i = 0; i < item.Indices.Length; i++)
                 {
                     triags.Add(Points[item.Indices[i]]);
-                    norms.Add(Normals[item.Indices[i]]);
+                    norms.Add(Normals[item.NIndices[i]]);
                 }
             }
             return new GpuObject(triags.ToArray(), norms.ToArray());

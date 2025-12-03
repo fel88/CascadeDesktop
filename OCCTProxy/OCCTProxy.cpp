@@ -1532,7 +1532,11 @@ public:
 					gp_Dir aDir1 = aNormals(n1);
 					gp_Dir aDir2 = aNormals(n2);
 					gp_Dir aDir3 = aNormals(n3);
-
+					if (faceOrientation == TopAbs_Orientation::TopAbs_REVERSED) {
+						aDir1.Reverse();
+						aDir2.Reverse();
+						aDir3.Reverse();						
+					}
 					/*gp_Pnt2d uv1 = uvNodes(n1);
 					gp_Pnt2d uv2 = uvNodes(n2);
 					gp_Pnt2d uv3 = uvNodes(n3);*/

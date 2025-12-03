@@ -585,6 +585,11 @@ namespace CascadeDesktop
                 case ".obj":
                     {
                         var model = ObjFileModelLoader.Parse(File.ReadAllText(ofd.FileName));
+                        if (model.Normals.Count == 0)
+                        {
+                            GUIHelpers.Warning("models without normals are not supported");
+                            return;
+                        }
                         var gpuObj = model.ToGpuObject();
 
                         Parts.Add(new GpuMeshSceneObject(gpuObj));
@@ -1293,15 +1298,13 @@ namespace CascadeDesktop
 
         public void ExportSelectedToObj()
         {
-            var d = AutoDialog.DialogHelpers.StartDialog();
-            d.AddBoolField("optimize", "Optimize vertices");
+            var d = AutoDialog.DialogHelpers.StartDialog();            
             d.AddBoolField("localTransform", "Apply local transform");
             d.AddBoolField("wholeShapeTransform", "Whole shape transform");
 
             if (!d.ShowDialog())
                 return;
-
-            var optimize = d.GetBoolField("optimize");
+            
             var wholeShapeTransform = d.GetBoolField("wholeShapeTransform");
             var applyLocalTransform = d.GetBoolField("localTransform");
 
@@ -1318,85 +1321,73 @@ namespace CascadeDesktop
             const float tolerance = 1e-8f;
             StringBuilder sb = new StringBuilder();
             List<Vector3d> vvv = new List<Vector3d>();
-            if (optimize)
+            List<Vector3d> vvn = new List<Vector3d>();
+
+            //todo fix here (optimize normals and vertices together)
+            for (int i = 0; i < res1.Length; i += 3)
             {
-                //todo fix here (optimize normals and vertices together)
-                for (int i = 0; i < res1.Length; i += 3)
+                var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
+                foreach (var v in verts)
                 {
-                    var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
-                    foreach (var v in verts)
-                    {
-                        if (vvv.Any(z => (z - v).Length < tolerance))
-                            continue;
-
-                        vvv.Add(v);
-                        sb.AppendLine($"v {v.X} {v.Y} {v.Z}".Replace(",", "."));
-                    }
-                }
-                for (int i = 0; i < res2.Length; i += 3)
-                {
-                    var verts = new[] { res2[i], res2[i + 1], res2[i + 2] };
-                    foreach (var v in verts)
-                    {
-                        if (vvv.Any(z => (z - v).Length < tolerance))
-                            continue;
-
-                        vvv.Add(v);
-                        sb.AppendLine($"vn {v.X} {v.Y} {v.Z}".Replace(",", "."));
-                    }
-                }
-                int counter = 1;
-                for (int i = 0; i < res1.Length; i += 3)
-                {
-                    var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
-                    List<int> indc = new List<int>();
-
-                    foreach (var vitem in verts)
-                    {
-                        for (int k = 0; k < vvv.Count; k++)
-                        {
-                            if ((vvv[k] - vitem).Length < tolerance)
-                            {
-                                indc.Add(k + 1);
-                            }
-                            else
-                                continue;
-                        }
-                    }
-                    if (indc.GroupBy(z => z).Any(z => z.Count() > 1))
-                    {
+                    if (vvv.Any(z => (z - v).Length < tolerance))
                         continue;
-                        //throw duplicate face vertex
-                    }
-                    sb.AppendLine($"f {indc[0]} {indc[1]} {indc[2]}");
-                }
-            }
-            else
-            {
-                for (int i = 0; i < res1.Length; i += 3)
-                {
-                    var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
-                    foreach (var v in verts)
-                    {
-                        vvv.Add(v);
-                        sb.AppendLine($"v {v.X} {v.Y} {v.Z}".Replace(",", "."));
-                    }
-                }
-                for (int i = 0; i < res2.Length; i += 3)
-                {
-                    var verts = new[] { res2[i], res2[i + 1], res2[i + 2] };
-                    foreach (var v in verts)
-                    {
-                        vvv.Add(v);
-                        sb.AppendLine($"vn {v.X} {v.Y} {v.Z}".Replace(",", "."));
-                    }
-                }
 
-                for (int i = 0; i < res1.Length; i += 3)
-                {
-                    sb.AppendLine($"f {i + 1} {i + 2} {i + 3}");
+                    vvv.Add(v);
+                    sb.AppendLine($"v {v.X} {v.Y} {v.Z}".Replace(",", "."));
                 }
             }
+            for (int i = 0; i < res2.Length; i += 3)
+            {
+                var verts = new[] { res2[i], res2[i + 1], res2[i + 2] };
+                foreach (var v in verts)
+                {
+                    if (vvn.Any(z => (z - v).Length < tolerance))
+                        continue;
+
+                    vvn.Add(v);
+                    sb.AppendLine($"vn {v.X} {v.Y} {v.Z}".Replace(",", "."));
+                }
+            }
+            int counter = 1;
+            for (int i = 0; i < res1.Length; i += 3)
+            {
+                var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
+                var normals = new[] { res2[i], res2[i + 1], res2[i + 2] };
+                List<int> indc = new List<int>();
+                List<int> indcn = new List<int>();
+
+                foreach (var vitem in verts)
+                {
+                    for (int k = 0; k < vvv.Count; k++)
+                    {
+                        if ((vvv[k] - vitem).Length < tolerance)
+                        {
+                            indc.Add(k + 1);
+                        }
+                        else
+                            continue;
+                    }
+                }
+                foreach (var vitem in normals)
+                {
+                    for (int k = 0; k < vvn.Count; k++)
+                    {
+                        if ((vvn[k] - vitem).Length < tolerance)
+                        {
+                            indcn.Add(k + 1);
+                        }
+                        else
+                            continue;
+                    }
+                }
+                if (indc.GroupBy(z => z).Any(z => z.Count() > 1))
+                {
+                    continue;
+                    //throw duplicate face vertex
+                }
+                sb.AppendLine($"f {indc[0]}//{indcn[0]} {indc[1]}//{indcn[1]} {indc[2]}//{indcn[2]}");
+            }
+
 
 
             File.WriteAllText(sfd.FileName, sb.ToString());
@@ -2124,7 +2115,7 @@ namespace CascadeDesktop
             GL.MatrixMode(MatrixMode.Modelview);
 
             GL.LoadMatrix(ref view);
-         
+
             if (depthRender)
             {
                 //render all in depth
@@ -2393,7 +2384,7 @@ namespace CascadeDesktop
 
             //GL.Color3(Color.Green);
 
-         
+
             foreach (var item in Parts.OfType<GpuMeshSceneObject>())
             {
                 item.gpuObject.Draw();
@@ -2526,7 +2517,7 @@ namespace CascadeDesktop
         private void PolyRender()
         {
             // Disable color writes
-            
+
             foreach (var item in Objs)
             {
                 var poly = proxy.IteratePoly(item.Handle);
@@ -2545,7 +2536,7 @@ namespace CascadeDesktop
                     GL.End();
                 }
             }
-            
+
         }
         internal void CustomRenderingDialogVisibleSwitch()
         {

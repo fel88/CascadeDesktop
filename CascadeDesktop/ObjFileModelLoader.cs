@@ -28,8 +28,18 @@ namespace CascadeDesktop
                 }
                 if (spl[0] == "f")
                 {
-                    var vals = spl.Skip(1).Select(int.Parse).ToArray();
-                    ret.Faces.Add(new Face(ret, vals.Select(z => z - 1).ToArray()));
+                    if (line.Contains("//"))
+                    {
+                        var vals = spl.Skip(1).Select(z => z.Split("//", StringSplitOptions.RemoveEmptyEntries)[0]).Select(int.Parse).ToArray();
+                        var valsn = spl.Skip(1).Select(z => z.Split("//", StringSplitOptions.RemoveEmptyEntries)[1]).Select(int.Parse).ToArray();
+                        
+                        ret.Faces.Add(new Face(ret, vals.Select(z => z - 1).ToArray(), valsn.Select(z => z - 1).ToArray()));
+                    }
+                    else
+                    {
+                        var vals = spl.Skip(1).Select(int.Parse).ToArray();
+                        ret.Faces.Add(new Face(ret, vals.Select(z => z - 1).ToArray()));
+                    }
 
                 }
             }
