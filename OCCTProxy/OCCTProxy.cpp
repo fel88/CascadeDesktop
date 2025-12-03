@@ -267,7 +267,30 @@ public:
 	double Radius;
 };
 
-public ref class ManagedObjHandle {//todo make two diffrent handles for top entity and all anothers 
+public ref class TopObjHandle {
+public:
+
+	int BindId;
+	int ShapeType;
+
+	void FromObjHandle(ObjHandle h) {
+
+		BindId = h.bindId;
+		ShapeType = h.shapeType;
+	}
+
+	ObjHandle ToObjHandle() {
+		ObjHandle h;
+		h.bindId = BindId;
+
+		h.shapeType = ShapeType;
+
+
+		return h;
+	}
+};
+
+public ref class ManagedObjHandle {
 public:
 
 	int BindId;
@@ -1465,8 +1488,8 @@ public:
 
 		}
 	}
-	std::vector<double> IteratePoly(ObjHandle h, bool useLocalTransform, bool useWholeShapeTransform) {
-		auto obj = findObject(h);
+	std::vector<double> IteratePoly(int hId, bool useLocalTransform, bool useWholeShapeTransform) {
+		auto obj = findObject(hId);
 		auto shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
 
 		//std::vector<QVector3D> vertices;
@@ -1535,7 +1558,7 @@ public:
 					if (faceOrientation == TopAbs_Orientation::TopAbs_REVERSED) {
 						aDir1.Reverse();
 						aDir2.Reverse();
-						aDir3.Reverse();						
+						aDir3.Reverse();
 					}
 					/*gp_Pnt2d uv1 = uvNodes(n1);
 					gp_Pnt2d uv2 = uvNodes(n2);
@@ -3494,13 +3517,13 @@ public:
 		return ExportStep(aFilename);
 	}
 
-	bool ExportStep(ManagedObjHandle^ h, System::String^ str)
+	bool ExportStep(TopObjHandle^ h, System::String^ str)
 	{
 		const TCollection_AsciiString aFilename = toAsciiString(str);
 		return ExportStep(h, aFilename);
 	}
 
-	bool ExportStep(ManagedObjHandle^ h, const TCollection_AsciiString& theFileName)
+	bool ExportStep(TopObjHandle^ h, const TCollection_AsciiString& theFileName)
 	{
 		STEPControl_StepModelType aType = STEPControl_AsIs;
 		IFSelect_ReturnStatus aStatus;
@@ -3530,7 +3553,7 @@ public:
 	///Export Step file
 	/// </summary>
 	/// <param name="theFileName">Name of export file</param>
-	List<System::Byte>^ ExportStepStream(ManagedObjHandle^ h)
+	List<System::Byte>^ ExportStepStream(TopObjHandle^ h)
 	{
 		STEPControl_StepModelType aType = STEPControl_AsIs;
 		IFSelect_ReturnStatus aStatus;
@@ -3848,11 +3871,19 @@ public:
 		return ret;
 	}
 
-
-
 	void MoveObject(ManagedObjHandle^ h, double x, double y, double z, bool rel)
 	{
-		auto o = impl->findObject(h->BindId);
+		MoveObject(h->AisShapeBindId, x, y, z, rel);
+	}
+
+	void MoveObject(TopObjHandle^ h, double x, double y, double z, bool rel)
+	{
+		MoveObject(h->BindId, x, y, z, rel);
+	}
+
+	void MoveObject(int id, double x, double y, double z, bool rel)
+	{
+		auto o = impl->findObject(id);
 		gp_Trsf tr;
 		tr.SetValues(1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z);
 		if (rel) {
@@ -3863,6 +3894,8 @@ public:
 		TopLoc_Location p(tr);
 		myAISContext()->SetLocation(o, p);
 	}
+
+
 
 	void SetMatrixValues(ManagedObjHandle^ h, List<double>^ m)
 	{
@@ -3947,15 +3980,14 @@ public:
 		return hhh;
 	}
 
-	List<List<Vector3d>^>^ IteratePoly(ManagedObjHandle^ h, bool useLocalTransform, bool useWholeShapeTransform) {
+	List<List<Vector3d>^>^ IteratePoly(TopObjHandle^ h, bool useLocalTransform, bool useWholeShapeTransform) {
 
 		List<List<Vector3d>^>^ ret = gcnew List<List<Vector3d>^>();
 
 		List<Vector3d>^ verts = gcnew List<Vector3d>();
 		List<Vector3d>^ norms = gcnew List<Vector3d>();
-		ObjHandle hc = h->ToObjHandle();
-
-		auto pp = impl->IteratePoly(hc, useLocalTransform, useWholeShapeTransform);
+		
+		auto pp = impl->IteratePoly(h->BindId, useLocalTransform, useWholeShapeTransform);
 		for (size_t i = 0; i < pp.size(); i += 6)
 		{
 			Vector3d v;

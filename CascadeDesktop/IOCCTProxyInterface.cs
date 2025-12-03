@@ -72,6 +72,7 @@ namespace CascadeDesktop
         ManagedObjHandle MakeDiff(ManagedObjHandle h1, ManagedObjHandle h2);
         ManagedObjHandle MakeCommon(ManagedObjHandle h1, ManagedObjHandle h2);
         void MoveObject(ManagedObjHandle h1, double x, double y, double z, bool rel);
+        void MoveObject(TopObjHandle h1, double x, double y, double z, bool rel);
         void RotateObject(ManagedObjHandle h1, double x, double y, double z, double rot, bool rel);
         void Erase(ManagedObjHandle h1, bool updateViewer = true);
         void Remove(ManagedObjHandle h1);
@@ -97,14 +98,14 @@ namespace CascadeDesktop
         ManagedObjHandle MakeFillet(ManagedObjHandle so, double r);
         ManagedObjHandle MakeFillet2d(ManagedObjHandle so, double r);
         ManagedObjHandle HelixWire(double radius, double radius2, double pitch, double sweep);
-        ManagedObjHandle MakePipe(ManagedObjHandle so, double r);
+        ManagedObjHandle MakePipe(ManagedObjHandle handle, double r);
         ManagedObjHandle Pipe(double x1, double y1, double z1, double x2, double y2, double z2, double size);
         ManagedObjHandle Sphere(double x1, double y1, double z1, double size);
-        ManagedObjHandle MirrorObject(ManagedObjHandle managedObjHandle, Vector3d dir, Vector3d pnt, bool axis2, bool rel);
+        ManagedObjHandle MirrorObject(ManagedObjHandle handle, Vector3d dir, Vector3d pnt, bool axis2, bool rel);
         ManagedObjHandle MakeSphere(double r);
         ManagedObjHandle MakeCylinder(double r, double h);
-        bool ExportStep(ManagedObjHandle managedObjHandle, string fileName);
-        List<byte> ExportStepStream(ManagedObjHandle managedObjHandle);
+        bool ExportStep(TopObjHandle handle, string fileName);
+        List<byte> ExportStepStream(TopObjHandle handle);
         void MoveTo(int x, int y);
         void Pan(int x, int y);
         void Rotation(int x, int y);
@@ -118,7 +119,7 @@ namespace CascadeDesktop
         Vector3d? GetVertexPosition(ManagedObjHandle obj);
         void StartRotation(int x, int y);
         void Select(bool v);
-        List<List<Vector3d>> IteratePoly(ManagedObjHandle managedObjHandle, bool useLocalTransform = true, bool useWholeShapeTransform = true);
+        List<List<Vector3d>> IteratePoly(TopObjHandle managedObjHandle, bool useLocalTransform = true, bool useWholeShapeTransform = true);
         void SetNextWindowSizeConstraints(int minx, int miny, int maxx, int maxy);
 
         ManagedObjHandle AddWireDraft(double height);

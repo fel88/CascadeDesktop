@@ -832,12 +832,19 @@ namespace CascadeDesktop
 
         public void ExportSelectedToStep()
         {
+            if (!proxy.IsObjectSelected())
+            {
+                GUIHelpers.Warning("object is not selected");
+                return;
+            }
+
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.Filter = "Step models (*.stp)|*.stp";
             if (sfd.ShowDialog() != DialogResult.OK)
                 return;
 
-            proxy.ExportStep(proxy.GetSelectedObject(), sfd.FileName);
+            var occ = GetSelectedOccObject();
+            proxy.ExportStep(occ.TopHandle, sfd.FileName);
         }
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
@@ -962,8 +969,8 @@ namespace CascadeDesktop
             var y = d.GetNumericField("y");
             var z = d.GetNumericField("z");
 
-            var sob = GetSelectedOccObject().Handle;
-            var sobwp = GetSelectedObjectWithParent();
+            var sob = GetSelectedOccObject().TopHandle;
+            var soh = GetSelectedObject();
 
             switch (d.GetOptionsFieldIdx("mode"))
             {
@@ -974,9 +981,9 @@ namespace CascadeDesktop
                     proxy.MoveObject(sob, x, y, z, false);
                     break;
                 case 2:
-                    var com = proxy.GetFaceInfo(sobwp).COM;
+                    var com = proxy.GetFaceInfo(soh).COM;
                     var shift = new Vector3d(x, y, z) - com;
-                    proxy.MoveObject(sob, shift.X, shift.Y, shift.Z, true);
+                    proxy.MoveObject(soh, shift.X, shift.Y, shift.Z, true);
                     break;
             }
 
@@ -1298,13 +1305,13 @@ namespace CascadeDesktop
 
         public void ExportSelectedToObj()
         {
-            var d = AutoDialog.DialogHelpers.StartDialog();            
-            d.AddBoolField("localTransform", "Apply local transform");
-            d.AddBoolField("wholeShapeTransform", "Whole shape transform");
+            var d = AutoDialog.DialogHelpers.StartDialog();
+            d.AddBoolField("localTransform", "Apply local transform", true);
+            d.AddBoolField("wholeShapeTransform", "Whole shape transform", true);
 
             if (!d.ShowDialog())
                 return;
-            
+
             var wholeShapeTransform = d.GetBoolField("wholeShapeTransform");
             var applyLocalTransform = d.GetBoolField("localTransform");
 
@@ -1314,7 +1321,7 @@ namespace CascadeDesktop
             if (sfd.ShowDialog() != DialogResult.OK)
                 return;
 
-            var poly = proxy.IteratePoly(proxy.GetSelectedObject(), applyLocalTransform, wholeShapeTransform);
+            var poly = proxy.IteratePoly(GetSelectedOccObject().TopHandle, applyLocalTransform, wholeShapeTransform);
             var res1 = poly[0].Select(z => new Vector3d(z.X, z.Y, z.Z)).ToArray();
             var res2 = poly[1].Select(z => new Vector3d(z.X, z.Y, z.Z)).ToArray();
 
@@ -1324,11 +1331,13 @@ namespace CascadeDesktop
             List<Vector3d> vvn = new List<Vector3d>();
 
             //todo fix here (optimize normals and vertices together)
+
             for (int i = 0; i < res1.Length; i += 3)
             {
                 var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
                 foreach (var v in verts)
                 {
+
                     if (vvv.Any(z => (z - v).Length < tolerance))
                         continue;
 
@@ -1817,7 +1826,7 @@ namespace CascadeDesktop
             return fr;
         }
 
-        public ManagedObjHandle GetSelectedObjectWithParent()
+        public ManagedObjHandle GetSelectedObject()
         {
             var h = proxy.GetSelectedObject();
             var hs = proxy.GetSelectedObjects();
@@ -2497,7 +2506,7 @@ namespace CascadeDesktop
             GL.ColorMask(false, false, false, false);
             foreach (var item in Objs)
             {
-                var poly = proxy.IteratePoly(item.Handle);
+                var poly = proxy.IteratePoly(item.TopHandle);
                 for (int i = 0; i < poly[0].Count; i += 3)
                 {
                     Vector3d item1 = poly[0][i];
@@ -2520,7 +2529,7 @@ namespace CascadeDesktop
 
             foreach (var item in Objs)
             {
-                var poly = proxy.IteratePoly(item.Handle);
+                var poly = proxy.IteratePoly(item.TopHandle);
                 for (int i = 0; i < poly[0].Count; i += 3)
                 {
                     Vector3d item1 = poly[0][i];

@@ -14,6 +14,7 @@ namespace CascadeDesktop
     {
         readonly IOCCTProxyInterface Proxy;
         public readonly ManagedObjHandle Handle;
+        public TopObjHandle TopHandle => new TopObjHandle() { BindId = Handle.BindId };
 
         public bool IsEquals(ManagedObjHandle h)
         {
@@ -122,7 +123,7 @@ namespace CascadeDesktop
 
             var file = ctx.Zip.CreateEntry(name);
 
-            var r = Proxy.ExportStepStream(Handle).ToArray();
+            var r = Proxy.ExportStepStream(TopHandle).ToArray();
             //ctx..ExportStep(proxy.GetSelectedObject(), sfd.FileName);
             MemoryStream ms = new MemoryStream();
             ms.Write(r, 0, r.Length);
