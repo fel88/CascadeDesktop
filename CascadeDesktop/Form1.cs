@@ -3,11 +3,13 @@ using Cascade.Common;
 using CascadeDesktop.Interfaces;
 using CascadeDesktop.Tools;
 using CSPLib;
+using OCCT.Interfaces;
 using OpenTK.GLControl;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -15,6 +17,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using static CascadeDesktop.OccSceneObject;
@@ -383,6 +386,7 @@ namespace CascadeDesktop
             if (fr == null)
                 return;
 
+            var sw = Stopwatch.StartNew();
             obj.AisShapeBindId = fr.Handle.BindId;
             var v = proxy.GetVertexPosition(obj);
             var face = proxy.GetFaceInfo(obj);
@@ -445,6 +449,8 @@ namespace CascadeDesktop
             {
                 SetStatus3(string.Empty);
             }
+            sw.Stop();
+            SetStatus(sw.ElapsedMilliseconds + "ms");
         }
 
         private void ClearStatus3()
@@ -605,7 +611,7 @@ namespace CascadeDesktop
 
 
         }
-        public void ImportModel()
+        public async void ImportModel()
         {
             OpenFileDialog ofd = new OpenFileDialog
             {
@@ -617,24 +623,28 @@ namespace CascadeDesktop
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
 
-            var ext = Path.GetExtension(ofd.FileName).ToLower();
-            switch (ext)
-            {
-                case ".stp":
-                case ".step":
-                    {
-                        var bts = File.ReadAllBytes(ofd.FileName).ToList();
-                        Objs.AddRange(proxy.ImportStep(ofd.FileName, bts).Select(z => new ImportedOccSceneObject(ofd.FileName, z, proxy) { Name = Path.GetFileNameWithoutExtension(ofd.FileName) }));
-                    }
-                    break;
-                case ".igs":
-                case ".iges":
-                    {
-                        Objs.AddRange(proxy.ImportIges(ofd.FileName).Select(z => new OccSceneObject(z, proxy)));
-                    }
-                    break;
-            }
+            await Task.Run(() =>
+              {
+                  var ext = Path.GetExtension(ofd.FileName).ToLower();
+                  switch (ext)
+                  {
+                      case ".stp":
+                      case ".step":
+                          {
+                              var bts = File.ReadAllBytes(ofd.FileName).ToList();
+                              Objs.AddRange(proxy.ImportStep(ofd.FileName, bts).Select(z => new ImportedOccSceneObject(ofd.FileName, z, proxy) { Name = Path.GetFileNameWithoutExtension(ofd.FileName) }));
+                          }
+                          break;
+                      case ".igs":
+                      case ".iges":
+                          {
+                              Objs.AddRange(proxy.ImportIges(ofd.FileName).Select(z => new OccSceneObject(z, proxy)));
+                          }
+                          break;
+                  }
 
+
+              });
 
             proxy.SetDisplayMode(1);
             proxy.RedrawView();
@@ -809,13 +819,13 @@ namespace CascadeDesktop
         public void FaceSelectionMode()
         {
             proxy.ResetSelectionMode();
-            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Face);
+            proxy.SetSelectionMode(SelectionModeEnum.Face);
 
         }
         public void WireSelectionMode()
         {
             proxy.ResetSelectionMode();
-            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Wire);
+            proxy.SetSelectionMode(SelectionModeEnum.Wire);
 
         }
 
@@ -883,13 +893,13 @@ namespace CascadeDesktop
 
         private void wireToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Wire);
+            proxy.SetSelectionMode(SelectionModeEnum.Wire);
 
         }
 
         private void shapeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Shape);
+            proxy.SetSelectionMode(SelectionModeEnum.Shape);
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -1118,7 +1128,7 @@ namespace CascadeDesktop
         public void EdgeSelectionMode()
         {
             proxy.ResetSelectionMode();
-            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
+            proxy.SetSelectionMode(SelectionModeEnum.Edge);
         }
 
         public void PipeAlongWire(OccSceneObject occ, double r)
@@ -1294,7 +1304,7 @@ namespace CascadeDesktop
         private void toolStripButton10_Click(object sender, EventArgs e)
         {
             proxy.ResetSelectionMode();
-            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Edge);
+            proxy.SetSelectionMode(SelectionModeEnum.Edge);
         }
 
         public class VecArrayPosInfo
@@ -1379,7 +1389,7 @@ namespace CascadeDesktop
                     sb.AppendLine($"vn {v.X} {v.Y} {v.Z}".Replace(",", "."));
                 }
             }
-            
+
             for (int i = 0; i < res1.Length; i += 3)
             {
                 var verts = new[] { res1[i], res1[i + 1], res1[i + 2] };
@@ -1709,7 +1719,7 @@ namespace CascadeDesktop
         internal void VertexSelectionMode()
         {
             proxy.ResetSelectionMode();
-            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Vertex);
+            proxy.SetSelectionMode(SelectionModeEnum.Vertex);
 
         }
 
@@ -1752,7 +1762,7 @@ namespace CascadeDesktop
         internal void ShapeSelectionMode()
         {
             proxy.ResetSelectionMode();
-            proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Shape);
+            proxy.SetSelectionMode(SelectionModeEnum.Shape);
         }
 
         internal void SetDarkBackground()

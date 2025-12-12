@@ -1,4 +1,5 @@
 ﻿using AutoDialog;
+using Cascade.Common;
 using CascadeDesktop.Interfaces;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
@@ -151,7 +152,7 @@ namespace CascadeDesktop.Tools
 
         public override void Select()
         {
-            Editor.Proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Face);
+            Editor.Proxy.SetSelectionMode(SelectionModeEnum.Face);
         }
 
         public override void Update()

@@ -1,4 +1,5 @@
-﻿using CascadeDesktop.Interfaces;
+﻿using Cascade.Common;
+using CascadeDesktop.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -87,7 +88,7 @@ namespace CascadeDesktop.Tools
 
         public override void Select()
         {
-            Editor.Proxy.SetSelectionMode(OCCTProxy.SelectionModeEnum.Shape);
+            Editor.Proxy.SetSelectionMode(SelectionModeEnum.Shape);
         }
 
         public override void Update()
