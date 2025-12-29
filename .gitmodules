@@ -1,0 +1,3 @@
+[submodule "OCCTProxy"]
+	path = OCCTProxy
+	url = https://github.com/fel88/OCCTProxy.git
