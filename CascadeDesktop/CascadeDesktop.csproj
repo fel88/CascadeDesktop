@@ -29,7 +29,6 @@
 	<ItemGroup>
 		<PackageReference Include="AutoDialog" Version="1.0.0.7" />
 		<PackageReference Include="IxMilia.Dxf" Version="0.8.3" />
-		<PackageReference Include="OCCTProxy" Version="1.0.2" />
 		<PackageReference Include="OpenTK" Version="4.9.4" />
 		<PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
 		<PackageReference Include="SpaceWizards.SharpFont" Version="1.0.2" />
@@ -52,6 +51,9 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\CSPLib\CSPLib.csproj" />
+		<ProjectReference Include="..\OCCTProxy\OCCTProxy.Common\OCCTProxy.Common.csproj" />
+		<ProjectReference Include="..\OCCTProxy\OCCTProxy.Interfaces\OCCTProxy.Interfaces.csproj" />
+		<ProjectReference Include="..\OCCTProxy\OCCTProxy\OCCTProxy.vcxproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Resource Include="Icons\anchor.png" />

@@ -1616,12 +1616,16 @@ namespace CascadeDesktop
                 return;
 
             var r = d.GetNumericField("r");
-            var so = proxy.GetSelectedObject();
-            var occ = GetSelectedOccObject();
+            var so = proxy.GetSelectedEdge();
+
+            //var occ = GetSelectedOccObject();
+
+            var occ = FindSelectedOccObjectByEdge(so);
+
             if (occ == null)
                 return;
 
-            var cs = proxy.MakeChamfer(so, r);
+            var cs = proxy.MakeChamfer(occ.Handle, r);
             Objs.Add(new OccSceneObject(cs, proxy));
             Remove(occ);
             proxy.UpdateCurrentViewer();
