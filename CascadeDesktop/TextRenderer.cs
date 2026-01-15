@@ -157,6 +157,9 @@ namespace CascadeDesktop
         // -------------------
         public void RenderText(string text, float x, float y, float scale, Vector3 color)
         {
+            if (string.IsNullOrEmpty(text))
+                return;
+
             // activate corresponding render state	
             shader.use();
             //glUniform3f(glGetUniformLocation(shader.ID, "textColor"), color.x, color.y, color.z);

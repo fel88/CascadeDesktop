@@ -911,6 +911,11 @@ namespace CascadeDesktop
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            if (keyData == (Keys.Control | Keys.G))
+            {
+                GridSwitch();
+                proxy.UpdateCurrentViewer();
+            }
             if (keyData == (Keys.Control | Keys.E))
             {
                 EdgeSelectionMode();
@@ -1831,9 +1836,10 @@ namespace CascadeDesktop
 
             if (!d.ShowDialog())
                 return;
-
+            
+            var sob = GetSelectedObject();
             var h = d.GetNumericField("h");
-            var mh = proxy.MakePrismFromFace(proxy.GetSelectedObject(), h);
+            var mh = proxy.MakePrismFromFace(sob, h);
             var occ = new OccSceneObject(mh, proxy) { Name = "extrude" };
             Objs.Add(occ);
         }

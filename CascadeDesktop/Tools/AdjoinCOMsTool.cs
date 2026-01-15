@@ -47,7 +47,7 @@ namespace CascadeDesktop.Tools
 
             surfs.Add(face);
             
-            objs.Add(fr.Handle);
+            objs.Add(sob);
             if (surfs.Count == 2)
             {
                 var shift = -surfs[0].COM + surfs[1].COM;
