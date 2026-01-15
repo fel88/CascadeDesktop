@@ -1,4 +1,4 @@
-﻿namespace CSPLib
+﻿namespace CascadeDesktop.Common.Interfaces
 {
     public interface IPropEditor
     {

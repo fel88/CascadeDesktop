@@ -1,5 +1,6 @@
 ﻿using AutoDialog;
 using Cascade.Common;
+using CascadeDesktop.Common;
 using CascadeDesktop.Interfaces;
 using CascadeDesktop.Tools;
 using CSPLib;
@@ -21,6 +22,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using static CascadeDesktop.OccSceneObject;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace CascadeDesktop
 {
@@ -587,8 +590,12 @@ namespace CascadeDesktop
                         var model = ObjFileModelLoader.Parse(File.ReadAllText(ofd.FileName));
                         if (model.Normals.Count == 0)
                         {
-                            GUIHelpers.Warning("models without normals are not supported");
-                            return;
+                            if(MessageBox.Show("models without normals are not supported. Try to restore normals automatically?", Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)                           
+                                return;
+
+                            //restore normals here
+                            model.CalcNormals();
+                            
                         }
                         var gpuObj = model.ToGpuObject();
 

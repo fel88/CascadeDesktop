@@ -17,6 +17,7 @@ using DxfPad;
 using CSPLib.Interfaces;
 using OpenTK.Mathematics;
 using Vector2 = OpenTK.Mathematics.Vector2;
+using CascadeDesktop.Common;
 
 namespace CSPLib
 {
@@ -842,20 +843,21 @@ namespace CSPLib
             var rad = (decimal)(points.Select(z => (z.Location - dp.Location).Length).Average());
 
             _draft.AddElement(new DraftEllipse(dp, rad, _draft));
-            if (GUIHelpers.ShowQuestion("Delete source points?", ParentForm.Text) == DialogResult.Yes)
+            if (GUIHelpers.Question("Delete source points?", ParentForm.Text) == DialogResult.Yes)
             {
                 for (int p = 0; p < points.Length; p++)
                 {
                     _draft.RemoveElement(points[p]);
                 }
             }
-
         }
 
         internal void FlipHorizontal()
         {
             var points = selected.OfType<DraftPoint>().ToArray();
-            if (points.Length == 0) return;
+            if (points.Length == 0) 
+                return;
+
             var maxx = points.Max(z => z.X);
             var minx = points.Min(z => z.X);
             var mx = (maxx + minx) / 2;
@@ -868,7 +870,9 @@ namespace CSPLib
         internal void FlipVertical()
         {
             var points = selected.OfType<DraftPoint>().ToArray();
-            if (points.Length == 0) return;
+            if (points.Length == 0) 
+                return;
+
             var maxy = points.Max(z => z.Y);
             var miny = points.Min(z => z.Y);
             var my = (maxy + miny) / 2;

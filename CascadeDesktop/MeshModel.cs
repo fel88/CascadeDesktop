@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,6 +31,13 @@ namespace CascadeDesktop
             public int[] Indices;
             public int[] NIndices;
             public MeshModel Parent;
+
+            internal Vector3d CalcNormal()
+            {
+                var v0 = Points[2] - Points[0];
+                var v1 = Points[1] - Points[0];
+                return Vector3d.Cross(v0, v1); 
+            }
         }
 
         public List<Face> Faces = new List<Face>();
@@ -49,6 +57,15 @@ namespace CascadeDesktop
                 }
             }
             return new GpuObject(triags.ToArray(), norms.ToArray());
+        }
+
+        internal void CalcNormals()
+        {
+            foreach (var item in Faces)
+            {
+                Normals.Add(item.CalcNormal());
+                item.NIndices = [Normals.Count - 1, Normals.Count - 1, Normals.Count - 1];
+            }
         }
     }
 }

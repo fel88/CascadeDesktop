@@ -1,11 +1,11 @@
-﻿using System;
+﻿using CascadeDesktop.Common.Interfaces;
 using System.Windows.Forms;
 
-namespace CSPLib
+namespace CascadeDesktop.Common
 {
     public static class GUIHelpers
     {
-        public static DialogResult ShowQuestion(string text, string caption = null, MessageBoxButtons btns = MessageBoxButtons.YesNo)
+        public static DialogResult Question(string text, string caption = null, MessageBoxButtons btns = MessageBoxButtons.YesNo)
         {
             if (caption == null) { /*caption = Form1.Form.Text;*/ }
             return MessageBox.Show(text, caption, btns, MessageBoxIcon.Question);

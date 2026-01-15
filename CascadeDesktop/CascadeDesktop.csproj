@@ -50,6 +50,7 @@
 		</Compile>
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\CascadeDesktop.Common\CascadeDesktop.Common.csproj" />
 		<ProjectReference Include="..\CSPLib\CSPLib.csproj" />
 		<ProjectReference Include="..\OCCTProxy\OCCTProxy.Common\OCCTProxy.Common.csproj" />
 		<ProjectReference Include="..\OCCTProxy\OCCTProxy.Interfaces\OCCTProxy.Interfaces.csproj" />

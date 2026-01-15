@@ -130,7 +130,7 @@ namespace CascadeDesktop
                 }
 
                 propertyGrid1.Visible = propertyGrid1.SelectedObject != null;
-            }
+            }   
             lastClickPosition = bpos;
         }
 

@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using System.Linq;
 using DxfPad;
+using CascadeDesktop.Common;
 
 namespace CascadeDesktop.ToolsCSP
 {
