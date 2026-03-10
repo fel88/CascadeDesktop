@@ -1,10 +1,11 @@
 ﻿using AutoDialog;
-using Cascade.Common;
 using CascadeDesktop.Common;
 using CascadeDesktop.Interfaces;
 using CascadeDesktop.Tools;
 using CSPLib;
 using OCCT.Interfaces;
+using OCCTProxy.Common;
+using OCCTProxy.Common.Interfaces;
 using OpenTK.GLControl;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -417,7 +418,7 @@ namespace CascadeDesktop
             else if (face != null)
             {
                 var vect = face.Position;
-                if (face is PlaneSurfInfo p)
+                if (face is IPlaneSurfInfo p)
                 {
                     var nrm = p.Normal;
                     ClearStatus3();

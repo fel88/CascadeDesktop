@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace CascadeDesktop
 {
-    public class OCCTProxyWrapper : OCCTProxy, IOCCTProxyInterface
+    public class OCCTProxyWrapper : OCCTProxy.OCCTProxy, IOCCTProxyInterface
     {
         
     }

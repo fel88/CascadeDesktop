@@ -1,5 +1,6 @@
-﻿using Cascade.Common;
-using CascadeDesktop.Interfaces;
+﻿using CascadeDesktop.Interfaces;
+using OCCTProxy.Common;
+using OCCTProxy.Common.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
@@ -57,7 +58,7 @@ namespace CascadeDesktop.Tools
         }
 
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
-        List<SurfInfo> surfs = new List<SurfInfo>();
+        List<ISurfInfo> surfs = new List<ISurfInfo>();
 
         public override void Select()
         {

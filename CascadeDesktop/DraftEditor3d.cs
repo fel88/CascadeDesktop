@@ -1,5 +1,5 @@
-﻿using Cascade.Common;
-using CascadeDesktop.Interfaces;
+﻿using CascadeDesktop.Interfaces;
+using OCCTProxy.Common;
 using OpenTK;
 using OpenTK.GLControl;
 using OpenTK.Graphics.OpenGL;
