@@ -381,7 +381,7 @@ namespace CascadeDesktop
 
         ManagedObjHandle lastSelected = null;
 
-        EdgeInfo selectedEdge = null;
+        IEdgeInfo selectedEdge = null;
         Vector3d? selectedVertex = null;
         Vector3d? hoveredVertex = null;
         private void UpdateStatus(ManagedObjHandle obj)
@@ -874,8 +874,8 @@ namespace CascadeDesktop
             ResetView();
         }
 
-        ManagedObjHandle obj1;
-        ManagedObjHandle obj2;
+        IManagedObjHandle obj1;
+        IManagedObjHandle obj2;
         private void diffToolStripMenuItem_Click(object sender, EventArgs e)
         {
             proxy.MakeDiff(obj1, obj2);
@@ -1155,7 +1155,7 @@ namespace CascadeDesktop
         public void PipeWithSplitting(OccSceneObject occ, double r)
         {
             var edges = proxy.GetEdgesInfo(occ.Handle);
-            ManagedObjHandle current = null;
+            IManagedObjHandle current = null;
             //order and convert to polyline
             for (int i = 0; i < edges.Count; i++)
             {
@@ -1281,7 +1281,7 @@ namespace CascadeDesktop
                 return;
 
             var faces = proxy.GetFacesInfo(occ.Handle);
-            ManagedObjHandle cs = null;
+            IManagedObjHandle cs = null;
 
             if (faces.Count == 0)//2d fillet             
                 cs = proxy.MakeFillet2d(occ.Handle, r);

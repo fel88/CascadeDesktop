@@ -1,4 +1,5 @@
 ﻿using OCCT.Interfaces;
+using OCCTProxy.Common.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -14,15 +15,15 @@ namespace CascadeDesktop
     public class OccSceneObject : SceneObject
     {
         readonly IOCCTProxyInterface Proxy;
-        public readonly ManagedObjHandle Handle;
+        public readonly IManagedObjHandle Handle;
         public TopObjHandle TopHandle => new TopObjHandle() { BindId = Handle.BindId };
 
-        public bool IsEquals(ManagedObjHandle h)
+        public bool IsEquals(IManagedObjHandle h)
         {
             return h.BindId == Handle.BindId;
         }
 
-        public OccSceneObject(ManagedObjHandle h, IOCCTProxyInterface proxy)
+        public OccSceneObject(IManagedObjHandle h, IOCCTProxyInterface proxy)
         {
             Handle = h;
             Proxy = proxy;

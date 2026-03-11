@@ -1,6 +1,7 @@
 ﻿using AutoDialog;
 using CascadeDesktop.Interfaces;
 using OCCTProxy.Common;
+using OCCTProxy.Common.Interfaces;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.Linq;
@@ -147,7 +148,7 @@ namespace CascadeDesktop.Tools
         List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
         List<PlaneSurfInfo> planes = new List<PlaneSurfInfo>();
         List<CylinderSurfInfo> cylinders = new List<CylinderSurfInfo>();
-        List<EdgeInfo> edges = new List<EdgeInfo>();
+        List<IEdgeInfo> edges = new List<IEdgeInfo>();
         List<Vector3d> vertices = new List<Vector3d>();
 
         public override void Select()

@@ -1,4 +1,5 @@
 ﻿using OCCT.Interfaces;
+using OCCTProxy.Common.Interfaces;
 using System;
 
 namespace CascadeDesktop
@@ -7,7 +8,7 @@ namespace CascadeDesktop
     {
         public readonly string Path;
 
-        public ImportedOccSceneObject(String path, ManagedObjHandle h, IOCCTProxyInterface proxy) : base(h, proxy)
+        public ImportedOccSceneObject(string path, IManagedObjHandle h, IOCCTProxyInterface proxy) : base(h, proxy)
         {
             Path = path;
         }

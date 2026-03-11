@@ -1,4 +1,6 @@
-﻿using OpenTK;
+﻿using OCCTProxy.Common;
+using OCCTProxy.Common.Interfaces;
+using OpenTK;
 using OpenTK.Mathematics;
 using System;
 
@@ -22,7 +24,7 @@ namespace CascadeDesktop
             return null;
         }
 
-        public static Vector3d? GetAdjointEdgesShift(EdgeInfo edge1, EdgeInfo edge2, float eps = 1e-8f)
+        public static Vector3d? GetAdjointEdgesShift(IEdgeInfo edge1, IEdgeInfo edge2, float eps = 1e-8f)
         {
             return edge2.COM - edge1.COM;
         }
