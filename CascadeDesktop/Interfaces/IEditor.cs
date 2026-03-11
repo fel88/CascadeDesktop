@@ -1,4 +1,4 @@
-﻿using OCCT.Interfaces;
+﻿using OCCTProxy.Common.Interfaces;
 using System.Collections.Generic;
 using System.Windows.Forms;
 

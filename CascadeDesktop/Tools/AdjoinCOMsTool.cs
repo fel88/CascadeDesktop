@@ -57,7 +57,7 @@ namespace CascadeDesktop.Tools
             }
         }
 
-        List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
+        List<IManagedObjHandle> objs = new List<IManagedObjHandle>();
         List<ISurfInfo> surfs = new List<ISurfInfo>();
 
         public override void Select()

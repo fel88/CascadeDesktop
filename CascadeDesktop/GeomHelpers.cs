@@ -1,5 +1,6 @@
 ﻿using OCCTProxy.Common;
 using OCCTProxy.Common.Interfaces;
+using OCCTProxy.Common.Surfaces;
 using OpenTK;
 using OpenTK.Mathematics;
 using System;

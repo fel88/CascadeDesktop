@@ -1,5 +1,6 @@
 ﻿using CascadeDesktop.Interfaces;
 using OCCTProxy.Common;
+using OCCTProxy.Common.Interfaces;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,8 +103,7 @@ namespace CascadeDesktop.Tools
                 }
             }
         }
-
-        List<ManagedObjHandle> objs = new List<ManagedObjHandle>();
+        List<IManagedObjHandle> objs = new List<IManagedObjHandle>();
 
         List<object> mobjs = new List<object>();
 

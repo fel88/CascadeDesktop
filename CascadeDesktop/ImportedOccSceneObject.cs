@@ -1,5 +1,4 @@
-﻿using OCCT.Interfaces;
-using OCCTProxy.Common.Interfaces;
+﻿using OCCTProxy.Common.Interfaces;
 using System;
 
 namespace CascadeDesktop

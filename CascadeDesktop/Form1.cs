@@ -3,9 +3,10 @@ using CascadeDesktop.Common;
 using CascadeDesktop.Interfaces;
 using CascadeDesktop.Tools;
 using CSPLib;
-using OCCT.Interfaces;
+using OCCTProxy;
 using OCCTProxy.Common;
 using OCCTProxy.Common.Interfaces;
+using OCCTProxy.Common.Surfaces;
 using OpenTK.GLControl;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -379,12 +380,12 @@ namespace CascadeDesktop
             }
         }
 
-        ManagedObjHandle lastSelected = null;
+        IManagedObjHandle lastSelected = null;
 
         IEdgeInfo selectedEdge = null;
         Vector3d? selectedVertex = null;
         Vector3d? hoveredVertex = null;
-        private void UpdateStatus(ManagedObjHandle obj)
+        private void UpdateStatus(IManagedObjHandle obj)
         {
             var fr = Objs.FirstOrDefault(z => obj.BindId == z.Handle.BindId || z.ChildsIds.Contains(obj.BindId));
             if (fr == null)
@@ -516,7 +517,7 @@ namespace CascadeDesktop
 
         private void Form1_Shown(object sender, EventArgs e)
         {
-            proxy = new OCCTProxyWrapper();
+            proxy = new OCCTProxy.OCCTProxy();
 
             hglrc = wglGetCurrentContext();
 
@@ -1855,7 +1856,7 @@ namespace CascadeDesktop
             return fr;
         }
 
-        public ManagedObjHandle GetSelectedObject()
+        public IManagedObjHandle GetSelectedObject()
         {
             var h = proxy.GetSelectedObject();
             var hs = proxy.GetSelectedObjects();
@@ -1864,7 +1865,7 @@ namespace CascadeDesktop
             return h;
         }
 
-        public OccSceneObject FindSelectedOccObjectByEdge(ManagedObjHandle edge)
+        public OccSceneObject FindSelectedOccObjectByEdge(IManagedObjHandle edge)
         {
             foreach (var item in Objs)
             {
