@@ -44,7 +44,7 @@ namespace CascadeDesktop.Tools
 
             if (obj == null)
                 return;
-
+            
             objs.Add(obj);
             if (objs.Count == 2)
             {
