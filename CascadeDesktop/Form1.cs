@@ -19,6 +19,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -447,6 +448,7 @@ namespace CascadeDesktop
                 {
                     ClearStatus3();
                     AppendStatusVector(face.GetType().Name, vect);
+                    AppendStatus3($"(type:{face.Type}) ");
                     AppendStatusVector("COM", face.COM);
                 }
             }
@@ -1809,10 +1811,12 @@ namespace CascadeDesktop
                     r.AppendText($"PLANE {p.Position.X} {p.Position.Y} {p.Position.Z}   normal: {p.Normal.X} {p.Normal.Y} {p.Normal.Z} {Environment.NewLine}");
                 else if (info is CylinderSurfInfo c)
                     r.AppendText($"CYLINDER {c.Position.X} {c.Position.Y} {c.Position.Z}   axis: {c.Axis.X} {c.Axis.Y} {c.Axis.Z}   radius: {c.Radius} {Environment.NewLine}");
+                else if (info is ConeSurfInfo cone)
+                    r.AppendText($"CONE {cone.Position.X} {cone.Position.Y} {cone.Position.Z}   axis: {cone.Axis.X} {cone.Axis.Y} {cone.Axis.Z}   radius: {cone.Radius1} radius 2: {cone.Radius2} {Environment.NewLine}");
                 else if (info is SphereSurfInfo s)
                     r.AppendText($"SPHERE {s.Position.X} {s.Position.Y} {s.Position.Z}   radius: {s.Radius} {Environment.NewLine}");
                 else
-                    r.AppendText($"{info.GetType().Name}{info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
+                    r.AppendText($"{info.GetType().Name} {info.Type} {info.Position.X} {info.Position.Y} {info.Position.Z} {Environment.NewLine}");
             }
             ff.Show();
         }
