@@ -343,5 +343,10 @@ namespace CascadeDesktop
             Form.CustomRenderingDialogVisibleSwitch();
 
         }
+
+        private void Torus_Click(object sender, RoutedEventArgs e)
+        {
+            Form.AddTorus();
+        }
     }
 }

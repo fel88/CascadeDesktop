@@ -2581,9 +2581,27 @@ namespace CascadeDesktop
             }
 
         }
+
         internal void CustomRenderingDialogVisibleSwitch()
         {
             CustomRenderingDialogEnabled = !CustomRenderingDialogEnabled;
+        }
+
+        internal void AddTorus()
+        {
+            var d = DialogHelpers.StartDialog();
+            d.Text = "New torus";
+            d.AddNumericField("r1", "Radius 1", 150);
+            d.AddNumericField("r2", "Radius 2", 30);
+
+            if (!d.ShowDialog())
+                return;
+
+            var r1 = d.GetNumericField("r1");
+            var r2 = d.GetNumericField("r2");
+
+            var cs = proxy.MakeTorus(r1, r2);
+            Objs.Add(new OccSceneObject(cs, proxy));
         }
 
         bool renderMeshesEnabled = true;
