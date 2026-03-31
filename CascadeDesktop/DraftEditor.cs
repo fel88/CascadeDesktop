@@ -130,7 +130,7 @@ namespace CascadeDesktop
                 }
 
                 propertyGrid1.Visible = propertyGrid1.SelectedObject != null;
-            }   
+            }
             lastClickPosition = bpos;
         }
 
@@ -238,21 +238,21 @@ namespace CascadeDesktop
             d.AddNumericField("y1", "Y1", min: -10000, max: 10000);
 
             d.AddNumericField("x2", "X2", min: -10000, max: 10000);
-            d.AddNumericField("y2", "Y2", min: -10000, max: 10000);            
+            d.AddNumericField("y2", "Y2", min: -10000, max: 10000);
 
             if (!d.ShowDialog())
                 return;
 
             var x1 = d.GetNumericField("x1");
-            var y1 = d.GetNumericField("y1");            
+            var y1 = d.GetNumericField("y1");
 
             var x2 = d.GetNumericField("x2");
-            var y2 = d.GetNumericField("y2");            
+            var y2 = d.GetNumericField("y2");
 
             blueprint.Items.Add(new Line2D()
             {
-                Start = new Vertex2D(x1, y1),
-                End = new Vertex2D(x2, y2)
+                Start = new Vector2d(x1, y1),
+                End = new Vector2d(x2, y2)
             });
         }
 
@@ -260,7 +260,7 @@ namespace CascadeDesktop
         {
             var arc = new Arc2d()
             {
-                Center = new Vertex2D(0, 0),
+                Center = new Vector2d(0, 0),
                 AngleStart = 0,
                 AngleSweep = 180,
                 Radius = 50
@@ -282,17 +282,17 @@ namespace CascadeDesktop
             var h = d.GetNumericField("h");
             var r = d.GetBoolField("r");
 
-            List<BlueprintItem> items = new List<BlueprintItem>();
-            items.Add(new Line2D() { Start = new Vertex2D(0, 0), End = new Vertex2D(w, 0) });
-            items.Add(new Line2D() { Start = new Vertex2D(w, 0), End = new Vertex2D(w, h) });
-            items.Add(new Line2D() { Start = new Vertex2D(w, h), End = new Vertex2D(0, h) });
-            items.Add(new Line2D() { Start = new Vertex2D(0, h), End = new Vertex2D(0, 0) });
+            List<BlueprintItem> items =
+            [
+                new Line2D() { Start = new Vector2d(0, 0), End = new Vector2d(w, 0) },
+                new Line2D() { Start = new Vector2d(w, 0), End = new Vector2d(w, h) },
+                new Line2D() { Start = new Vector2d(w, h), End = new Vector2d(0, h) },
+                new Line2D() { Start = new Vector2d(0, h), End = new Vector2d(0, 0) },
+            ];
             foreach (var item in items.OfType<Line2D>())
             {
-                item.Start.X -= w / 2;
-                item.Start.Y -= h / 2;
-                item.End.X -= w / 2;
-                item.End.Y -= h / 2;
+                item.Start -= new Vector2d(w / 2, h / 2);
+                item.End -= new Vector2d(w / 2, h / 2);
             }
             if (r)
             {
@@ -329,8 +329,8 @@ namespace CascadeDesktop
             {
                 blueprint.Items.Add(new Line2D()
                 {
-                    Start = new Vertex2D(pnts[i - 1].X, pnts[i - 1].Y),
-                    End = new Vertex2D(pnts[i % pnts.Count].X, pnts[i % pnts.Count].Y)
+                    Start = new Vector2d(pnts[i - 1].X, pnts[i - 1].Y),
+                    End = new Vector2d(pnts[i % pnts.Count].X, pnts[i % pnts.Count].Y)
                 });
             }
         }
@@ -363,62 +363,10 @@ namespace CascadeDesktop
             {
                 blueprint.Items.Add(new Line2D()
                 {
-                    Start = new Vertex2D(pnts[i - 1].X, pnts[i - 1].Y),
-                    End = new Vertex2D(pnts[i % pnts.Count].X, pnts[i % pnts.Count].Y)
+                    Start = new Vector2d(pnts[i - 1].X, pnts[i - 1].Y),
+                    End = new Vector2d(pnts[i % pnts.Count].X, pnts[i % pnts.Count].Y)
                 });
             }
-        }
-
-
-        BlueprintContour[] ConnectContour(BlueprintItem[] items)
-        {
-            List<BlueprintContour> rets = new List<BlueprintContour>();
-            List<BlueprintItem> remains = new List<BlueprintItem>();
-
-            BlueprintContour ret = new BlueprintContour();
-            rets.Add(ret);
-            ret.Items.Add(items[0]);
-            remains.AddRange(items.Skip(1));
-            float eps = 1e-5f;
-            while (remains.Any())
-            {
-                var p2 = ret.Items.Last().End;
-                var p1 = ret.Items.First().Start;
-                BlueprintItem todel = null;
-                foreach (var item in remains)
-                {
-
-                    var dist1 = (item.Start.ToVector2d() - p2.ToVector2d()).Length;
-                    if (dist1 < eps)
-                    {
-                        ret.Items.Add(item);
-                        todel = item;
-                        break;
-                    }
-                    var dist2 = (item.End.ToVector2d() - p2.ToVector2d()).Length;
-                    if (dist2 < eps)
-                    {
-                        item.Reverse();
-                        ret.Items.Add(item);
-
-                        todel = item;
-                        break;
-                    }
-                }
-
-                if (todel == null)
-                {
-                    //new contour
-                    ret = new BlueprintContour();
-                    rets.Add(ret);
-                    todel = remains[0];
-                    ret.Items.Add(remains[0]);
-                }
-
-                remains.Remove(todel);
-            }
-
-            return rets.ToArray();
         }
 
         private void toolStripButton3_Click(object sender, EventArgs e)
@@ -427,7 +375,8 @@ namespace CascadeDesktop
             {
                 item.UpdateMiddle();
             }
-            var contours = ConnectContour(blueprint.Items.ToArray());
+
+            var contours = GeometryUtils.ConnectContour(blueprint.Items.ToArray());
 
             blueprint.Items.Clear();
             blueprint.Contours.AddRange(contours);
@@ -488,11 +437,8 @@ namespace CascadeDesktop
 
             foreach (var b in blueprint.Items)
             {
-                b.Start.X += x;
-                b.End.X += x;
-
-                b.Start.Y += y;
-                b.End.Y += y;
+                b.Start += new Vector2d(x, y);
+                b.End += new Vector2d(x, y);
             }
         }
 

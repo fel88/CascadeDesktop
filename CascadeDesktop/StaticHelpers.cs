@@ -125,16 +125,11 @@ namespace CascadeDesktop
             return new Vector3((float)v.X, (float)v.Y, (float)v.Z);
         }
 
-
         public static Vector2d ToVector2d(this DxfPoint v)
         {
             return new Vector2d(v.X, v.Y);
         }
-
-        public static Vector2d ToVector2d(this Vertex2D v)
-        {
-            return new Vector2d((float)v.X, (float)v.Y);
-        }
+       
         public static double DistTo(this SvgPoint p, SvgPoint p2)
         {
             return Math.Sqrt(Math.Pow(p.X - p2.X, 2) + Math.Pow(p.Y - p2.Y, 2));

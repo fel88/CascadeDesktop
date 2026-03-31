@@ -49,10 +49,10 @@ namespace CascadeDesktop
                     Arc2d a = new Arc2d()
                     {
                         Radius = arc.Radius,
-                        Center = new Vertex2D(arc.Center.X, arc.Center.Y),
+                        Center = new Vector2d(arc.Center.X, arc.Center.Y),
                         IsCircle = arc.IsCircle,
-                        Start = new Vertex2D(arc.Start.X, arc.Start.Y),
-                        End = new Vertex2D(arc.End.X, arc.End.Y),
+                        Start = new Vector2d(arc.Start.X, arc.Start.Y),
+                        End = new Vector2d(arc.End.X, arc.End.Y),
                         CCW = Parent != null
                     };
                     cntr.Items.Add(a);
@@ -64,7 +64,7 @@ namespace CascadeDesktop
                     cntr.Items.Add(poly);
                     foreach (var pp in pl.Points)
                     {
-                        poly.Points.Add(new Vertex2D(pp.X, pp.Y));
+                        poly.Points.Add(new Vector2d(pp.X, pp.Y));
                     }
                     //sign = Math.Sign(StaticHelpers.signed_area(poly.Points.ToArray()));
                 }
@@ -74,13 +74,13 @@ namespace CascadeDesktop
                     Line2D line = new Line2D();
                     cntr.Items.Add(line);
 
-                    line.Start = new Vertex2D(l.Start.X, l.Start.Y);
-                    line.End = new Vertex2D(l.End.X, l.End.Y);
+                    line.Start = new Vector2d(l.Start.X, l.Start.Y);
+                    line.End = new Vector2d(l.End.X, l.End.Y);
 
                     //sign = Math.Sign(StaticHelpers.signed_area(poly.Points.ToArray()));
                 }
             }
-            var d = (cntr.Items[0].Start.ToVector2d() - cntr.Items[cntr.Items.Count - 1].End.ToVector2d()).Length;
+            var d = (cntr.Items[0].Start - cntr.Items[cntr.Items.Count - 1].End).Length;
             if (d > 1e-5)
             {
                 cntr.Items.Add(new Line2D()

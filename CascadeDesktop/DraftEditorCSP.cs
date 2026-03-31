@@ -8,6 +8,7 @@ using System.Linq;
 using CascadeDesktop.ToolsCSP;
 using CSPLib.Interfaces;
 using OCCTProxy.Common;
+using OpenTK.Mathematics;
 
 namespace CascadeDesktop
 {
@@ -267,14 +268,14 @@ namespace CascadeDesktop
                 foreach (var item in remains)
                 {
 
-                    var dist1 = (item.Start.ToVector2d() - p2.ToVector2d()).Length;
+                    var dist1 = (item.Start - p2).Length;
                     if (dist1 < eps)
                     {
                         ret.Items.Add(item);
                         todel = item;
                         break;
                     }
-                    var dist2 = (item.End.ToVector2d() - p2.ToVector2d()).Length;
+                    var dist2 = (item.End - p2).Length;
                     if (dist2 < eps)
                     {
                         item.Reverse();
@@ -309,8 +310,8 @@ namespace CascadeDesktop
                 if (item is DraftLine dl)
                 {
                     var blueprintItem = new Line2D();
-                    blueprintItem.Start = new Vertex2D(dl.V0.X, dl.V0.Y);
-                    blueprintItem.End = new Vertex2D(dl.V1.X, dl.V1.Y);
+                    blueprintItem.Start = new Vector2d(dl.V0.X, dl.V0.Y);
+                    blueprintItem.End = new Vector2d(dl.V1.X, dl.V1.Y);
                     blueprint.Items.Add(blueprintItem);
 
                 }
