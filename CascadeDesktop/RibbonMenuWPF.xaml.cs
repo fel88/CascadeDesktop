@@ -348,5 +348,10 @@ namespace CascadeDesktop
         {
             Form.AddTorus();
         }
+
+        private void prism_Click(object sender, RoutedEventArgs e)
+        {
+            Form.AddPrism();
+        }
     }
 }

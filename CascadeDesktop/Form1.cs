@@ -3,6 +3,7 @@ using CascadeDesktop.Common;
 using CascadeDesktop.Interfaces;
 using CascadeDesktop.Tools;
 using CSPLib;
+using MathNet.Numerics;
 using OCCTProxy;
 using OCCTProxy.Common;
 using OCCTProxy.Common.Interfaces;
@@ -1305,9 +1306,8 @@ namespace CascadeDesktop
             var occ = GetSelectedOccObject();
             if (occ == null)
                 return;
-
-            var so = proxy.GetSelectedObject();
-            var cs = proxy.Clone(so);
+                        
+            var cs = proxy.Clone(occ.TopHandle);
             Objs.Add(new OccSceneObject(cs, proxy) { Name = $"{occ.Name}_cloned" });
             SetStatus("cloned");
         }
@@ -1323,7 +1323,7 @@ namespace CascadeDesktop
             proxy.SetSelectionMode(SelectionModeEnum.Edge);
         }
 
-      
+
 
         public void ExportSelectedToObj()
         {
@@ -1349,7 +1349,7 @@ namespace CascadeDesktop
             SetStatus($"saved to {sfd.FileName} successfully");
         }
 
-     
+
         private void exportMeshToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ExportSelectedToObj();
@@ -2522,6 +2522,55 @@ namespace CascadeDesktop
 
             var cs = proxy.MakeTorus(r1, r2);
             Objs.Add(new OccSceneObject(cs, proxy));
+        }
+
+        internal void AddPrism()
+        {
+            var d = AutoDialog.DialogHelpers.StartDialog();
+            d.AddInt("n", "N", 6);
+            d.AddDouble("h", "Height", 100);
+            d.AddDouble("r", "Radius", 60);
+            d.AddDouble("frad", "Fillet radius", 15);
+            d.AddBoolField("useFillet", "Use fillets");
+            if (!d.ShowDialog())
+                return;
+
+
+            var h = d.GetInt("h");
+            var n = d.GetInt("n");
+            var r = d.GetDouble("r");
+            var frad = d.GetDouble("frad");
+            var useFillet = d.GetBoolField("useFillet");
+            var draft = BlueprintHelpers.MakeNGonDraft(n, r);
+            var contours = OCCTProxy.Common.GeometryUtils.ConnectContour(draft.Items.ToArray());
+            draft.Items.Clear();
+            draft.Contours.AddRange(contours);
+
+            var dcs = proxy.ImportBlueprint(draft);
+
+            var cs = proxy.MakePrism(dcs, h);
+            proxy.Remove(dcs);
+            var edges = proxy.GetEdgesInfo(cs);
+            List<IEdgeInfo> verticalEdges = new List<IEdgeInfo>();
+            foreach (var e in edges)
+            {
+                var dir = (e.End - e.Start).Normalized();
+                var dd = Vector3d.Dot(dir, Vector3d.UnitZ);
+                if (dd.IsAlmostEquals(1.0))
+                {
+                    verticalEdges.Add(e);
+                }
+            }
+            if (useFillet)
+            {
+                var res = proxy.MakeFillet(cs, verticalEdges.ToArray(), frad);
+                proxy.Remove(cs);
+                Objs.Add(new OccSceneObject(res, proxy));
+            }
+            else
+            {
+                Objs.Add(new OccSceneObject(cs, proxy));
+            }
         }
 
         bool renderMeshesEnabled = true;

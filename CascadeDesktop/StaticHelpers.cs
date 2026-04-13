@@ -12,6 +12,11 @@ namespace CascadeDesktop
     public static class StaticHelpers
     {
 
+        public static bool IsAlmostEquals(this double val,double testVal, double eps = 1e-6)
+        {
+            return Math.Abs(val - testVal) < eps;
+        }
+
         public static double ParseDouble(this string z) => double.Parse(z.Replace(",", "."), CultureInfo.InvariantCulture);
         public static double ToDouble(this string z) => double.Parse(z.Replace(",", "."), CultureInfo.InvariantCulture);
         public static Matrix4d ToMatrix4d(this Matrix4 z)
