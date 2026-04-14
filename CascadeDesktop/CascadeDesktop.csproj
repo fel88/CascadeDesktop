@@ -18,6 +18,7 @@
 		<None Remove="fonts\OCRAEXT.TTF" />
 		<None Remove="Icons\application-blue.png" />
 		<None Remove="Icons\block.png" />
+		<None Remove="Icons\layer-select.png" />
 		<None Remove="Icons\sql-join-inner.png" />
 		<None Remove="Icons\sql-join-left-exclude.png" />
 		<None Remove="Icons\sql-join.png" />
@@ -77,6 +78,7 @@
 		<Resource Include="Icons\layer-flip-vertical.png" />
 		<Resource Include="Icons\layer-flip.png" />
 		<Resource Include="Icons\layer-resize.png" />
+		<Resource Include="Icons\layer-select.png" />
 		<Resource Include="Icons\layer-shape-ellipse.ico" />
 		<Resource Include="Icons\layer-shape-line.ico" />
 		<Resource Include="Icons\layer-shape-polygon.png" />

@@ -353,5 +353,10 @@ namespace CascadeDesktop
         {
             Form.AddPrism();
         }
+
+        private void Section_Click(object sender, RoutedEventArgs e)
+        {
+            Form.SectionByPlaneSelected();
+        }
     }
 }

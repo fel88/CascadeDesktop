@@ -475,8 +475,18 @@ namespace CascadeDesktop
                 return;
             }
             var occ = GetSelectedOccObject();
+            string typeInfo = "";
+            try
+            {
+                var h = proxy.GetSelectedObject();
+                typeInfo = h.ShapeType.ToString();
+            }
+            catch (Exception ex)
+            {
 
-            SetStatus2(occ == null ? string.Empty : occ.Name);
+
+            }
+            SetStatus2(occ == null ? string.Empty : $"{occ.Name} (shape type: {typeInfo})");
 
             lastSelected = proxy.GetSelectedObject();
             UpdateStatus(lastSelected);
@@ -744,19 +754,20 @@ namespace CascadeDesktop
         {
             var d = DialogHelpers.StartDialog();
             d.Text = "New box";
-            d.AddNumericField("w", "Width", 50);
-            d.AddNumericField("l", "Length", 50);
-            d.AddNumericField("h", "Height", 50);
+            d.AddDouble("w", "Width", 50);
+            d.AddDouble("l", "Length", 50);
+            d.AddDouble("h", "Height", 50);
 
             if (!d.ShowDialog())
                 return;
 
-            var w = d.GetNumericField("w");
-            var h = d.GetNumericField("h");
-            var l = d.GetNumericField("l");
+            var w = d.GetDouble("w");
+            var h = d.GetDouble("h");
+            var l = d.GetDouble("l");
             var cs = proxy.MakeBox(0, 0, 0, w, l, h);
             var edges = proxy.GetEdgesInfo(cs);
             Objs.Add(new OccSceneObject(cs, proxy));
+
         }
 
         bool isDrag = false;
@@ -1306,7 +1317,7 @@ namespace CascadeDesktop
             var occ = GetSelectedOccObject();
             if (occ == null)
                 return;
-                        
+
             var cs = proxy.Clone(occ.TopHandle);
             Objs.Add(new OccSceneObject(cs, proxy) { Name = $"{occ.Name}_cloned" });
             SetStatus("cloned");
@@ -1362,13 +1373,24 @@ namespace CascadeDesktop
 
             var d = DialogHelpers.StartDialog();
             d.Text = "Extrude";
-            d.AddNumericField("h", "Height", 50);
+            d.AddDouble("hx", "X", 0);
+            d.AddDouble("hy", "Y", 0);
+            d.AddDouble("hz", "Z", 1);
+            d.AddDouble("len", "Length", 50);
 
             if (!d.ShowDialog())
                 return;
 
-            var h = d.GetNumericField("h");
-            var handler = proxy.MakePrism(proxy.GetSelectedObject(), h);
+            var x = d.GetDouble("hx");
+            var y = d.GetDouble("hy");
+            var z = d.GetDouble("hz");
+            var len = d.GetDouble("len");
+            var handler = proxy.MakePrism(proxy.GetSelectedObject(), new Vector3d(x, y, z) * len);
+            if (handler == null)
+            {
+                StaticHelpers.ShowError("Failed", "Error");
+                return;
+            }
             Objs.Add(new OccSceneObject(handler, proxy));
         }
 
@@ -1758,14 +1780,22 @@ namespace CascadeDesktop
 
             var d = DialogHelpers.StartDialog();
             d.Text = "Extrude";
-            d.AddNumericField("h", "Height", 50);
+            d.AddDouble("h", "Height", 50);
 
             if (!d.ShowDialog())
                 return;
 
             var sob = GetSelectedObject();
-            var h = d.GetNumericField("h");
+            if (sob == null)
+                return;
+
+            var h = d.GetDouble("h");
             var mh = proxy.MakePrismFromFace(sob, h);
+            if (mh == null)
+            {
+                StaticHelpers.ShowError("Failed", "Error");
+                return;
+            }
             var occ = new OccSceneObject(mh, proxy) { Name = "extrude" };
             Objs.Add(occ);
         }
@@ -2548,7 +2578,7 @@ namespace CascadeDesktop
 
             var dcs = proxy.ImportBlueprint(draft);
 
-            var cs = proxy.MakePrism(dcs, h);
+            var cs = proxy.MakePrism(dcs, new Vector3d(0, 0, h));
             proxy.Remove(dcs);
             var edges = proxy.GetEdgesInfo(cs);
             List<IEdgeInfo> verticalEdges = new List<IEdgeInfo>();
@@ -2571,6 +2601,36 @@ namespace CascadeDesktop
             {
                 Objs.Add(new OccSceneObject(cs, proxy));
             }
+        }
+
+        internal void SectionByPlaneSelected()
+        {
+            var d = AutoDialog.DialogHelpers.StartDialog();
+            d.AddDouble("x", "X");
+            d.AddDouble("y", "Y");
+            d.AddDouble("z", "Z");
+
+            d.AddDouble("vx", "X dir", 1);
+            d.AddDouble("vy", "Y dir");
+            d.AddDouble("vz", "Z dir");
+            d.AddBoolField("connect", "Connect output");
+
+            if (!d.ShowDialog())
+                return;
+
+            var sob = GetSelectedOccObject();
+            if (sob == null)
+                return;
+
+
+            var vx = d.GetDouble("vx");
+            var vy = d.GetDouble("vy");
+            var vz = d.GetDouble("vz");
+            var dir = new Vector3d(vx, vy, vz).Normalized();
+            var res = proxy.MakeSection(sob.Handle, d.GetDouble("x"), d.GetDouble("y"), d.GetDouble("z"),
+                dir.X, dir.Y, dir.Z, d.GetBoolField("connect"));
+
+            Objs.Add(new OccSceneObject(res, proxy));
         }
 
         bool renderMeshesEnabled = true;

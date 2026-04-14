@@ -29,7 +29,8 @@ namespace CascadeDesktop
             var faces = proxy.GetFacesInfo(h);
             var edges = proxy.GetEdgesInfo(h);
             var verts = proxy.GetVertsInfo(h);
-            ChildsIds = faces.Select(z => z.BindId).Concat(edges.Select(u => u.BindId)).Concat(verts.Select(u => u.BindId)).ToList();
+            var wires = proxy.GetWiresInfo(h);
+            ChildsIds = faces.Select(z => z.BindId).Concat(edges.Select(u => u.BindId)).Concat(wires.Select(u => u.BindId)).Concat(verts.Select(u => u.BindId)).ToList();
         }
 
         public List<int> ChildsIds = new List<int>();

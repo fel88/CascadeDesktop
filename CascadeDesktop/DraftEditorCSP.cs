@@ -250,7 +250,7 @@ namespace CascadeDesktop
         {
             SetTool(new LinearConstraintTool(de));
         }
-        BlueprintContour[] ConnectContour(BlueprintItem[] items)
+        public static BlueprintContour[] ConnectContour(BlueprintItem[] items)
         {
             List<BlueprintContour> rets = new List<BlueprintContour>();
             List<BlueprintItem> remains = new List<BlueprintItem>();
