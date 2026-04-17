@@ -1,3 +1,6 @@
 [submodule "OCCTProxy"]
 	path = OCCTProxy
 	url = https://github.com/fel88/OCCTProxy.git
+[submodule "FxEngine"]
+	path = FxEngine
+	url = https://github.com/fel88/FxEngine.git

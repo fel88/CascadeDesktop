@@ -3,6 +3,9 @@ using CascadeDesktop.Common;
 using CascadeDesktop.Interfaces;
 using CascadeDesktop.Tools;
 using CSPLib;
+using FxEngine;
+using FxEngine.Fonts;
+using FxEngine.Shaders;
 using MathNet.Numerics;
 using OCCTProxy;
 using OCCTProxy.Common;
@@ -19,6 +22,7 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Policy;
 using System.Text;
@@ -133,7 +137,7 @@ namespace CascadeDesktop
         }
         GpuTextLabel hoverText = new GpuTextLabel();
 
-        TextRenderer textRenderer = new();
+        FreeTypeTextRenderer textRenderer = new();
         bool first = true;
         GpuDrawingContext gpuCtx = new GpuDrawingContext();
 
@@ -234,9 +238,9 @@ namespace CascadeDesktop
 
             GL.BindVertexArray(0);
             */
-            triangleShader.InitFromResources("shader1.vs", "shader1.fs");
-            var vShader = Shader.ReadResourceTxt("shader1.vs");
-            var fShader = Shader.ReadResourceTxt("shader1.fs");// todo: make different shader for cam space trinagle
+            var vShader = ResourceHelper.ReadResourceTxt("shader1.vs", Assembly.GetEntryAssembly());
+            var fShader = ResourceHelper.ReadResourceTxt("shader1.fs", Assembly.GetEntryAssembly());// todo: make different shader for cam space trinagle
+            triangleShader.InitFromShaderCodes(vShader, fShader);
 
             shaderProgram = CompileProgram(vShader, fShader);
 
@@ -2430,7 +2434,7 @@ namespace CascadeDesktop
             //textRenderer.RenderText("This is sample text", 25.0f, 25.0f, 1.0f, new Vector3(0.5f, 0.8f, 0.2f));
             //textRenderer.RenderText("(C) LearnOpenGL.com", 10.0f, glControl.Height - 30, 0.5f, new Vector3(0.3f, 0.7f, 0.9f));
             if (hovered != null)
-                textRenderer.RenderText(toolStripStatusLabel3.Text, 10.0f, glcontrol.Height - 30, 0.5f, new Vector3(0.3f, 0.7f, 0.9f));
+                textRenderer.RenderText(toolStripStatusLabel3.Text, 10.0f, glcontrol.Height - 30, new Vector3(0.3f, 0.7f, 0.9f), 0.5f);
 
             var pos = glcontrol.PointToClient(Cursor.Position);
             pos.X += Cursor.Size.Width;
