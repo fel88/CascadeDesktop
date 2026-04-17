@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using FxEngine;
+using OpenTK;
 using OpenTK.Mathematics;
 using System;
 using System.Drawing;
@@ -56,10 +57,8 @@ namespace CascadeDesktop
                     throw new ArgumentException();
                 return defValue;
             }
-            return StaticHelpers.ParseDouble(nrm.Value);
+            return nrm.Value.ToDouble();
         }
-
-
 
         public virtual void MoveTo(Vector3d vector)
         {

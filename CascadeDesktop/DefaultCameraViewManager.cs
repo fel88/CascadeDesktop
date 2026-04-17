@@ -1,4 +1,6 @@
-﻿using OpenTK;
+﻿using FxEngine;
+using FxEngine.Cameras;
+using OpenTK;
 using OpenTK.Mathematics;
 using System;
 using System.Drawing;
@@ -10,17 +12,17 @@ namespace CascadeDesktop
     {
         public override void Update()
         {
-            var dir = Camera.CameraFrom - Camera.CameraTo;
+            var dir = Camera.Eye - Camera.Target;
             var cv = dir;
             var moveVec = new Vector3d(cv.X, cv.Y, cv.Z).Normalized();
-            var a1 = Vector3d.Cross(Camera.CameraUp, cv.Normalized()); ;
+            var a1 = Vector3d.Cross(Camera.Up, cv.Normalized()); ;
             //var moveVecTan = new Vector3(-moveVec.Y, moveVec.X, );
             var moveVecTan = a1.Normalized();
             moveVec = Vector3d.Cross(a1.Normalized(), cv.Normalized()).Normalized();
 
 
             var pos = CursorPosition;
-            var zoom = 360f / (Camera.CameraFrom - Camera.CameraTo).Length;
+            var zoom = 360f / (Camera.Eye - Camera.Target).Length;
 
             {
                 if (drag2)
@@ -30,8 +32,8 @@ namespace CascadeDesktop
                     zoom = Control.Width / Camera.OrthoWidth;
 
                     var dx = moveVecTan * ((startPosX - pos.X) / zoom) + moveVec * ((startPosY - pos.Y) / zoom);
-                    Camera.CameraFrom = cameraFromStart + dx;
-                    Camera.CameraTo = cameraToStart + dx;
+                    Camera.Eye = cameraFromStart + dx;
+                    Camera.Target = cameraToStart + dx;
                 }
                 if (drag)
                 {
@@ -55,9 +57,9 @@ namespace CascadeDesktop
 
                     //up1 *= m1;
                     //up1 *= m2;
-                    Camera.CameraUp = up1;
+                    Camera.Up = up1;
 
-                    Camera.CameraFrom = cameraToStart + v1;
+                    Camera.Eye = cameraToStart + v1;
                     var dx = startPosX - pos.X;
 
                 }
@@ -90,7 +92,7 @@ namespace CascadeDesktop
             var camera = Camera;
             if (camera.IsOrtho)
             {
-                var shift = mr.Start - Camera.CameraFrom;
+                var shift = mr.Start - Camera.Eye;
                 shift.Normalize();
                 //var old = camera.OrthoWidth / Control.Width;
                 if (e.Delta > 0)
@@ -122,10 +124,10 @@ namespace CascadeDesktop
                 /*var pxn = new Vector2(cur.X, cur.Y) - (new Vector2(Control.Width / 2, Control.Height / 2));
 
                 var a1 = pxn * camera.OrthoWidth / Control.Width;*/
-                Camera cam2 = new Camera();
-                cam2.CameraFrom = camera.CameraFrom;
-                cam2.CameraTo = camera.CameraTo;
-                cam2.CameraUp = camera.CameraUp;
+                Camera cam2 = new Camera() { Eye = new Vector3(250, 250, 250) };
+                cam2.Eye = camera.Eye;
+                cam2.Target = camera.Target;
+                cam2.Up = camera.Up;
                 cam2.OrthoWidth = camera.OrthoWidth;
                 cam2.IsOrtho = camera.IsOrtho;
 
@@ -136,13 +138,13 @@ namespace CascadeDesktop
                 shift *= diff.Length;
                 if (e.Delta > 0)
                 {
-                    camera.CameraFrom += shift;
-                    camera.CameraTo += shift;
+                    camera.Eye += shift;
+                    camera.Target += shift;
                 }
                 else
                 {
-                    camera.CameraFrom -= shift;
-                    camera.CameraTo -= shift;
+                    camera.Eye -= shift;
+                    camera.Target -= shift;
                 }
 
                 return;
@@ -155,13 +157,13 @@ namespace CascadeDesktop
                 dir.Normalize();
                 if (e.Delta > 0)
                 {
-                    camera.CameraFrom += dir * zoomK;
-                    camera.CameraTo += dir * zoomK;
+                    camera.Eye += dir * zoomK;
+                    camera.Target += dir * zoomK;
                 }
                 else
                 {
-                    camera.CameraFrom -= dir * zoomK;
-                    camera.CameraTo -= dir * zoomK;
+                    camera.Eye -= dir * zoomK;
+                    camera.Target -= dir * zoomK;
                 }
             }
         }
@@ -203,40 +205,40 @@ namespace CascadeDesktop
             var pos = CursorPosition;
             startPosX = pos.X;
             startPosY = pos.Y;
-            cameraFromStart = Camera.CameraFrom;
-            cameraToStart = Camera.CameraTo;
-            cameraUpStart = Camera.CameraUp;
+            cameraFromStart = Camera.Eye;
+            cameraToStart = Camera.Target;
+            cameraUpStart = Camera.Up;
 
             if (e.Button == MouseButtons.Right)
             {
 
                 var mr = new MouseRay(pos.X, pos.Y, Camera);
-                var d1 = Camera.CameraFrom - Camera.CameraTo;
+                var d1 = Camera.Eye - Camera.Target;
                 //var plane1 : forw
                 var crs1 = Vector3d.Cross(cameraUpStart, d1);
                 var z1 = Vector3d.UnitZ;
                 if (SnapModePlane)
                 {
 
-                    var inter = lineIntersection(Vector3d.Zero, Vector3d.UnitZ, Camera.CameraFrom, Camera.CameraTo - Camera.CameraFrom);
+                    var inter = lineIntersection(Vector3d.Zero, Vector3d.UnitZ, Camera.Eye, Camera.Target - Camera.Eye);
                     if (inter != null)
                     {
                         drag = true;
                         //var shift = Camera.CamTo - inter.Value;
-                        var dl = Camera.DirLen;
+                        
                         bool fixedLen = false;
                         if (fixedLen)
                         {
-                            var shift2 = Camera.CameraFrom - Camera.CameraTo;
-                            Camera.CameraTo = inter.Value;
-                            Camera.CameraFrom = Camera.CameraTo + shift2;
-                            cameraToStart = Camera.CameraTo;
-                            cameraFromStart = Camera.CameraFrom;
+                            var shift2 = Camera.Eye - Camera.Target;
+                            Camera.Target = inter.Value;
+                            Camera.Eye = Camera.Target + shift2;
+                            cameraToStart = Camera.Target;
+                            cameraFromStart = Camera.Eye;
                         }
                         else
                         {
-                            Camera.CameraTo = inter.Value;
-                            cameraToStart = Camera.CameraTo;
+                            Camera.Target = inter.Value;
+                            cameraToStart = Camera.Target;
                         }
 
                     }
@@ -246,12 +248,12 @@ namespace CascadeDesktop
 
 
 
-                    var inter = lineIntersection(Camera.CameraTo, crs1, Vector3d.Zero, Vector3d.UnitX);
+                    var inter = lineIntersection(Camera.Target, crs1, Vector3d.Zero, Vector3d.UnitX);
                     if (inter != null)
                     {
                         drag = true;
-                        Camera.CameraTo = inter.Value;
-                        cameraToStart = Camera.CameraTo;
+                        Camera.Target = inter.Value;
+                        cameraToStart = Camera.Target;
                     }
                 }
                 else

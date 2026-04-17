@@ -1,4 +1,6 @@
 ﻿using CascadeDesktop.Interfaces;
+using FxEngine;
+using FxEngine.Cameras;
 using OCCTProxy.Common;
 using OpenTK;
 using OpenTK.GLControl;
@@ -55,11 +57,11 @@ namespace CascadeDesktop
         {
             if (pickedPoint != null)
             {
-                camera1.CameraTo = pickedPoint.Value;
+                camera1.Target = pickedPoint.Value;
             }
         }
         public CameraViewManager ViewManager;
-        Camera camera1 = new Camera() { IsOrtho = true };
+        Camera camera1 = new Camera() { IsOrtho = true, Eye = new Vector3(250, 250, 250) };
         private EventWrapperGlControl evwrapper;
         GLControl glControl;
         bool drawAxis = true;
@@ -132,7 +134,7 @@ namespace CascadeDesktop
             GL.Vertex3(0, 0, 100);
             GL.End();
             GL.PopMatrix();
-            camera1.Setup(glControl);
+            camera1.Setup(glControl.Size);
 
             if (drawAxis)
             {

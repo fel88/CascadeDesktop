@@ -1,4 +1,5 @@
 ﻿using CascadeDesktop.Interfaces;
+using FxEngine;
 using OCCTProxy.Common;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -50,7 +51,7 @@ namespace CascadeDesktop
             var nrm = item.Attribute("end").Value.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(z => double.Parse(z.Replace(",", "."), CultureInfo.InvariantCulture)).ToArray();
             End = new Vector3d(nrm[0], nrm[1], nrm[2]);
             if (item.Attribute("drawSize") != null)
-                DrawSize = StaticHelpers.ParseFloat(item.Attribute("drawSize").Value);
+                DrawSize = item.Attribute("drawSize").Value.ToFloat();
         }
 
         public override void MoveTo(Vector3d vector)

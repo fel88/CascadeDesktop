@@ -4,6 +4,7 @@ using CascadeDesktop.Interfaces;
 using CascadeDesktop.Tools;
 using CSPLib;
 using FxEngine;
+using FxEngine.Cameras;
 using FxEngine.Fonts;
 using FxEngine.Shaders;
 using MathNet.Numerics;
@@ -115,7 +116,7 @@ namespace CascadeDesktop
 
             if (first)
             {
-                var camera1 = new Camera() { IsOrtho = true };
+                var camera1 = new Camera() { IsOrtho = true, Eye = new Vector3(250, 250, 250) };
                 gpuCtx = new GpuDrawingContext()
                 {
                     Camera = camera1,
@@ -1487,7 +1488,7 @@ namespace CascadeDesktop
                     var d2 = nfps[i];
                     var d3 = nfps[j];
                     var f0 = d3.GetPoints()[0];
-                    if (StaticHelpers.pnpoly(d2.GetPoints().ToArray(), f0.X, f0.Y))
+                    if (d2.GetPoints().pnpoly(f0.X, f0.Y))
                     {
                         d3.Parent = d2;
                         if (!d2.Childrens.Contains(d3))
@@ -1507,7 +1508,7 @@ namespace CascadeDesktop
                 if (item.Parent != null)
                     continue;
 
-                sign = Math.Sign(StaticHelpers.signed_area(item.GetPoints().ToArray()));
+                sign = Math.Sign(item.GetPoints().signed_area());
                 blueprint.Contours.Add(item.ToBlueprintContour());
             }
             //holes
@@ -1516,7 +1517,7 @@ namespace CascadeDesktop
                 if (item.Parent == null)
                     continue;
 
-                if (Math.Sign(StaticHelpers.signed_area(item.GetPoints().ToArray())) == sign)
+                if (Math.Sign(item.GetPoints().signed_area()) == sign)
                 {
                     item.Reverse();
                 }
@@ -1962,7 +1963,7 @@ namespace CascadeDesktop
                                 ccc.Name = nm;
                                 ccc.SetTransparency((TransparencyLevel)Enum.Parse(typeof(TransparencyLevel), tr));
                                 ccc.SetColor(Color.FromArgb(cc[0], cc[1], cc[2]));
-                                ccc.SetMatrix(matrix.Split(';').Select(StaticHelpers.ParseDouble).ToArray());
+                                ccc.SetMatrix(matrix.Split(';').Select(FxEngine.StaticHelpers.ParseDouble).ToArray());
                             }
                             Objs.AddRange(rr);
                         }
@@ -2063,9 +2064,9 @@ namespace CascadeDesktop
 
 
             proxy.iterate();
-            var eye = proxy.GetEye().Value.ToVector3();
-            var center = proxy.GetCenter().Value.ToVector3();
-            var up = proxy.GetUp().Value.ToVector3();
+            var eye = proxy.GetEye().Value;
+            var center = proxy.GetCenter().Value;
+            var up = proxy.GetUp().Value;
 
 
 
@@ -2084,11 +2085,11 @@ namespace CascadeDesktop
             Vector3 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
 
 
-            Matrix4 view = Matrix4.LookAt(cameraPosition, cameraTarget, cameraUpVector);
+            Matrix4d view = Matrix4d.LookAt(cameraPosition, cameraTarget, cameraUpVector);
 
-            view = Matrix4.LookAt(eye, center, up);
+            view = Matrix4d.LookAt(eye, center, up);
             //Matrix4 model = Matrix4.Identity;
-            var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), (float)Width / Height, 0.1f, 100f);
+            var projection = Matrix4d.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), (float)Width / Height, 0.1f, 100f);
 
             //  projection = proxy.ProjectionMatrix().Value;
             //view = proxy.OrientationMatrix().Value;
@@ -2100,7 +2101,7 @@ namespace CascadeDesktop
             ///aScale = 1;
             var halfWidth = aScale * anAspect / 2.0f;
             var halfHeight = aScale / 2.0f;
-            projection = Matrix4.CreateOrthographicOffCenter(-halfWidth, halfWidth, -halfHeight, halfHeight, -100000, 100000);
+            projection = Matrix4d.CreateOrthographicOffCenter(-halfWidth, halfWidth, -halfHeight, halfHeight, -100000, 100000);
             //projection = Matrix4.CreateOrthographic(halfWidth*2, halfHeight*2, aZNear, aZFar);
             //projection = Matrix4.CreateOrthographic(glcontrol.Width, glcontrol.Height, aZNear, aZFar);
 
@@ -2141,12 +2142,12 @@ namespace CascadeDesktop
 
             if (MeshModelsEnabled)
             {
-                gpuCtx.Camera.CameraFrom = eye;
-                gpuCtx.Camera.CameraTo = center;
-                gpuCtx.Camera.CameraUp = up;
+                gpuCtx.Camera.Eye = eye;
+                gpuCtx.Camera.Target = center;
+                gpuCtx.Camera.Up = up;
 
-                gpuCtx.Camera.ProjectionMatrix = projection.ToMatrix4d();
-                gpuCtx.Camera.ViewMatrix = view.ToMatrix4d();
+                gpuCtx.Camera.ProjectionMatrix = projection;
+                gpuCtx.Camera.ViewMatrix = view;
 
                 foreach (var item in Scene.Parts)
                 {
@@ -2167,15 +2168,15 @@ namespace CascadeDesktop
                 cameraTarget = new Vector3(0.0f, 0.0f, 0.0f);
                 cameraUpVector = new Vector3(0.0f, 1.0f, 0.0f);
 
-                view = Matrix4.LookAt(cameraPosition, cameraTarget, cameraUpVector);
+                view = Matrix4d.LookAt(cameraPosition, cameraTarget, cameraUpVector);
 
                 //var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), (float)Width / Height, 0.1f, 100f);
-                projection = Matrix4.CreateOrthographic(glcontrol.Width, glcontrol.Height, -111, 111);
+                projection = Matrix4d.CreateOrthographic(glcontrol.Width, glcontrol.Height, -111, 111);
 
-                Matrix4 model = Matrix4.Identity;
-                model = Matrix4.CreateFromAxisAngle(new Vector3(0.0f, 1.0f, 0.0f), MathHelper.DegreesToRadians(_angle));
-                model *= Matrix4.CreateScale(100, 100, 100);
-                model *= Matrix4.CreateTranslation(-glcontrol.Width / 2 + 50, 0, 0);
+                Matrix4d model = Matrix4d.Identity;
+                model = Matrix4d.CreateFromAxisAngle(new Vector3(0.0f, 1.0f, 0.0f), MathHelper.DegreesToRadians(_angle));
+                model *= Matrix4d.CreateScale(100, 100, 100);
+                model *= Matrix4d.CreateTranslation(-glcontrol.Width / 2 + 50, 0, 0);
 
                 _angle += 2.51f;
 
@@ -2296,7 +2297,7 @@ namespace CascadeDesktop
             glcontrol.SwapBuffers();
         }
 
-        private void RenderMeshes(Vector3 eye, Matrix4 projection, Matrix4 view)
+        private void RenderMeshes(Vector3d eye, Matrix4d projection, Matrix4d view)
         {
             GL.Disable(EnableCap.FramebufferSrgb);
             //GL.UseProgram(shaderProgram);
