@@ -131,7 +131,7 @@ namespace CascadeDesktop
                 cam2.OrthoWidth = camera.OrthoWidth;
                 cam2.IsOrtho = camera.IsOrtho;
 
-                cam2.UpdateMatricies(Control);
+                cam2.UpdateMatricies(Control.Size);
                 MouseRay mr2 = new MouseRay(cur.X, cur.Y, cam2);
 
                 var diff = mr.Start - mr2.Start;

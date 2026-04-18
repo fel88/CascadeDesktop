@@ -4,6 +4,7 @@ using System.Linq;
 using System.IO;
 using System.Xml.Linq;
 using OpenTK.Mathematics;
+using FxEngine;
 
 namespace CSPLib
 {

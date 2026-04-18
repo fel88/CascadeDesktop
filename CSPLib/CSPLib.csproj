@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CascadeDesktop.Common\CascadeDesktop.Common.csproj" />
     <ProjectReference Include="..\clipper\clipperLib.csproj" />
+    <ProjectReference Include="..\FxEngine\FxEngine\FxEngine.csproj" />
     <ProjectReference Include="..\Triangle\Triangle.csproj" />
   </ItemGroup>
   <ItemGroup>

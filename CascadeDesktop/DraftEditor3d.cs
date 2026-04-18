@@ -184,7 +184,7 @@ namespace CascadeDesktop
         void PickUpdate()
         {
             var pos = glControl.PointToClient(System.Windows.Forms.Cursor.Position);
-            camera1.UpdateMatricies(glControl);
+            camera1.UpdateMatricies(glControl.Size);
             MouseRay.UpdateMatrices();
 
             var ray = new MouseRay(pos.X, pos.Y);

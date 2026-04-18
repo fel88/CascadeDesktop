@@ -6,6 +6,7 @@ using CSPLib;
 using FxEngine;
 using FxEngine.Cameras;
 using FxEngine.Fonts;
+using FxEngine.Loaders.Mesh;
 using FxEngine.Shaders;
 using MathNet.Numerics;
 using OCCTProxy;
@@ -2426,7 +2427,7 @@ namespace CascadeDesktop
         bool CustomRenderingDialogEnabled = false;
 
         private void DrawTextOverlay()
-        {            
+        {
             //textRenderer.RenderText("This is sample text", 25.0f, 25.0f, 1.0f, new Vector3(0.5f, 0.8f, 0.2f));
             //textRenderer.RenderText("(C) LearnOpenGL.com", 10.0f, glControl.Height - 30, 0.5f, new Vector3(0.3f, 0.7f, 0.9f));
             if (hovered != null)
@@ -2484,25 +2485,33 @@ namespace CascadeDesktop
             GL.Enable(EnableCap.DepthTest);
         }
 
+        public List<(OccSceneObject, GpuObject)> depthCache = new List<(OccSceneObject, GpuObject)>();
         private void RenderDepthOnly()
         {
             // Disable color writes
             GL.ColorMask(false, false, false, false);
+            depthCache.RemoveAll(z => !Objs.Any(u => u == z.Item1));
             foreach (var item in Objs)
             {
-                var poly = proxy.IteratePoly(item.TopHandle);
-                for (int i = 0; i < poly[0].Count; i += 3)
+                if (!depthCache.Any(z => z.Item1 == item))
                 {
-                    Vector3d item1 = poly[0][i];
-                    GL.Begin(PrimitiveType.Triangles);
-                    for (int j = 0; j < 3; j++)
-                    {
-                        var v = poly[0][i + j];
-                        GL.Vertex3(v.X, v.Y, v.Z);
-                    }
-
-                    GL.End();
+                    var poly = proxy.IteratePoly(item.TopHandle);
+                    depthCache.Add((item, new GpuObject(poly.SelectMany(z => z).ToArray())));
                 }
+                depthCache.First(z => z.Item1 == item).Item2.Draw();
+
+                //for (int i = 0; i < poly[0].Count; i += 3)
+                //{
+                //    Vector3d item1 = poly[0][i];
+                //    GL.Begin(PrimitiveType.Triangles);
+                //    for (int j = 0; j < 3; j++)
+                //    {
+                //        var v = poly[0][i + j];
+                //        GL.Vertex3(v.X, v.Y, v.Z);
+                //    }
+
+                //    GL.End();
+                //}
             }
             GL.ColorMask(true, true, true, true);
         }
