@@ -1260,22 +1260,21 @@ namespace CascadeDesktop
             var d = DialogHelpers.StartDialog();
             d.Text = "helix";
 
-            d.AddNumericField("r", "Radius", 15);
-            d.AddNumericField("r2", "Radius 2", 15);
-            d.AddNumericField("p", "Height", 20);
-            d.AddNumericField("turns", "Turns", 1);
+            d.AddDouble("r", "Radius", 15);
+            d.AddDouble("r2", "Radius 2", 15);
+            d.AddDouble("p", "Height", 20);
+            d.AddDouble("turns", "Turns", 1);
 
             if (!d.ShowDialog())
                 return;
 
-            var r = d.GetNumericField("r");
-            var r2 = d.GetNumericField("r2");
-            var p = d.GetNumericField("p");
-            var turns = d.GetNumericField("turns");
+            var r = d.GetDouble("r");
+            var r2 = d.GetDouble("r2");
+            var p = d.GetDouble("p");
+            var turns = d.GetDouble("turns");
 
             var so = proxy.HelixWire(r, r2, p, turns);
             Objs.Add(new OccSceneObject(so, proxy));
-
 
             proxy.UpdateCurrentViewer();
         }
@@ -2640,6 +2639,8 @@ namespace CascadeDesktop
                 dir.X, dir.Y, dir.Z, d.GetBoolField("connect"));
 
             Objs.Add(new OccSceneObject(res, proxy));
+
+            proxy.UpdateCurrentViewer();
         }
 
         bool renderMeshesEnabled = true;
