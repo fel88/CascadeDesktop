@@ -440,6 +440,8 @@ namespace CascadeDesktop
                     ClearStatus3();
                     AppendStatusVector("cylinder", vect);
                     AppendStatusVector("COM", c.COM);
+                    AppendStatusVector("Normal", c.Normal);
+                    AppendStatusVector("Normal origin", c.NormalOrigin);
                     AppendDouble("radius", c.Radius);
 
                 }
@@ -481,21 +483,42 @@ namespace CascadeDesktop
                 return;
             }
             var occ = GetSelectedOccObject();
-            string typeInfo = "";
+            int? typeInfo = null;
             try
             {
                 var h = proxy.GetSelectedObject();
-                typeInfo = h.ShapeType.ToString();
+                typeInfo = h.ShapeType;
             }
             catch (Exception ex)
             {
-
-
             }
-            SetStatus2(occ == null ? string.Empty : $"{occ.Name} (shape type: {typeInfo})");
+            SetStatus2(occ == null ? string.Empty : $"{occ.Name} (shape type: {ShapeTypeName(typeInfo)})");
 
             lastSelected = proxy.GetSelectedObject();
             UpdateStatus(lastSelected);
+        }
+
+        private string ShapeTypeName(int? typeInfo)
+        {
+            if (typeInfo == null)
+                return string.Empty;
+
+            switch (typeInfo.Value)
+            {
+                case 2:
+                    return "Solid";
+                case 3:
+                    return "Shell";
+                case 4:
+                    return "Face";
+                case 5:
+                    return "Wire";
+                case 6:
+                    return "Edge";
+                case 7:
+                    return "Vertex";
+            }
+            return typeInfo.Value.ToString();
         }
 
         private void Panel1_MouseWheel(object sender, MouseEventArgs e)
