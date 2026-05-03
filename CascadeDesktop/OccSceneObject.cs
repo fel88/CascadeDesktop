@@ -83,18 +83,18 @@ namespace CascadeDesktop
             Proxy.Remove(Handle);
         }
 
-        string GetXml(string name, string path)
+        public XElement GetXml(string path = null)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("<root>");
+
             var tr = Proxy.GetObjectMatrixValues(Handle);
 
-            sb.Append($"<model name=\"{name}\" path=\"{path}\" color=\"{Color.R};{Color.G};{Color.B}\" transparency=\"{Transparency}\" ");
+            sb.Append($"<model name=\"{Name}\" path=\"{path}\" color=\"{Color.R};{Color.G};{Color.B}\" transparency=\"{Transparency}\" ");
             sb.Append($"matrix=\"{string.Join(";", tr)}\"");
             sb.AppendLine("/>");
 
-            sb.AppendLine("</root>");
-            return sb.ToString();
+
+            return XElement.Parse(sb.ToString());
         }
 
         internal virtual void StoreToZip(IOZipContext ctx)
@@ -114,7 +114,7 @@ namespace CascadeDesktop
                 name = $"{prefixName}_{counter++}.model";
             }
 
-            var xml = GetXml(Name, name);
+            var xml = GetXml(name);
             var xfile = ctx.Zip.CreateEntry($"info_{ctx.ModelIdx++}.xml");
             using (var entryStream = xfile.Open())
             using (var streamWriter = new StreamWriter(entryStream))

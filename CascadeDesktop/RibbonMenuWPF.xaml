@@ -192,7 +192,11 @@
                         Click="prism_Click"
                         KeyTip="T"
                         Label="Prism" />
-
+                    <RibbonButton
+                        x:Name="plane"
+                        Click="plane_Click"
+                        KeyTip="P"
+                        Label="Plane" />
                 </RibbonGroup>
                 <RibbonGroup x:Name="draft" Header="Draft">
                     <RibbonButton
@@ -394,6 +398,7 @@
                     <RibbonButton
                         x:Name="undo"
                         KeyTip="X"
+                        Click="undo_Click"
                         Label="Undo"
                         SmallImageSource="Icons/arrow-curve-180-left.ico" />
                     <RibbonButton

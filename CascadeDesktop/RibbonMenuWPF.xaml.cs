@@ -358,5 +358,15 @@ namespace CascadeDesktop
         {
             Form.SectionByPlaneSelected();
         }
+
+        private void plane_Click(object sender, RoutedEventArgs e)
+        {
+            Form.AddPlane();
+        }
+
+        private void undo_Click(object sender, RoutedEventArgs e)
+        {
+            Form.Undo();
+        }
     }
 }

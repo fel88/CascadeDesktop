@@ -540,14 +540,21 @@ namespace CascadeDesktop
             SetTool(new Tools.SelectionTool(this));
             //toolStripButton9.Checked = true;
         }
+
         private void Panel1_Paint(object sender, PaintEventArgs e)
         {
+            if (proxy == null)
+                return;
+
             proxy.RedrawView();
             proxy.UpdateView();
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
+            if (proxy == null)
+                return;
+
             proxy.RedrawView();
             proxy.UpdateView();
         }
@@ -1930,6 +1937,7 @@ namespace CascadeDesktop
             }
         }
 
+
         OccSceneObject[] LoadModelFromZipStream(IOZipContext ctx, ZipArchiveEntry entry)
         {
             MemoryStream ms = new MemoryStream();
@@ -2664,6 +2672,48 @@ namespace CascadeDesktop
             Objs.Add(new OccSceneObject(res, proxy));
 
             proxy.UpdateCurrentViewer();
+        }
+
+        internal void AddPlane()
+        {
+            var d = AutoDialog.DialogHelpers.StartDialog();
+            d.AddDouble("cx", "X");
+            d.AddDouble("cy", "Y");
+            d.AddDouble("cz", "Z");
+
+            d.AddDouble("w", "Width", 100);
+            d.AddDouble("h", "Height", 50);
+
+            if (!d.ShowDialog())
+                return;
+
+            var cx = d.GetDouble("cx");
+            var cy = d.GetDouble("cy");
+            var cz = d.GetDouble("cz");
+            var w = d.GetDouble("w");
+            var h = d.GetDouble("h");
+            double area = w * h;
+            if (area.IsAlmostEquals(0.0))
+            {
+                MessageBox.Show("zero area. operation incorrect", Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            var center = new Vector3d(cx, cy, cz);
+            var cs = proxy.MakeRectFace(center + new Vector3d(-w / 2, -h / 2, 0),
+                     center + new Vector3d(w / 2, -h / 2, 0),
+                     center + new Vector3d(w / 2, h / 2, 0),
+                     center + new Vector3d(-w / 2, h / 2, 0));
+
+            Objs.Add(new OccSceneObject(cs, proxy));
+
+        }
+
+        Stack<XElement> undos = new Stack<XElement>();
+        internal void Undo()
+        {
+            //undos.Push(Scene.ToXml());
+            //todo mak model cache (by bytes)       
+            //throw new NotImplementedException();
         }
 
         bool renderMeshesEnabled = true;
