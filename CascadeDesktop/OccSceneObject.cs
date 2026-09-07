@@ -85,16 +85,16 @@ namespace CascadeDesktop
 
         public XElement GetXml(string path = null)
         {
-            StringBuilder sb = new StringBuilder();
-
             var tr = Proxy.GetObjectMatrixValues(Handle);
+            XElement element = new XElement("model");
+            element.Add(new XAttribute("name", Name));
+            element.Add(new XAttribute("path", path));
+            if (Color != null)
+                element.Add(new XAttribute("color", $"{Color.Value.R};{Color.Value.G};{Color.Value.B}"));
+            element.Add(new XAttribute("transparency", Transparency));
+            element.Add(new XAttribute("matrix", $"{string.Join(";", tr)}"));
 
-            sb.Append($"<model name=\"{Name}\" path=\"{path}\" color=\"{Color.R};{Color.G};{Color.B}\" transparency=\"{Transparency}\" ");
-            sb.Append($"matrix=\"{string.Join(";", tr)}\"");
-            sb.AppendLine("/>");
-
-
-            return XElement.Parse(sb.ToString());
+            return element;
         }
 
         internal virtual void StoreToZip(IOZipContext ctx)
@@ -137,7 +137,7 @@ namespace CascadeDesktop
             }
         }
 
-        public Color Color { get; private set; }
+        public Color? Color { get; private set; }
         internal void SetColor(Color color)
         {
             Color = color;

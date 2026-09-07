@@ -291,7 +291,14 @@ namespace CascadeDesktop
 
         private void saveAs_Click(object sender, RoutedEventArgs e)
         {
-            Form.SaveAsProject();
+            try
+            {
+                Form.SaveAsProject();
+            }
+            catch (Exception ex)
+            {
+                StaticHelpers.ShowError(ex.Message, "Error");
+            }
         }
 
 

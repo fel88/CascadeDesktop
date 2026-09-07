@@ -1978,7 +1978,8 @@ namespace CascadeDesktop
                         {
                             doc = XDocument.Parse(reader.ReadToEnd());
                         }
-                        var xx = doc.Root.Element("model");
+                        //var xx = doc.Root.Element("model");
+                        var xx = doc.Root;
                         var path = xx.Attribute("path").Value;
                         var nm = xx.Attribute("name").Value;
                         var tr = xx.Attribute("transparency").Value;
@@ -1987,13 +1988,18 @@ namespace CascadeDesktop
                         if (ee.Name.ToLower().EndsWith(".model"))
                         {
                             var rr = LoadModelFromZipStream(ctx, ee);
-                            var clr = xx.Attribute("color").Value;
-                            var cc = clr.Split(new char[] { ';' }).Select(int.Parse).ToArray();
+                            int[] color = null;
+                            if (xx.Attribute("color") != null)
+                            {
+                                var clr = xx.Attribute("color").Value;
+                                color = clr.Split(new char[] { ';' }).Select(int.Parse).ToArray();
+                            }
                             foreach (var ccc in rr)
                             {
                                 ccc.Name = nm;
                                 ccc.SetTransparency((TransparencyLevel)Enum.Parse(typeof(TransparencyLevel), tr));
-                                ccc.SetColor(Color.FromArgb(cc[0], cc[1], cc[2]));
+                                if (color != null)
+                                    ccc.SetColor(Color.FromArgb(color[0], color[1], color[2]));
                                 ccc.SetMatrix(matrix.Split(';').Select(FxEngine.StaticHelpers.ParseDouble).ToArray());
                             }
                             Objs.AddRange(rr);
