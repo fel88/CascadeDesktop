@@ -1067,16 +1067,21 @@ namespace CascadeDesktop
         {
             var d = DialogHelpers.StartDialog();
             d.Text = "New cylinder";
-            d.AddNumericField("r", "Radius", 15);
-            d.AddNumericField("h", "Height", 150);
+            d.AddDouble("r", "Radius", 15, min: 0.0001m);
+            d.AddDouble("h", "Height", 150, min: 0.0001m);
+            d.AddOptionsField("axis", "Axis", ["X", "Y", "Z"], 0);
 
             if (!d.ShowDialog())
                 return;
 
-            var r = d.GetNumericField("r");
-            var h = d.GetNumericField("h");
+            var r = d.GetDouble("r");
+            var h = d.GetDouble("h");
+            var axisIdx = d.GetOptionsFieldIdx("axis");
+            Vector3d axis = Vector3d.UnitX;
+            if (axisIdx == 1) axis = Vector3d.UnitY;
+            if (axisIdx == 2) axis = Vector3d.UnitZ;
 
-            var cs = proxy.MakeCylinder(r, h);
+            var cs = proxy.MakeCylinder(Vector3d.Zero, axis, r, h);
             Objs.Add(new OccSceneObject(cs, proxy));
         }
 
