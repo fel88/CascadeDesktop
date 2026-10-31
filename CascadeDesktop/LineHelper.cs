@@ -1,5 +1,6 @@
 ﻿using CascadeDesktop.Interfaces;
 using FxEngine;
+using FxEngine.Extensions;
 using OCCTProxy.Common;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;

@@ -5,6 +5,7 @@ using CascadeDesktop.Tools;
 using CSPLib;
 using FxEngine;
 using FxEngine.Cameras;
+using FxEngine.Extensions;
 using FxEngine.Fonts;
 using FxEngine.Loaders.Mesh;
 using FxEngine.Shaders;
@@ -2006,7 +2007,7 @@ namespace CascadeDesktop
                                 ccc.SetTransparency((TransparencyLevel)Enum.Parse(typeof(TransparencyLevel), tr));
                                 if (color != null)
                                     ccc.SetColor(Color.FromArgb(color[0], color[1], color[2]));
-                                ccc.SetMatrix(matrix.Split(';').Select(FxEngine.StaticHelpers.ParseDouble).ToArray());
+                                ccc.SetMatrix(matrix.Split(';').Select(FxEngine.Extensions.StaticHelpers.ParseDouble).ToArray());
                             }
                             Objs.AddRange(rr);
                         }

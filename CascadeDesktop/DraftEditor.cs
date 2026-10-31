@@ -1,5 +1,6 @@
 ﻿using AutoDialog;
 using FxEngine;
+using FxEngine.Extensions;
 using IxMilia.Dxf;
 using OCCTProxy.Common;
 using OpenTK;
