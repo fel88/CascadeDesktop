@@ -42,7 +42,7 @@ namespace CascadeDesktop
         public Form1()
         {
             InitializeComponent();
-            Form = this;
+            
             DebugHelpers.Error = (t) =>
             {
                 StaticHelpers.ShowError(this, t, Text);
@@ -272,11 +272,12 @@ namespace CascadeDesktop
         }
 
         RibbonMenu menu;
-        public static Form1 Form;
+        
 
         private void Form1_Load(object sender, EventArgs e)
         {
             menu = new RibbonMenu();
+            menu.Init(this);
             Controls.Add(menu);
             menu.AutoSize = true;
             menu.Dock = DockStyle.Top;

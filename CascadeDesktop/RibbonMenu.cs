@@ -15,15 +15,21 @@ namespace CascadeDesktop
     {
         public RibbonMenu()
         {
-            InitializeComponent();
+            InitializeComponent();            
+        }
+
+        public void Init(Form1 form)
+        {
             ElementHost elementHost1 = new ElementHost();
             Ribbon = new RibbonMenuWPF();
-            Ribbon.DataContext = Form1.Form;
+            Ribbon.Form = form;
+            Ribbon.DataContext = form;
             elementHost1.Child = Ribbon;
             Controls.Add(elementHost1);
             elementHost1.Dock = DockStyle.Fill;
             elementHost1.AutoSize = true;
         }
+
         public RibbonMenuWPF Ribbon;
 
     }

@@ -44,7 +44,7 @@ namespace CascadeDesktop
             ab.ShowDialog();
 
         }
-        public Form1 Form => Form1.Form;
+        public Form1 Form;
 
         private void fitAll_Click(object sender, RoutedEventArgs e)
         {
